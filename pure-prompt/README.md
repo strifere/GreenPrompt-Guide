@@ -1,36 +1,76 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Pure Prompt
 
-## Getting Started
+Next.js app with PostgreSQL via Docker Compose and Prisma ORM.
 
-First, run the development server:
+## Prerequisites
+
+- Docker + Docker Compose plugin
+- Node.js 20+ (for local non-docker workflows)
+
+## Environment Variables
+
+Create your environment file from the example:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Key vars:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- `POSTGRES_DB`
+- `POSTGRES_USER`
+- `POSTGRES_PASSWORD`
+- `DATABASE_URL`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Run with Docker Compose
 
-## Learn More
+Start database + app:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+docker compose up --build -d
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Open the app at `http://localhost:3000`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Stop all services:
 
-## Deploy on Vercel
+```bash
+docker compose down
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Reset database volume too:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+docker compose down -v
+```
+
+## Prisma Commands
+
+- Generate client: `npm run prisma:generate`
+- Push schema to database: `npm run prisma:push`
+- Introspect existing database: `npm run prisma:pull`
+- Open Prisma Studio: `npm run prisma:studio`
+
+Schema file: `prisma/schema.prisma`.
+
+## Prisma Studio on a Remote Machine
+
+The compose setup includes a dedicated `prisma-studio` service under the `tools` profile and binds it to `127.0.0.1:5555` on the remote host.
+
+On the remote machine:
+
+```bash
+docker compose --profile tools up -d prisma-studio
+```
+
+From your local machine, tunnel the remote Studio port over SSH:
+
+```bash
+ssh -L 5555:127.0.0.1:5555 <user>@<remote-host>
+```
+
+Then open locally:
+
+`http://localhost:5555`
+
+This keeps Prisma Studio off the public internet while still allowing remote management.
