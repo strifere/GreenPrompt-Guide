@@ -4,13 +4,117 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
-model Prompt {
-  id        String   @id @default(cuid())
-  title     String
-  content   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model User {
+  id       Int    @id @default(autoincrement())
+  username String @unique
+  password String
+
+  admin Admin?
+}
+
+model Admin {
+  id     Int @id @default(autoincrement())
+  userId Int @unique
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model PromptTechnique {
+  id          Int     @id @default(autoincrement())
+  name        String  @unique
+  description String
+  example     String?
+
+  practices Practice[]
+}
+
+model Practice {
+  id          Int        @id @default(autoincrement())
+  name        String
+  description String
+  greenScore  Int
+  tactic      TacticType
+
+  promptTechniques PromptTechnique[]
+  categories       Category[]
+  datasets         Dataset[]
+  references       Reference[]
+  models           Model[]
+  metrics          Metric[]
+}
+
+model Category {
+  id          Int        @id @default(autoincrement())
+  name        String
+  description String
+  tactic      TacticType
+
+  practices Practice[]
+}
+
+model Dataset {
+  id             Int      @id @default(autoincrement())
+  name           String
+  size           Int
+  dataFormatType DataType
+
+  practices  Practice[]
+  references Reference[]
+}
+
+model Reference {
+  id           Int      @id @default(autoincrement())
+  title        String
+  authors      String
+  doi          String
+  abstractText String   @map("abstract")
+  keywords     String[]
+
+  practices Practice[]
+  datasets  Dataset[]
+  models    Model[]
+}
+
+model Model {
+  id             Int      @id @default(autoincrement())
+  name           String
+  parameters     Int
+  dataFormatType DataType
+  size           Int
+
+  practices  Practice[]
+  references Reference[]
+}
+
+model Metric {
+  id    Int     @id @default(autoincrement())
+  title String
+  value Json
+  note  String?
+
+  practices Practice[]
+}
+
+enum TacticType {
+  GREEN_PRACTICE @map("Green Practice")
+  RED_PRACTICE   @map("Red Practice")
+}
+
+enum AccuracyImpact {
+  WORSE          @map("worse")
+  SAME_OR_WORSE  @map("same or worse")
+  SAME           @map("same")
+  SAME_OR_BETTER @map("same or better")
+  BETTER         @map("better")
+  A_LOT_BETTER   @map("a lot better")
+  ALMOST_PERFECT @map("almost perfect")
+}
+
+enum DataType {
+  TEXT_ONLY  @map("text_only")
+  IMAGE      @map("image")
+  PDF        @map("pdf")
+  ANY_FORMAT @map("any_format")
 }
