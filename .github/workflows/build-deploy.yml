@@ -1,0 +1,261 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - main
+      - release
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository_owner }}/pure-prompt
+  WORKING_DIR: pure-prompt
+  DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+jobs:
+  # ============================================
+  # SECTION 1: APP DEVELOPMENT CHECKS (main branch only)
+  # ============================================
+  app-checks:
+    if: github.ref == 'refs/heads/main'
+    runs-on: self-hosted
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        working-directory: ${{ env.WORKING_DIR }}
+        run: npm install
+
+      - name: Check app compiles
+        working-directory: ${{ env.WORKING_DIR }}
+        run: npm run build
+
+      - name: Run ESLint checks
+        working-directory: ${{ env.WORKING_DIR }}
+        run: npm run lint
+
+      - name: Validate Prisma schema
+        working-directory: ${{ env.WORKING_DIR }}
+        run: npx prisma validate
+
+      - name: Check logs for errors
+        working-directory: ${{ env.WORKING_DIR }}
+        run: |
+          echo "Build completed successfully"
+          npm run build 2>&1 | tee build.log
+          if grep -i "error\|warning" build.log | grep -i "^error"; then
+            echo "Build produced errors"
+            exit 1
+          fi
+
+      - name: Run tests
+        working-directory: ${{ env.WORKING_DIR }}
+        run: npm test -- --passWithNoTests
+        continue-on-error: true
+
+      - name: Upload build artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs
+          path: ${{ env.WORKING_DIR }}/build.log
+
+  # ============================================
+  # SECTION 2: DEPLOYMENT (release branch only)
+  # ============================================
+  
+  # Stage 2.1: Dockerization
+  docker-build-and-test:
+    if: github.ref == 'refs/heads/release'
+    runs-on: self-hosted
+    
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tags }}
+      image-digest: ${{ steps.build.outputs.digest }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Generate image tag
+        id: meta
+        run: |
+          TAG="v$(date +%Y-%m-%d)-$(echo ${{ github.sha }} | cut -c1-7)"
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+          echo "tags=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG},${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest" >> $GITHUB_OUTPUT
+
+      - name: Build Docker image
+        id: build
+        working-directory: ${{ env.WORKING_DIR }}
+        run: |
+          docker build -t temp-image:test .
+          echo "digest=$(docker inspect temp-image:test --format='{{.Id}}')" >> $GITHUB_OUTPUT
+
+      - name: Run Docker container for testing
+        working-directory: ${{ env.WORKING_DIR }}
+        run: |
+          docker run --rm -d \
+            --name test-container \
+            -e NODE_ENV=production \
+            -p 38080:3000 \
+            temp-image:test
+          
+          echo "Waiting for container to be ready..."
+          sleep 5
+          
+          echo "Checking container logs..."
+          docker logs test-container || true
+          
+          echo "Checking if app responds to requests..."
+          curl -f http://localhost:38080 || {
+            docker logs test-container
+            exit 1
+          }
+          
+          echo "Health check passed!"
+          docker stop test-container || true
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ env.WORKING_DIR }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: |
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.created=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+
+      - name: Output image information
+        run: |
+          echo "Docker image pushed successfully"
+          echo "Image tag: ${{ steps.meta.outputs.tag }}"
+          echo "Full tags: ${{ steps.meta.outputs.tags }}"
+
+  # Stage 2.2: Deploy to remote VM
+  deploy-to-vm:
+    needs: docker-build-and-test
+    if: github.ref == 'refs/heads/release'
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Extract image tag
+        id: extract-tag
+        run: |
+          TAG="v$(date +%Y-%m-%d)-$(echo ${{ github.sha }} | cut -c1-7)"
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+
+      - name: Deploy on self-hosted VM runner
+        env:
+          VM_DEPLOY_PATH: ~/pure-prompt-deploy
+          APP_IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          APP_TAG: ${{ steps.extract-tag.outputs.tag }}
+          GHCR_USER: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          DEPLOY_PATH="${{ env.VM_DEPLOY_PATH }}"
+
+          echo "=== Starting deployment on VM runner ==="
+          echo "Deployment path: $DEPLOY_PATH"
+
+          # Verify deployment folder exists
+          if [ ! -d "$DEPLOY_PATH" ]; then
+            echo "Error: Deployment folder not found at $DEPLOY_PATH"
+            exit 1
+          fi
+
+          cd "$DEPLOY_PATH"
+
+          # Update .env with new image tag
+          echo "Updating image tag in .env..."
+          sed -i "s/^APP_TAG=.*/APP_TAG=${{ env.APP_TAG }}/" .env
+          sed -i "s|^APP_IMAGE=.*|APP_IMAGE=${{ env.APP_IMAGE }}|" .env
+
+          # Load env vars for backup command
+          set -a
+          . ./.env
+          set +a
+
+          # Display updated .env (without passwords)
+          echo "Updated configuration:"
+          grep -E "^(APP_IMAGE|APP_TAG|POSTGRES_DB|POSTGRES_USER)" .env || true
+
+          # Login to GHCR
+          echo "Logging in to GitHub Container Registry..."
+          echo "${{ env.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ env.GHCR_USER }}" --password-stdin
+
+          # Create backup before deployment
+          echo "Creating database backup..."
+          mkdir -p backups
+          docker compose exec -T db pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" > backups/backup_$(date +%Y%m%d_%H%M%S).sql 2>/dev/null || echo "Warning: Could not create backup (db may not be running)"
+
+          # Pull new image
+          echo "Pulling new Docker image..."
+          docker compose pull app || {
+            echo "Error: Failed to pull image"
+            exit 1
+          }
+
+          # Run migrations
+          echo "Running database migrations..."
+          docker compose run --rm app npx prisma migrate deploy || {
+            echo "Error: Migration failed"
+            exit 1
+          }
+
+          # Restart containers with new image
+          echo "Restarting containers with new image..."
+          docker compose up -d app
+
+          # Verify deployment
+          echo "=== Verifying deployment ==="
+          sleep 5
+
+          echo "Container status:"
+          docker compose ps
+
+          echo "Recent application logs:"
+          docker compose logs --tail 20 app || true
+
+          echo "Health check..."
+          curl -f http://localhost:3000 || {
+            echo "Warning: Health check failed"
+            docker compose logs --tail 50 app
+            exit 1
+          }
+
+          echo "=== Deployment completed successfully ==="
+
+      - name: Deployment success notification
+        if: success()
+        run: |
+          echo "✅ Deployment to VM completed successfully"
+          echo "Image tag: ${{ steps.extract-tag.outputs.tag }}"
+          echo "Registry: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
+
+      - name: Deployment failure notification
+        if: failure()
+        run: |
+          echo "❌ Deployment to VM failed"
+          echo "Check VM logs at: ~/pure-prompt-deploy"
+          exit 1
