@@ -10,7 +10,6 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository_owner }}/pure-prompt
   WORKING_DIR: pure-prompt
-  DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
 jobs:
   # ============================================
@@ -75,6 +74,9 @@ jobs:
   docker-build-and-test:
     if: github.ref == 'refs/heads/release'
     runs-on: self-hosted
+    permissions:
+      contents: read
+      packages: write
     
     outputs:
       image-tag: ${{ steps.meta.outputs.tags }}
@@ -83,6 +85,13 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Prepare isolated Docker config
+        env:
+          DOCKER_CONFIG: ${{ runner.temp }}/.docker
+        run: |
+          mkdir -p "$DOCKER_CONFIG"
+          printf '{\n}\n' > "$DOCKER_CONFIG/config.json"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -101,36 +110,44 @@ jobs:
           docker build -t temp-image:test .
           echo "digest=$(docker inspect temp-image:test --format='{{.Id}}')" >> $GITHUB_OUTPUT
 
-      - name: Run Docker container for testing
+      - name: Run Docker Compose integration test (app + db)
         working-directory: ${{ env.WORKING_DIR }}
+        env:
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
         run: |
-          docker run --rm -d \
-            --name test-container \
-            -e NODE_ENV=production \
-            -p 38080:3000 \
-            temp-image:test
-          
-          echo "Waiting for container to be ready..."
-          sleep 5
-          
-          echo "Checking container logs..."
-          docker logs test-container || true
-          
-          echo "Checking if app responds to requests..."
-          curl -f http://localhost:38080 || {
-            docker logs test-container
-            exit 1
+          set -e
+
+          COMPOSE_FILE=../.github/docker-compose-actions.yml
+
+          cleanup() {
+            echo "Stopping Docker Compose test stack..."
+            docker compose -f "$COMPOSE_FILE" down -v --remove-orphans || true
           }
-          
-          echo "Health check passed!"
-          docker stop test-container || true
+          trap cleanup EXIT
+
+          docker compose -f "$COMPOSE_FILE" up -d db app
+
+          echo "Waiting for app HTTP health check..."
+          for i in {1..60}; do
+            if curl -fsS http://localhost:3000 >/dev/null; then
+              echo "Health check passed"
+              exit 0
+            fi
+            sleep 2
+          done
+
+          echo "Health check failed. Service logs:"
+          docker compose -f "$COMPOSE_FILE" logs app db || true
+          exit 1
 
       - name: Log in to Container Registry
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.GHCR_TOKEN }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
@@ -153,6 +170,9 @@ jobs:
     needs: docker-build-and-test
     if: github.ref == 'refs/heads/release'
     runs-on: self-hosted
+    permissions:
+      contents: read
+      packages: read
 
     steps:
       - name: Checkout code
@@ -170,10 +190,14 @@ jobs:
           APP_IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           APP_TAG: ${{ steps.extract-tag.outputs.tag }}
           GHCR_USER: ${{ github.actor }}
-          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+          DOCKER_CONFIG: ${{ runner.temp }}/.docker
         run: |
           set -e
-          DEPLOY_PATH="${{ env.VM_DEPLOY_PATH }}"
+          DEPLOY_PATH="${VM_DEPLOY_PATH/#\~/$HOME}"
+
+          mkdir -p "$DOCKER_CONFIG"
+          printf '{\n}\n' > "$DOCKER_CONFIG/config.json"
 
           echo "=== Starting deployment on VM runner ==="
           echo "Deployment path: $DEPLOY_PATH"
@@ -259,3 +283,4 @@ jobs:
           echo "❌ Deployment to VM failed"
           echo "Check VM logs at: ~/pure-prompt-deploy"
           exit 1
+# testing if the release pipeline works correctly

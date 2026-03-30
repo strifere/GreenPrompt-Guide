@@ -1,5 +1,8 @@
 FROM node:20-alpine
 
+ARG DATABASE_URL=postgresql://postgres:postgres@db:5432/sample_database?schema=public
+ENV DATABASE_URL=${DATABASE_URL}
+
 WORKDIR /app
 
 COPY package*.json ./
