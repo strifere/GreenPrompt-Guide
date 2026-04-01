@@ -16,5 +16,6 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
 EXPOSE 3000
+EXPOSE 5555
 
 CMD ["sh", "-c", "npm run prisma:push && npm run start"]

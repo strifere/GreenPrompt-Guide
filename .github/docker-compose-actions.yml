@@ -21,4 +21,4 @@ services:
       NODE_ENV: production
       NEXT_TELEMETRY_DISABLED: "1"
     ports:
-      - "3000:3000"
+      - "38080:3000"

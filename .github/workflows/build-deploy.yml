@@ -10,6 +10,7 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository_owner }}/pure-prompt
   WORKING_DIR: pure-prompt
+  DATABASE_URL: postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@localhost:5432/${{ secrets.POSTGRES_DB }}?schema=public
 
 jobs:
   # ============================================
@@ -131,7 +132,7 @@ jobs:
 
           echo "Waiting for app HTTP health check..."
           for i in {1..60}; do
-            if curl -fsS http://localhost:3000 >/dev/null; then
+            if curl -fsS http://localhost:38080 >/dev/null; then
               echo "Health check passed"
               exit 0
             fi
@@ -267,6 +268,9 @@ jobs:
             docker compose logs --tail 50 app
             exit 1
           }
+
+          # Start Prisma Studio
+          docker compose exec -d app npm run prisma:studio
 
           echo "=== Deployment completed successfully ==="
 
