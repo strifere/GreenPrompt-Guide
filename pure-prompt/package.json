@@ -10,7 +10,7 @@
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push",
     "prisma:pull": "prisma db pull",
-    "prisma:studio": "prisma studio --port 5555"
+    "prisma:studio": "prisma studio --port 5555 --browser none"
   },
   "dependencies": {
     "@prisma/client": "^7.6.0",

@@ -132,7 +132,7 @@ jobs:
 
           echo "Waiting for app HTTP health check..."
           for i in {1..60}; do
-            if curl -fsS http://localhost:3000 >/dev/null; then
+            if curl -fsS http://localhost:38080 >/dev/null; then
               echo "Health check passed"
               exit 0
             fi
