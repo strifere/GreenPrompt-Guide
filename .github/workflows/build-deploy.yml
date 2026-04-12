@@ -31,7 +31,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: ${{ env.WORKING_DIR }}
-        run: npm install
+        run: npm install --ignore-scripts
 
       - name: Check app compiles
         working-directory: ${{ env.WORKING_DIR }}
@@ -241,9 +241,9 @@ jobs:
             exit 1
           }
 
-          # Run migrations
+          # Run migrations before restarting the app container
           echo "Running database migrations..."
-          docker compose run --rm app npx prisma migrate deploy || {
+          docker compose run --rm --no-deps app npx prisma migrate deploy || {
             echo "Error: Migration failed"
             exit 1
           }

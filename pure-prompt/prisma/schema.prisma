@@ -30,6 +30,7 @@ enum EnergyMetricType {
 
 enum AccuracyLevel {
   WORSE
+  SAME_OR_WORSE
   SAME
   SAME_OR_BETTER
   BETTER
@@ -44,10 +45,18 @@ enum MetricSubtype {
 }
 
 enum StudyType {
-  EMPIRICAL_STUDY
+  BENCHMARKING
   CASE_STUDY
   COMPARATIVE_STUDY
+  COMPARATIVE_EVALUATION
   DESIGN_SCIENCE_RESEARCH
+  EXPERIMENTAL_INVESTIGATION
+  EMPIRICAL_STUDY
+  EXPLORATORY_STUDY
+  EMPIRICAL_EVALUATION
+  FRAMEWORK_EVALUATION
+  STRUCTURED_EVALUATION
+  ORIGINAL_RESEARCH
   OTHER
 }
 
@@ -75,8 +84,7 @@ model Admin {
 }
 
 model Category {
-  id          Int        @id @default(autoincrement())
-  name        String     @unique
+  name        String     @id
   description String?
   tactic      TacticType
   createdAt   DateTime   @default(now())
@@ -96,24 +104,24 @@ model Practice {
   verifiedAt  DateTime?
 
   // Relationships
-  categories      PracticeCategory[]
-  energyMetrics   EnergyMetric[]
-  accuracyMetrics AccuracyMetric[]
-  examples        PracticeExample[]
-  models          PracticeModel[]
-  papers          PaperPractice[]
-  prompts         PracticePromptTechnique[]
+  categories       PracticeCategory[]
+  models           PracticeModel[]
+  papers           PaperPractice[]
+  prompts          PracticePromptTechnique[]
+  practiceExamples PracticeExample[]
+  hyperparameters  Hyperparameter[]
+  metrics          Metric[]
 
   @@map("practices")
 }
 
 model PracticeCategory {
   practiceId Int
-  categoryId Int
+  categoryId String
   createdAt  DateTime @default(now())
 
   practice Practice @relation(fields: [practiceId], references: [id], onDelete: Cascade)
-  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [name], onDelete: Cascade)
 
   @@id([practiceId, categoryId])
   @@map("practice_categories")
@@ -121,27 +129,23 @@ model PracticeCategory {
 
 model EnergyMetric {
   metricId       Int              @id
-  practiceId     Int
   type           EnergyMetricType
   minValue       Float?
   maxValue       Float?
   bestGuessValue Float?
   unit           String           @default("PERCENTAGE")
 
-  metric   Metric   @relation(fields: [metricId], references: [id], onDelete: Cascade)
-  practice Practice @relation(fields: [practiceId], references: [id], onDelete: Cascade)
+  metric Metric @relation(fields: [metricId], references: [id], onDelete: Cascade)
 
   @@map("energy_metrics")
 }
 
 model AccuracyMetric {
-  metricId   Int           @id
-  practiceId Int
-  level      AccuracyLevel
-  score      Float? // Numeric representation 0-1
+  metricId Int           @id
+  level    AccuracyLevel
+  score    Float? // Numeric representation 0-1
 
-  metric   Metric   @relation(fields: [metricId], references: [id], onDelete: Cascade)
-  practice Practice @relation(fields: [practiceId], references: [id], onDelete: Cascade)
+  metric Metric @relation(fields: [metricId], references: [id], onDelete: Cascade)
 
   @@map("accuracy_metrics")
 }
@@ -156,71 +160,72 @@ model PracticeExample {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
+  // Relationship stored only here (disjoint: PracticeExample is specific to one Practice)
   practice Practice @relation(fields: [practiceId], references: [id], onDelete: Cascade)
 
   @@map("practice_examples")
 }
 
 model PromptTechnique {
-  id          Int      @id @default(autoincrement())
-  name        String   @unique
+  name        String   @id
   description String
   example     String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  practices PracticePromptTechnique[]
+  practices  PracticePromptTechnique[]
+  references PaperPromptTechnique[]
 
   @@map("prompt_techniques")
 }
 
 model PracticePromptTechnique {
   practiceId        Int
-  promptTechniqueId Int
+  promptTechniqueId String
   createdAt         DateTime @default(now())
 
   practice        Practice        @relation(fields: [practiceId], references: [id], onDelete: Cascade)
-  promptTechnique PromptTechnique @relation(fields: [promptTechniqueId], references: [id], onDelete: Cascade)
+  promptTechnique PromptTechnique @relation(fields: [promptTechniqueId], references: [name], onDelete: Cascade)
 
   @@id([practiceId, promptTechniqueId])
   @@map("practice_prompt_techniques")
 }
 
 model Model {
-  id          Int            @id @default(autoincrement())
-  name        String         @unique
-  description String?
-  parameters  String? // e.g., "7B", "13B"
-  dataFormat  DataFormatType @default(TEXT_ONLY)
-  size        String? // e.g., "small", "large"
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
+  name           String           @id
+  description    String?
+  parameters     String? // e.g., "7B", "13B"
+  dataFormatType DataFormatType[] @default([TEXT_ONLY])
+  size           String? // e.g., "small", "large"
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
 
-  practices PracticeModel[]
+  practices  PracticeModel[]
+  references ModelReference[]
 
   @@map("models")
 }
 
 model PracticeModel {
   practiceId Int
-  modelId    Int
+  modelId    String
   createdAt  DateTime @default(now())
 
   practice Practice @relation(fields: [practiceId], references: [id], onDelete: Cascade)
-  model    Model    @relation(fields: [modelId], references: [id], onDelete: Cascade)
+  model    Model    @relation(fields: [modelId], references: [name], onDelete: Cascade)
 
   @@id([practiceId, modelId])
   @@map("practice_models")
 }
 
 model Dataset {
-  id             Int            @id @default(autoincrement())
-  name           String         @unique
+  id             Int              @id @default(autoincrement())
+  name           String           @unique
   description    String?
   size           String? // e.g., "625 items", "large"
-  dataFormatType DataFormatType @default(TEXT_ONLY)
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+  dataFormatType DataFormatType[] @default([TEXT_ONLY])
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
 
   papers PaperDataset[]
 
@@ -228,25 +233,39 @@ model Dataset {
 }
 
 model Reference {
-  id               Int       @id @default(autoincrement())
+  id               Int         @id @default(autoincrement())
   title            String
   authors          String
   abstract         String?
   keywords         String? // comma-separated or JSON
   year             Int
-  studyType        StudyType
+  studyType        StudyType[]
   domain           String?
   task             String?
   venue            String? // conference, journal, arxiv, etc.
   toolAvailability String?
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
 
-  practices       PaperPractice[]
-  datasets        PaperDataset[]
-  hyperparameters PaperHyperparameter[]
+  practices        PaperPractice[]
+  datasets         PaperDataset[]
+  promptTechniques PaperPromptTechnique[]
+  hyperparameters  Hyperparameter[]
+  models           ModelReference[]
 
   @@map("references")
+}
+
+model ModelReference {
+  modelId     String
+  referenceId Int
+  createdAt   DateTime @default(now())
+
+  model     Model     @relation(fields: [modelId], references: [name], onDelete: Cascade)
+  reference Reference @relation(fields: [referenceId], references: [id], onDelete: Cascade)
+
+  @@id([modelId, referenceId])
+  @@map("model_references")
 }
 
 model PaperPractice {
@@ -273,30 +292,34 @@ model PaperDataset {
   @@map("paper_datasets")
 }
 
-model Hyperparameter {
-  id        Int      @id @default(autoincrement())
-  name      String
-  value     String // Flexible for various types
-  dataType  String // "string", "float", "int", "boolean"
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model PaperPromptTechnique {
+  promptTechniqueId String
+  referenceId       Int
+  createdAt         DateTime @default(now())
 
-  papers PaperHyperparameter[]
+  promptTechnique PromptTechnique @relation(fields: [promptTechniqueId], references: [name], onDelete: Cascade)
+  reference       Reference       @relation(fields: [referenceId], references: [id], onDelete: Cascade)
 
-  @@unique([name, value])
-  @@map("hyperparameters")
+  @@id([promptTechniqueId, referenceId])
+  @@map("paper_prompt_techniques")
 }
 
-model PaperHyperparameter {
-  referenceId      Int
-  hyperparameterId Int
-  createdAt        DateTime @default(now())
+model Hyperparameter {
+  id          Int      @id @default(autoincrement())
+  referenceId Int
+  practiceId  Int?
+  name        String
+  value       String // Flexible for various types
+  dataType    String // "string", "float", "int", "boolean"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  reference      Reference      @relation(fields: [referenceId], references: [id], onDelete: Cascade)
-  hyperparameter Hyperparameter @relation(fields: [hyperparameterId], references: [id], onDelete: Cascade)
+  // Relationship stored only here (disjoint: Hyperparameter belongs to exactly one Reference)
+  reference Reference @relation(fields: [referenceId], references: [id], onDelete: Cascade)
+  practice  Practice? @relation(fields: [practiceId], references: [id], onDelete: SetNull)
 
-  @@id([referenceId, hyperparameterId])
-  @@map("paper_hyperparameters")
+  @@unique([name, value, referenceId])
+  @@map("hyperparameters")
 }
 
 model Metric {
@@ -306,11 +329,13 @@ model Metric {
   value       String? // Can be numeric or text
   description String?
   confidence  Float? // Certainty of measurement (0.0 to 1.0)
+  practiceId  Int
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
-  energyMetric   EnergyMetric?
-  accuracyMetric AccuracyMetric?
+  practice        Practice         @relation(fields: [practiceId], references: [id], onDelete: Cascade)
+  energyMetrics   EnergyMetric[]
+  accuracyMetrics AccuracyMetric[]
 
   @@map("metrics")
 }
