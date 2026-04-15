@@ -8,7 +8,15 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci --ignore-scripts
 
-COPY . .
+COPY app ./app
+COPY public ./public
+COPY prisma ./prisma
+
+COPY next.config.ts ./
+COPY next-env.d.ts ./
+COPY tsconfig.json ./
+COPY postcss.config.mjs ./
+COPY prisma.config.ts ./
 
 ARG DATABASE_URL=postgresql://postgres:postgres@db:5432/sample_database?schema=public
 ENV DATABASE_URL=${DATABASE_URL}
