@@ -1,16 +1,7 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import Link from "next/link";
+import { montserrat } from "./ui/fonts";
 import "./globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -25,9 +16,27 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${montserrat.className} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <header className="topbar">
+          <div className="brand">PurePrompt</div>
+          <nav className="topnav-links" aria-label="Primary">
+            <Link href="/catalog">Catalog</Link>
+            <Link href="/contribute">Contribute</Link>
+            <Link href="/">About</Link>
+          </nav>
+          <div className="topbar-cta">
+            <Link href="/login" className="ghost-btn">
+              Log in
+            </Link>
+            <Link href="/contribute" className="solid-btn">
+              Sign up
+            </Link>
+          </div>
+        </header>
+        <main className="app-main">{children}</main>
+      </body>
     </html>
   );
 }
