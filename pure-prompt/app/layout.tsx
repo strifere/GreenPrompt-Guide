@@ -70,7 +70,7 @@ export default async function RootLayout({
       </head>
       <body className="min-h-full flex flex-col">
         <header className="topbar">
-          <div className="topbar-background" aria-hidden="true" >
+          <div >
             <Link href="/" className="brand brand-logo" aria-label="PurePrompt home">
               <Image
                 src="/PurePrompt_final_logo.png"
@@ -91,9 +91,15 @@ export default async function RootLayout({
             </Link>
           </div>
           <nav className="topnav-links topnav-links-desktop" aria-label="Primary">
-            <Link href="/catalog">Catalog</Link>
-            <Link href="/contribute">Contribute</Link>
-            <Link href="/">About</Link>
+            <Link href="/catalog" className="animated-link">
+              Catalog
+            </Link>
+            <Link href="/contribute" className="animated-link">
+              Contribute
+            </Link>
+            <Link href="/" className="animated-link">
+              About
+            </Link>
           </nav>
           <div className="topbar-cta topbar-cta-desktop">
             <ThemeToggle />
@@ -106,7 +112,9 @@ export default async function RootLayout({
           </div>
           <TopbarMenu />
         </header>
-        <main className="app-main">{children}</main>
+        <main className="app-main" >
+          {children}
+        </main>
       </body>
     </html>
   );

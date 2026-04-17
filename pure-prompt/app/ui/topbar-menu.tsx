@@ -3,12 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ThemeToggle } from "./theme-toggle";
+import { Menu } from "lucide-react";
 
 function MenuIcon() {
   return (
-    <svg aria-hidden="true" viewBox="0 0 24 24" className="topbar-menu-icon">
-      <path d="M4 6.5h16M4 12h16M4 17.5h16" />
-    </svg>
+    <Menu aria-hidden size={23} strokeWidth={1.5} />
   );
 }
 
@@ -57,6 +56,7 @@ export function TopbarMenu() {
         ref={buttonRef}
         type="button"
         className="topbar-menu-button"
+        data-open={open}
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label="Open menu"
@@ -68,13 +68,13 @@ export function TopbarMenu() {
       {open ? (
         <div ref={menuRef} className="topbar-menu-panel">
           <nav className="topnav-links topnav-links-mobile" aria-label="Primary">
-            <Link href="/catalog" onClick={closeMenu}>
+            <Link href="/catalog" className="animated-link" onClick={closeMenu}>
               Catalog
             </Link>
-            <Link href="/contribute" onClick={closeMenu}>
+            <Link href="/contribute" className="animated-link" onClick={closeMenu}>
               Contribute
             </Link>
-            <Link href="/" onClick={closeMenu}>
+            <Link href="/" className="animated-link" onClick={closeMenu}>
               About
             </Link>
           </nav>

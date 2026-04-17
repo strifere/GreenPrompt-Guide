@@ -140,6 +140,32 @@ a {
   font-weight: 600;
 }
 
+.animated-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding-bottom: 2px;
+}
+
+.animated-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  width: 100%;
+  height: 2px;
+  border-radius: 999px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 180ms ease;
+}
+
+.animated-link:hover::after,
+.animated-link:focus-visible::after {
+  transform: scaleX(1);
+}
+
 .topnav-links-mobile {
   display: none;
 }
@@ -166,11 +192,35 @@ a {
   background: color-mix(in srgb, var(--surface) 92%, transparent);
   color: var(--text-main);
   box-shadow: var(--shadow-soft);
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    background-color 160ms ease,
+    border-radius 160ms ease;
 }
 
 .topbar-menu-button:focus-visible {
   outline: 2px solid color-mix(in srgb, var(--accent) 70%, white);
   outline-offset: 2px;
+}
+
+.topbar-menu-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgb(17 19 26 / 14%);
+}
+
+.topbar-menu-button:active,
+.ghost-btn:active,
+.solid-btn:active,
+.theme-select:active,
+.practice-back-link:active {
+  transform: scale(0.97);
+}
+
+.topbar-menu-button[data-open="true"] {
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
+  box-shadow: 0 14px 32px rgb(17 19 26 / 18%);
 }
 
 .topbar-menu-icon {
@@ -194,6 +244,7 @@ a {
   background: color-mix(in srgb, var(--surface) 98%, transparent);
   box-shadow: 0 18px 50px rgb(17 19 26 / 16%);
   backdrop-filter: blur(18px);
+  animation: pop-in 180ms ease-out;
 }
 
 .topbar-menu-actions {
@@ -250,7 +301,12 @@ a {
   border: 4px solid var(--accent);
   background: transparent;
   color: var(--text-main);
-  transition: transform 150ms ease, opacity 150ms ease;
+  transition:
+    transform 150ms ease,
+    opacity 150ms ease,
+    box-shadow 150ms ease,
+    filter 150ms ease,
+    border-radius 150ms ease;
 }
 
 .solid-btn {
@@ -262,6 +318,7 @@ a {
 .solid-btn:hover {
   transform: translateY(-1px);
   opacity: 0.94;
+  box-shadow: 0 12px 26px rgb(17 19 26 / 12%);
 }
 
 .layout-grid {
@@ -284,8 +341,34 @@ a {
   display: none;
 }
 
+.sidebar-desktop-disclosure {
+  display: block;
+}
+
 .sidebar-mobile-inline {
   margin-top: 14px;
+}
+
+.sidebar-mobile-disclosure[open] .sidebar-mobile-summary,
+.sidebar-mobile-group[open] > summary {
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
+}
+
+.sidebar-mobile-panel {
+  display: grid;
+  gap: 18px;
+  padding-top: 16px;
+  overflow: visible;
+  max-height: none;
+  opacity: 1;
+  transform: translateY(0);
+  transition: none;
+}
+
+.sidebar-mobile-disclosure[open] .sidebar-mobile-panel {
+  max-height: none;
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .sidebar-group + .sidebar-group {
@@ -302,10 +385,70 @@ a {
   font-family: var(--font-display), "Trebuchet MS", sans-serif;
 }
 
-.sidebar-group ul {
-  margin: 0;
-  padding-left: 16px;
+.sidebar-mobile-group {
+  border: 0;
+  overflow: visible;
+  max-height: none;
+  transition: none;
+}
+
+.sidebar-mobile-group[open] {
+  max-height: none;
+}
+
+.sidebar-mobile-group > summary {
   list-style: none;
+  margin-bottom: 0;
+  padding: 8px 0;
+  font-size: 1.05rem;
+  font-family: var(--font-display), "Trebuchet MS", sans-serif;
+  font-weight: 700;
+  transition: transform 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
+}
+
+.sidebar-mobile-group > summary:hover {
+  transform: translateY(-1px);
+}
+
+.sidebar-mobile-group > summary::-webkit-details-marker {
+  display: none;
+}
+
+.sidebar-mobile-group > summary::after {
+  content: "+";
+  float: right;
+}
+
+.sidebar-mobile-group[open] > summary::after {
+  content: "−";
+}
+
+.sidebar-mobile-group ul {
+  margin: 0;
+  padding-left: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+  padding-top: 8px;
+}
+
+.filter-option-item {
+  margin: 0;
+}
+
+.filter-option-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-muted);
+  line-height: 1.35;
+  cursor: pointer;
+}
+
+.filter-option-input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
 }
 
 .sidebar-group li {
@@ -430,6 +573,147 @@ a {
   background: color-mix(in srgb, var(--surface) 80%, transparent);
 }
 
+.practice-details-page {
+  padding: 36px 24px;
+}
+
+.practice-details-shell {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.practice-details-header {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 14px;
+  align-items: start;
+}
+
+.practice-back-link {
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  border-radius: 999px;
+}
+
+.practice-back-link:hover {
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
+}
+
+.practice-details-header h1 {
+  margin: 0;
+  font-size: clamp(2rem, 4.1vw, 2.6rem);
+  line-height: 1.1;
+  font-family: var(--font-display), "Trebuchet MS", sans-serif;
+}
+
+.practice-details-header p {
+  margin: 10px 0 0;
+  max-width: 88ch;
+  color: var(--text-muted);
+  line-height: 1.55;
+}
+
+.practice-section {
+  margin-top: 22px;
+}
+
+.practice-section h2 {
+  margin: 0 0 10px;
+  font-size: 1.6rem;
+  font-family: var(--font-display), "Trebuchet MS", sans-serif;
+}
+
+.practice-section p {
+  margin: 8px 0;
+  line-height: 1.5;
+}
+
+.practice-example-grid {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.practice-example-card,
+.practice-metric-card {
+  min-height: 190px;
+  border: 1px solid color-mix(in srgb, var(--line-strong) 85%, transparent);
+  border-radius: 22px;
+  background: color-mix(in srgb, var(--surface) 95%, transparent);
+  box-shadow: var(--shadow-soft);
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 20px;
+}
+
+.practice-example-card h3,
+.practice-metric-card h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-family: var(--font-display), "Trebuchet MS", sans-serif;
+}
+
+.practice-example-card p,
+.practice-metric-card p {
+  margin: 8px 0 0;
+  color: var(--text-muted);
+}
+
+.practice-metrics-grid {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(180px, 1fr));
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+}
+
+.practice-facts-grid {
+  margin-top: 18px;
+  border-top: 2px solid color-mix(in srgb, var(--text-main) 55%, transparent);
+  padding-top: 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 2fr 1fr;
+}
+
+.practice-facts-grid article {
+  padding: 12px 14px;
+  border-right: 1px solid color-mix(in srgb, var(--line) 55%, transparent);
+}
+
+.practice-facts-grid article:last-child {
+  border-right: 0;
+}
+
+.practice-facts-grid h2 {
+  margin: 0 0 10px;
+  font-size: 1.45rem;
+  font-family: var(--font-display), "Trebuchet MS", sans-serif;
+}
+
+.practice-facts-grid ul,
+.practice-references ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.practice-facts-grid li,
+.practice-references li {
+  margin: 6px 0;
+  color: var(--text-muted);
+}
+
+.practice-references h2 {
+  font-size: 1.8rem;
+}
+
 .mobile-footer {
   display: none;
 }
@@ -479,6 +763,10 @@ a {
     display: block;
   }
 
+  .sidebar-desktop-disclosure {
+    display: none;
+  }
+
   .sidebar-mobile-disclosure > summary {
     list-style: none;
   }
@@ -513,10 +801,31 @@ a {
     display: grid;
     gap: 18px;
     padding-top: 16px;
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transform: translateY(-4px);
+    transition:
+      max-height 260ms ease,
+      opacity 220ms ease,
+      transform 220ms ease;
+  }
+
+  .sidebar-mobile-disclosure[open] .sidebar-mobile-panel {
+    max-height: 999px;
+    opacity: 1;
+    transform: translateY(0);
   }
 
   .sidebar-mobile-group {
     border: 0;
+    overflow: hidden;
+    max-height: 48px;
+    transition: max-height 220ms ease;
+  }
+
+  .sidebar-mobile-group[open] {
+    max-height: 420px;
   }
 
   .sidebar-mobile-group > summary {
@@ -526,14 +835,45 @@ a {
     font-size: 1.05rem;
     font-family: var(--font-display), "Trebuchet MS", sans-serif;
     font-weight: 700;
+    transition: transform 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
+  }
+
+  .sidebar-mobile-group > summary:hover {
+    transform: translateY(-1px);
   }
 
   .sidebar-mobile-group > summary::-webkit-details-marker {
     display: none;
   }
 
+  .sidebar-mobile-group > summary::after {
+    content: "+";
+    float: right;
+  }
+
+  .sidebar-mobile-group[open] > summary::after {
+    content: "−";
+  }
+
   .sidebar-mobile-group ul {
+    margin: 0;
     padding-left: 0;
+    list-style: none;
+    display: grid;
+    gap: 8px;
+    padding-top: 8px;
+  }
+
+  @keyframes pop-in {
+    from {
+      opacity: 0;
+      transform: translateY(-6px) scale(0.98);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
   }
 
   .title-row {
@@ -547,6 +887,38 @@ a {
 
   .practice-card header {
     flex-direction: column;
+  }
+
+  .practice-details-page {
+    padding: 26px 20px;
+  }
+
+  .practice-details-header {
+    grid-template-columns: auto 1fr;
+    gap: 10px;
+  }
+
+  .practice-example-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .practice-metrics-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .practice-facts-grid {
+    grid-template-columns: 1fr;
+    border-top-width: 1px;
+  }
+
+  .practice-facts-grid article {
+    border-right: 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--line) 45%, transparent);
+    padding: 12px 0;
+  }
+
+  .practice-facts-grid article:last-child {
+    border-bottom: 0;
   }
 
   .mobile-footer {
