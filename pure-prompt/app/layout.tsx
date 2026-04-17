@@ -4,6 +4,7 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { montserrat } from "./ui/fonts";
 import { ThemeToggle } from "./ui/theme-toggle";
+import { TopbarMenu } from "./ui/topbar-menu";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -69,30 +70,32 @@ export default async function RootLayout({
       </head>
       <body className="min-h-full flex flex-col">
         <header className="topbar">
-          <Link href="/" className="brand brand-logo" aria-label="PurePrompt home">
-            <Image
-              src="/PurePrompt_final_logo.png"
-              alt="PurePrompt"
-              width={440}
-              height={378}
-              className="logo-light"
-              priority
-            />
-            <Image
-              src="/PurePrompt_final_logo_dark.png"
-              alt="PurePrompt"
-              width={440}
-              height={378}
-              className="logo-dark"
-              priority
-            />
-          </Link>
-          <nav className="topnav-links" aria-label="Primary">
+          <div className="topbar-background" aria-hidden="true" >
+            <Link href="/" className="brand brand-logo" aria-label="PurePrompt home">
+              <Image
+                src="/PurePrompt_final_logo.png"
+                alt="PurePrompt"
+                width={440}
+                height={378}
+                className="logo-light"
+                priority
+              />
+              <Image
+                src="/PurePrompt_final_logo_dark.png"
+                alt="PurePrompt"
+                width={440}
+                height={378}
+                className="logo-dark"
+                priority
+              />
+            </Link>
+          </div>
+          <nav className="topnav-links topnav-links-desktop" aria-label="Primary">
             <Link href="/catalog">Catalog</Link>
             <Link href="/contribute">Contribute</Link>
             <Link href="/">About</Link>
           </nav>
-          <div className="topbar-cta">
+          <div className="topbar-cta topbar-cta-desktop">
             <ThemeToggle />
             <Link href="/login" className="ghost-btn">
               Log in
@@ -101,6 +104,7 @@ export default async function RootLayout({
               Sign up
             </Link>
           </div>
+          <TopbarMenu />
         </header>
         <main className="app-main">{children}</main>
       </body>

@@ -26,52 +26,73 @@ export default async function CatalogPage() {
     <>
       <div className="layout-grid">
         <aside className="sidebar" aria-label="Practice filters">
-          {sidebarGroups.map((group) => (
-            <section key={group.title} className="sidebar-group">
-              <h2>{group.title}</h2>
-              <ul>
-                {group.items.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-            </section>
-          ))}
+          <div className="sidebar-desktop">
+            {sidebarGroups.map((group) => (
+              <section key={group.title} className="sidebar-group">
+                <h2>{group.title}</h2>
+                <ul>
+                  {group.items.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </section>
+            ))}
+          </div>
         </aside>
 
         <main className="content" aria-label="Practice catalog">
-          <div className="title-row">
-            <h1>List of practices</h1>
-            <label className="search-box" aria-label="Search practices">
-              <span className="search-icon" aria-hidden>
-                &#128269;
-              </span>
-              <input type="search" placeholder="Search practices" />
-            </label>
-          </div>
+          
+          <div className="catalog-body">
+            <div className="title-row">
+              <h1>List of practices</h1>
+              <label className="search-box" aria-label="Search practices">
+                <span className="search-icon" aria-hidden>
+                  &#128269;
+                </span>
+                <input type="search" placeholder="Search practices" />
+              </label>
+            </div>
 
-          <div className="practice-list">
-            {practices.map((practice) => (
-              <Link
-                key={practice.id}
-                href={`/catalog/practices/${practice.id}`}
-                className="practice-card"
-              >
-                <header>
-                  <h2>{practice.name}</h2>
-                  <div className="tags" aria-label="Practice categories">
-                    {practice.categories.slice(0, 2).map((category) => (
-                      <span key={`${practice.id}-${category.category.name}`}>
-                        {category.category.name}
-                      </span>
-                    ))}
-                  </div>
-                </header>
-                <p>{practice.description}</p>
-                <small>
-                  Extracted from: {practice.papers[0]?.reference.title ?? "Reference"}
-                </small>
-              </Link>
-            ))}
+            <details className="sidebar-mobile-disclosure sidebar-mobile-inline">
+              <summary className="sidebar-mobile-summary">Filters</summary>
+              <div className="sidebar-mobile-panel">
+                {sidebarGroups.map((group) => (
+                  <details key={group.title} className="sidebar-mobile-group">
+                    <summary>{group.title}</summary>
+                    <ul>
+                      {group.items.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  </details>
+                ))}
+              </div>
+            </details>
+
+            <div className="practice-list">
+              {practices.map((practice) => (
+                <Link
+                  key={practice.id}
+                  href={`/catalog/practices/${practice.id}`}
+                  className="practice-card"
+                >
+                  <header>
+                    <h2>{practice.name}</h2>
+                    <div className="tags" aria-label="Practice categories">
+                      {practice.categories.map((category) => (
+                        <span key={`${practice.id}-${category.category.name}`}>
+                          {category.category.name}
+                        </span>
+                      ))}
+                    </div>
+                  </header>
+                  <p>{practice.description}</p>
+                  <small>
+                    Extracted from: {practice.papers[0]?.reference.title ?? "Reference"}
+                  </small>
+                </Link>
+              ))}
+            </div>
           </div>
         </main>
       </div>

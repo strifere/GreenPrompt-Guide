@@ -100,9 +100,9 @@ a {
   grid-template-columns: 1fr auto auto;
   gap: 28px;
   align-items: center;
-  padding: 0 24px;
+  padding: 0 26px;
   background: color-mix(in srgb, var(--surface) 90%, transparent);
-  border-bottom: 1px solid color-mix(in srgb, var(--line) 30%, transparent);
+  border-bottom: 3px solid color-mix(in srgb, var(--line) 30%, transparent);
   backdrop-filter: blur(10px);
 }
 
@@ -140,10 +140,74 @@ a {
   font-weight: 600;
 }
 
+.topnav-links-mobile {
+  display: none;
+}
+
 .topbar-cta {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.topbar-menu-wrap {
+  display: none;
+  position: relative;
+}
+
+.topbar-menu-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid color-mix(in srgb, var(--line) 55%, var(--accent));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  color: var(--text-main);
+  box-shadow: var(--shadow-soft);
+}
+
+.topbar-menu-button:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 70%, white);
+  outline-offset: 2px;
+}
+
+.topbar-menu-icon {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-width: 2;
+}
+
+.topbar-menu-panel {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  z-index: 20;
+  min-width: min(280px, calc(100vw - 32px));
+  padding: 14px;
+  border: 1px solid color-mix(in srgb, var(--line) 35%, transparent);
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--surface) 98%, transparent);
+  box-shadow: 0 18px 50px rgb(17 19 26 / 16%);
+  backdrop-filter: blur(18px);
+}
+
+.topbar-menu-actions {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.topbar-menu-actions .theme-select-wrap {
+  width: 100%;
+}
+
+.topbar-menu-actions .theme-select {
+  width: 100%;
 }
 
 .theme-select-wrap {
@@ -212,8 +276,24 @@ a {
   border-right: 1px solid color-mix(in srgb, var(--line) 35%, transparent);
 }
 
+.sidebar-desktop {
+  display: block;
+}
+
+.sidebar-mobile-disclosure {
+  display: none;
+}
+
+.sidebar-mobile-inline {
+  margin-top: 14px;
+}
+
 .sidebar-group + .sidebar-group {
   margin-top: 24px;
+}
+
+.sidebar-group {
+  border: 0;
 }
 
 .sidebar-group h2 {
@@ -356,16 +436,31 @@ a {
 
 @media (max-width: 1000px) {
   .topbar {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr auto;
     height: auto;
     gap: 10px;
     padding: 14px 20px;
   }
 
-  .topnav-links,
-  .topbar-cta {
-    flex-wrap: wrap;
-    gap: 14px;
+  .topnav-links-desktop,
+  .topbar-cta-desktop {
+    display: none;
+  }
+
+  .topbar-menu-wrap {
+    display: block;
+  }
+
+  .topnav-links-mobile {
+    display: grid;
+    gap: 12px;
+    padding: 0;
+    font-weight: 600;
+  }
+
+  .topbar-menu-actions {
+    display: grid;
+    gap: 12px;
   }
 
   .layout-grid {
@@ -373,8 +468,72 @@ a {
   }
 
   .sidebar {
-    border-right: 0;
-    border-bottom: 1px solid color-mix(in srgb, var(--line) 35%, transparent);
+    display: none;
+  }
+
+  .sidebar-desktop {
+    display: none;
+  }
+
+  .sidebar-mobile-disclosure {
+    display: block;
+  }
+
+  .sidebar-mobile-disclosure > summary {
+    list-style: none;
+  }
+
+  .sidebar-mobile-disclosure > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .sidebar-mobile-summary {
+    display: inline-flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    border: 1px solid color-mix(in srgb, var(--line) 35%, transparent);
+    border-radius: 18px;
+    background: color-mix(in srgb, var(--surface) 92%, transparent);
+    font-family: var(--font-display), "Trebuchet MS", sans-serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+  }
+
+  .sidebar-mobile-summary::after {
+    content: "▾";
+  }
+
+  .sidebar-mobile-disclosure[open] .sidebar-mobile-summary::after {
+    content: "▴";
+  }
+
+  .sidebar-mobile-panel {
+    display: grid;
+    gap: 18px;
+    padding-top: 16px;
+  }
+
+  .sidebar-mobile-group {
+    border: 0;
+  }
+
+  .sidebar-mobile-group > summary {
+    list-style: none;
+    margin-bottom: 0;
+    padding: 8px 0;
+    font-size: 1.05rem;
+    font-family: var(--font-display), "Trebuchet MS", sans-serif;
+    font-weight: 700;
+  }
+
+  .sidebar-mobile-group > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .sidebar-mobile-group ul {
+    padding-left: 0;
   }
 
   .title-row {
