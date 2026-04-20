@@ -10,6 +10,10 @@ export default defineConfig({
     coverage: {
       reporter: ["text", "html", "lcov"],
       provider: "v8",
+      exclude: [
+        "node_modules/",
+        "tests/",
+      ],
     },
   },
   resolve: {
