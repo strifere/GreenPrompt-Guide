@@ -24,6 +24,10 @@ jobs:
         run: npm install --ignore-scripts
         working-directory: pure-prompt
 
+      - name: Run tests with coverage
+        run: npm run test -- --coverage
+        working-directory: pure-prompt
+
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v2
         env:
