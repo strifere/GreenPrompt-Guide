@@ -19,7 +19,8 @@ SET "studyType_new" = COALESCE(
     FROM unnest("studyType") AS x
   ),
   'Other'
-);
+)
+WHERE "studyType_new" IS NULL;
 
 -- 3) Replace old column
 ALTER TABLE "references" DROP COLUMN "studyType";
@@ -27,4 +28,4 @@ ALTER TABLE "references" RENAME COLUMN "studyType_new" TO "studyType";
 ALTER TABLE "references" ALTER COLUMN "studyType" SET NOT NULL;
 
 -- 4) Drop old enum type (now unused)
-DROP TYPE "StudyType";
+DROP TYPE StudyType;
