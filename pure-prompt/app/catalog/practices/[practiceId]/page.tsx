@@ -42,6 +42,14 @@ export default async function PracticeDetailsPage({
 
         <section className="practice-section">
           <p>{practice.description}</p>
+          <h2> Categories: </h2>
+          <div className="tags" aria-label="Practice categories">
+            {practice.categories.map((category) => (
+              <span key={`${practice.id}-${category.category.name}`}>
+                {category.category.name}
+              </span>
+            ))}
+          </div>
           <h2>Example:</h2>
           <p>
             <strong>Scenario:</strong>{" "}

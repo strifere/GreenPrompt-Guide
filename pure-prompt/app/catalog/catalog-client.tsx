@@ -28,6 +28,15 @@ type PracticeCardProps = Readonly<{
   practice: PracticeListItem;
 }>;
 
+type SearchFiltersPanelProps = Readonly<{
+  includeSourceInSearch: boolean;
+  createdFrom: string;
+  createdTo: string;
+  onIncludeSourceInSearchChange: (enabled: boolean) => void;
+  onCreatedFromChange: (value: string) => void;
+  onCreatedToChange: (value: string) => void;
+}>;
+
 function unique(values: string[]) {
   return Array.from(new Set(values));
 }
@@ -56,6 +65,11 @@ function practiceValues(practice: PracticeListItem): Record<FilterKey, string[]>
   };
 }
 
+function practiceCreatedAtTimestamp(practice: PracticeListItem) {
+  const value = new Date(practice.createdAt).getTime();
+  return Number.isNaN(value) ? null : value;
+}
+
 function PracticeCard({ practice }: PracticeCardProps) {
   return (
     <Link href={`/catalog/practices/${practice.id}`} className="practice-card">
@@ -72,6 +86,45 @@ function PracticeCard({ practice }: PracticeCardProps) {
       <p>{practice.description}</p>
       <small>Extracted from: {practice.papers[0]?.reference.title ?? "Reference"}</small>
     </Link>
+  );
+}
+
+function SearchFiltersPanel({
+  includeSourceInSearch,
+  createdFrom,
+  createdTo,
+  onIncludeSourceInSearchChange,
+  onCreatedFromChange,
+  onCreatedToChange,
+}: SearchFiltersPanelProps) {
+  return (
+    <section className="sidebar-search-filters" aria-label="Search filters">
+      <h2>Search filters</h2>
+      <label className="filter-option-label sidebar-search-toggle">
+        <input
+          type="checkbox"
+          className="filter-option-input"
+          checked={includeSourceInSearch}
+          onChange={(event) => onIncludeSourceInSearchChange(event.target.checked)}
+        />
+        <span>Search by source reference title</span>
+      </label>
+
+      <div className="sidebar-date-fields">
+        <label className="sidebar-date-field">
+          <span>Created from</span>
+          <input
+            type="date"
+            value={createdFrom}
+            onChange={(event) => onCreatedFromChange(event.target.value)}
+          />
+        </label>
+        <label className="sidebar-date-field">
+          <span>Created to</span>
+          <input type="date" value={createdTo} onChange={(event) => onCreatedToChange(event.target.value)} />
+        </label>
+      </div>
+    </section>
   );
 }
 
@@ -110,6 +163,9 @@ function FilterPanel({ groups, selectedFilters, onToggleFilter }: FilterPanelPro
 
 export default function CatalogClient({ practices, sidebarData }: CatalogClientProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [includeSourceInSearch, setIncludeSourceInSearch] = useState(false);
+  const [createdFrom, setCreatedFrom] = useState("");
+  const [createdTo, setCreatedTo] = useState("");
   const [selectedFilters, setSelectedFilters] = useState<Record<FilterKey, string[]>>({
     categories: [],
     models: [],
@@ -142,16 +198,45 @@ export default function CatalogClient({ practices, sidebarData }: CatalogClientP
 
   const filteredPractices = useMemo(() => {
     const normalizedSearch = searchQuery.trim().toLowerCase();
+    const createdFromTimestamp = createdFrom
+      ? new Date(`${createdFrom}T00:00:00`).getTime()
+      : null;
+    const createdToTimestamp = createdTo
+      ? new Date(`${createdTo}T23:59:59.999`).getTime()
+      : null;
+
+    const minCreatedTimestamp =
+      createdFromTimestamp !== null && createdToTimestamp !== null
+        ? Math.min(createdFromTimestamp, createdToTimestamp)
+        : createdFromTimestamp;
+    const maxCreatedTimestamp =
+      createdFromTimestamp !== null && createdToTimestamp !== null
+        ? Math.max(createdFromTimestamp, createdToTimestamp)
+        : createdToTimestamp;
 
     return practices.filter((practice) => {
       const values = practiceValues(practice);
+      const createdAtTimestamp = practiceCreatedAtTimestamp(practice);
 
-      const passesSearch =
-        normalizedSearch.length === 0 ||
+      const matchesNameOrDescription =
         practice.name.toLowerCase().includes(normalizedSearch) ||
         practice.description.toLowerCase().includes(normalizedSearch);
+      const matchesSourceTitle =
+        includeSourceInSearch &&
+        practice.papers.some((paper) =>
+          paper.reference.title.toLowerCase().includes(normalizedSearch),
+        );
+      const passesSearch =
+        normalizedSearch.length === 0 || matchesNameOrDescription || matchesSourceTitle;
 
-      if (!passesSearch) {
+      const passesCreatedAtFrom =
+        minCreatedTimestamp === null ||
+        (createdAtTimestamp !== null && createdAtTimestamp >= minCreatedTimestamp);
+      const passesCreatedAtTo =
+        maxCreatedTimestamp === null ||
+        (createdAtTimestamp !== null && createdAtTimestamp <= maxCreatedTimestamp);
+
+      if (!passesSearch || !passesCreatedAtFrom || !passesCreatedAtTo) {
         return false;
       }
 
@@ -165,7 +250,15 @@ export default function CatalogClient({ practices, sidebarData }: CatalogClientP
 
       return true;
     });
-  }, [practices, searchQuery, selectedFilters, sidebarGroups]);
+  }, [
+    practices,
+    searchQuery,
+    includeSourceInSearch,
+    createdFrom,
+    createdTo,
+    selectedFilters,
+    sidebarGroups,
+  ]);
 
   const totalSelectedFilters =
     selectedFilters.categories.length +
@@ -183,6 +276,14 @@ export default function CatalogClient({ practices, sidebarData }: CatalogClientP
               Filters{totalSelectedFilters > 0 ? ` (${totalSelectedFilters})` : ""}
             </summary>
             <div className="sidebar-mobile-panel">
+              <SearchFiltersPanel
+                includeSourceInSearch={includeSourceInSearch}
+                createdFrom={createdFrom}
+                createdTo={createdTo}
+                onIncludeSourceInSearchChange={setIncludeSourceInSearch}
+                onCreatedFromChange={setCreatedFrom}
+                onCreatedToChange={setCreatedTo}
+              />
               <FilterPanel
                 groups={sidebarGroups}
                 selectedFilters={selectedFilters}
@@ -196,17 +297,17 @@ export default function CatalogClient({ practices, sidebarData }: CatalogClientP
           <div className="catalog-body">
             <div className="title-row">
               <h1>List of practices</h1>
-              <label className="search-box" aria-label="Search practices">
-                <span className="search-icon" aria-hidden>
-                  <Search size={18} />
-                </span>
-                <input
-                  type="search"
-                  placeholder="Search practices"
-                  value={searchQuery}
-                  onChange={(event) => setSearchQuery(event.target.value)}
-                />
-              </label>
+                <label className="search-box" aria-label="Search practices">
+                  <span className="search-icon" aria-hidden>
+                    <Search size={18} />
+                  </span>
+                  <input
+                    type="search"
+                    placeholder="Search practices"
+                    value={searchQuery}
+                    onChange={(event) => setSearchQuery(event.target.value)}
+                  />
+                </label>
             </div>
 
             <details className="sidebar-mobile-disclosure sidebar-mobile-inline">
@@ -214,6 +315,14 @@ export default function CatalogClient({ practices, sidebarData }: CatalogClientP
                 Filters{totalSelectedFilters > 0 ? ` (${totalSelectedFilters})` : ""}
               </summary>
               <div className="sidebar-mobile-panel">
+                <SearchFiltersPanel
+                  includeSourceInSearch={includeSourceInSearch}
+                  createdFrom={createdFrom}
+                  createdTo={createdTo}
+                  onIncludeSourceInSearchChange={setIncludeSourceInSearch}
+                  onCreatedFromChange={setCreatedFrom}
+                  onCreatedToChange={setCreatedTo}
+                />
                 <FilterPanel
                   groups={sidebarGroups}
                   selectedFilters={selectedFilters}

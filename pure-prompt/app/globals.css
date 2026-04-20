@@ -81,6 +81,8 @@ body {
 
 .app-main {
   flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 a {
@@ -95,6 +97,8 @@ a {
 }
 
 .topbar {
+  position: relative;
+  z-index: 1000;
   height: 86px;
   display: grid;
   grid-template-columns: 1fr auto auto;
@@ -236,7 +240,7 @@ a {
   position: absolute;
   top: calc(100% + 12px);
   right: 0;
-  z-index: 20;
+  z-index: 1100;
   min-width: min(280px, calc(100vw - 32px));
   padding: 14px;
   border: 1px solid color-mix(in srgb, var(--line) 35%, transparent);
@@ -323,6 +327,7 @@ a {
 
 .layout-grid {
   flex: 1;
+  min-height: 0;
   display: grid;
   grid-template-columns: 280px 1fr;
 }
@@ -351,7 +356,7 @@ a {
 
 .sidebar-mobile-disclosure[open] .sidebar-mobile-summary,
 .sidebar-mobile-group[open] > summary {
-  background: color-mix(in srgb, var(--surface) 96%, transparent);
+  background: color-mix(in srgb, var(--surface) 96%);
 }
 
 .sidebar-mobile-panel {
@@ -497,6 +502,50 @@ a {
   box-shadow: var(--shadow-soft);
 }
 
+.sidebar-search-filters {
+  border: 1px solid color-mix(in srgb, var(--line) 30%, transparent);
+  border-radius: 14px;
+  padding: 12px;
+  display: grid;
+  gap: 10px;
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+}
+
+.sidebar-search-filters h2 {
+  margin: 0;
+  font-size: 1rem;
+  font-family: var(--font-display), "Trebuchet MS", sans-serif;
+}
+
+.sidebar-search-toggle {
+  font-size: 0.92rem;
+}
+
+.sidebar-date-fields {
+  display: grid;
+  gap: 8px;
+}
+
+.sidebar-date-field {
+  display: grid;
+  gap: 6px;
+}
+
+.sidebar-date-field span {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.sidebar-date-field input {
+  border: 1px solid color-mix(in srgb, var(--line) 35%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--surface) 95%, transparent);
+  color: var(--text-main);
+  font: inherit;
+  padding: 8px 10px;
+}
+
 .search-box input {
   width: 100%;
   border: 0;
@@ -556,6 +605,7 @@ a {
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
+  margin-bottom: 10px;
 }
 
 .tags span {
