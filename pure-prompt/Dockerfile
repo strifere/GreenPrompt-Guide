@@ -11,6 +11,8 @@ RUN npm ci --ignore-scripts
 COPY app ./app
 COPY public ./public
 COPY prisma ./prisma
+COPY domain ./domain
+COPY lib ./lib
 
 COPY next.config.ts ./
 COPY next-env.d.ts ./
