@@ -1,8 +1,8 @@
 import { render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import PracticeDetailsPage from "@/app/catalog/practices/[practiceId]/page";
-import { getPracticeById } from "@/domain/practice-repository";
+import PracticeDetailsPage from "@/app/catalog/practices/[practiceName]/page";
+import { getPracticeByName } from "@/domain/practice-repository";
 import { notFound } from "next/navigation";
 
 vi.mock("next/link", () => ({
@@ -14,7 +14,7 @@ vi.mock("next/link", () => ({
 }));
 
 vi.mock("@/domain/practice-repository", () => ({
-  getPracticeById: vi.fn(),
+  getPracticeByName: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({
@@ -62,15 +62,15 @@ describe("Practice details requirements", () => {
   });
 
   it("US2/FR3/FR5: renders full practice details, metrics, examples and source", async () => {
-    vi.mocked(getPracticeById).mockResolvedValue(buildPractice() as never);
+    vi.mocked(getPracticeByName).mockResolvedValue(buildPractice() as never);
 
     render(
       await PracticeDetailsPage({
-        params: Promise.resolve({ practiceId: "7" }),
+        params: Promise.resolve({ practiceName: "Constraint-first Prompting" }),
       }),
     );
 
-    expect(vi.mocked(getPracticeById)).toHaveBeenCalledWith(7);
+    expect(vi.mocked(getPracticeByName)).toHaveBeenCalledWith("Constraint-first Prompting");
     expect(screen.getByRole("heading", { name: /constraint-first prompting/i })).toBeInTheDocument();
     expect(screen.getByText(/define output constraints to reduce hallucinations/i)).toBeInTheDocument();
     expect(screen.getByText(/prompt compression/i)).toBeInTheDocument();
@@ -86,11 +86,11 @@ describe("Practice details requirements", () => {
 
   it("US2: falls back to green score card when explicit metrics are missing", async () => {
     const practiceWithoutMetrics = { ...buildPractice(), metrics: [] };
-    vi.mocked(getPracticeById).mockResolvedValue(practiceWithoutMetrics as never);
+    vi.mocked(getPracticeByName).mockResolvedValue(practiceWithoutMetrics as never);
 
     render(
       await PracticeDetailsPage({
-        params: Promise.resolve({ practiceId: "7" }),
+        params: Promise.resolve({ practiceName: "Constraint-first Prompting" }),
       }),
     );
 
@@ -99,11 +99,11 @@ describe("Practice details requirements", () => {
   });
 
   it("handles missing practice by delegating to notFound", async () => {
-    vi.mocked(getPracticeById).mockResolvedValue(null);
+    vi.mocked(getPracticeByName).mockResolvedValue(null);
 
     await expect(
       PracticeDetailsPage({
-        params: Promise.resolve({ practiceId: "999" }),
+        params: Promise.resolve({ practiceName: "999" }),
       }),
     ).rejects.toThrow("NEXT_NOT_FOUND");
 

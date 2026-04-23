@@ -72,12 +72,12 @@ function practiceCreatedAtTimestamp(practice: PracticeListItem) {
 
 function PracticeCard({ practice }: PracticeCardProps) {
   return (
-    <Link href={`/catalog/practices/${practice.id}`} className="practice-card">
+    <Link href={`/catalog/practices/${practice.name}`} className="practice-card">
       <header>
         <h2>{practice.name}</h2>
         <div className="tags" aria-label="Practice categories">
           {practice.categories.map((category) => (
-            <span key={`${practice.id}-${category.category.name}`}>
+            <span key={`${practice.name}-${category.category.name}`}>
               {category.category.name}
             </span>
           ))}
@@ -336,7 +336,7 @@ export default function CatalogClient({ practices, sidebarData }: CatalogClientP
 
             <div className="practice-list">
               {filteredPractices.map((practice) => (
-                <PracticeCard key={practice.id} practice={practice} />
+                <PracticeCard key={practice.name} practice={practice} />
               ))}
             </div>
           </div>

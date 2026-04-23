@@ -1,17 +1,18 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { getPracticeById } from "@/domain/practice-repository";
+import { getPracticeByName } from "@/domain/practice-repository";
 
 type PracticeDetailsProps = {
-  params: Promise<{ practiceId: string }>;
+  params: Promise<{ practiceName: string }>;
 };
 
 export default async function PracticeDetailsPage({
   params,
 }: Readonly<PracticeDetailsProps>) {
-  const { practiceId } = await params;
-  const practice = await getPracticeById(Number(practiceId));
+  const { practiceName } = await params;
+  const practiceNameDecoded = decodeURIComponent(practiceName);
+  const practice = await getPracticeByName(practiceNameDecoded);
 
   if (!practice) {
     notFound();
@@ -21,7 +22,7 @@ export default async function PracticeDetailsPage({
     new Map(
       practice.papers
         .flatMap((paper) => paper.reference.datasets.map((entry) => entry.dataset))
-        .map((dataset) => [dataset.id, dataset]),
+        .map((dataset) => [dataset.name, dataset]),
     ).values(),
   );
 
@@ -45,7 +46,7 @@ export default async function PracticeDetailsPage({
           <h2> Categories: </h2>
           <div className="tags" aria-label="Practice categories">
             {practice.categories.map((category) => (
-              <span key={`${practice.id}-${category.category.name}`}>
+              <span key={`${practice.name}-${category.category.name}`}>
                 {category.category.name}
               </span>
             ))}
@@ -98,7 +99,7 @@ export default async function PracticeDetailsPage({
             <ul>
               {practice.prompts.length > 0 ? (
                 practice.prompts.map((entry, index) => (
-                  <li key={`technique-${practice.id}-${index}`}>{entry.promptTechnique.name}</li>
+                  <li key={`technique-${practice.name}-${index}`}>{entry.promptTechnique.name}</li>
                 ))
               ) : (
                 <li>No prompt techniques mapped yet.</li>
@@ -111,7 +112,7 @@ export default async function PracticeDetailsPage({
             <ul>
               {practice.models.length > 0 ? (
                 practice.models.map((entry, index) => (
-                  <li key={`model-${practice.id}-${index}`}>{entry.model.name}</li>
+                  <li key={`model-${practice.name}-${index}`}>{entry.model.name}</li>
                 ))
               ) : (
                 <li>No models mapped yet.</li>
@@ -138,7 +139,7 @@ export default async function PracticeDetailsPage({
             <h2>Datasets</h2>
             <ul>
               {relatedDatasets.length > 0 ? (
-                relatedDatasets.map((dataset) => <li key={dataset.id}>{dataset.name}</li>)
+                relatedDatasets.map((dataset) => <li key={dataset.name}>{dataset.name}</li>)
               ) : (
                 <li>No datasets linked through references yet.</li>
               )}
@@ -150,7 +151,7 @@ export default async function PracticeDetailsPage({
           <h2>Practice extracted from:</h2>
           <ul>
             {practice.papers.map((entry) => (
-              <li key={entry.referenceId}>
+              <li key={entry.reference.title}>
                 {entry.reference.title} ({entry.reference.year})
               </li>
             ))}
