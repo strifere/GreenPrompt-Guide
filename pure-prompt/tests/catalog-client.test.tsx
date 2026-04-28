@@ -37,7 +37,15 @@ const practices = [
       {
         reference: {
           title: "Green Prompting in Practice",
+          year: 2024,
           datasets: [{ dataset: { id: 200, name: "MMLU" } }],
+        },
+      },
+      {
+        reference: {
+          title: "Green Prompting Revisited",
+          year: 2026,
+          datasets: [{ dataset: { id: 202, name: "MMLU" } }],
         },
       },
     ],
@@ -57,6 +65,7 @@ const practices = [
       {
         reference: {
           title: "Efficient Inference Study",
+          year: 2025,
           datasets: [{ dataset: { id: 201, name: "TruthfulQA" } }],
         },
       },
@@ -109,6 +118,32 @@ describe("Catalog page requirements", () => {
     );
 
     expect(screen.getByRole("link", { name: /evaluation batching/i })).toBeInTheDocument();
+  });
+
+  it("FR1/US9: filters by source year when the source toggle is enabled", async () => {
+    const user = userEvent.setup();
+
+    render(<CatalogClient practices={practices} sidebarData={sidebarData} />);
+
+    const sidebar = screen.getByRole("complementary", { name: /practice filters/i });
+
+    expect(
+      within(sidebar).queryByRole("combobox", { name: /source year/i }),
+    ).not.toBeInTheDocument();
+
+    await user.click(
+      within(sidebar).getByRole("checkbox", {
+        name: /search by source reference title/i,
+      }),
+    );
+
+    const sourceYearSelect = within(sidebar).getByRole("combobox", { name: /source year/i });
+    await user.selectOptions(sourceYearSelect, "2024");
+
+    expect(screen.getByRole("link", { name: /token-aware prompting/i })).toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: /evaluation batching/i }),
+    ).not.toBeInTheDocument();
   });
 
   it("FR2/US9: filters by metadata and date range", async () => {

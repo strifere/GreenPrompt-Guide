@@ -30,14 +30,21 @@ type PracticeCardProps = Readonly<{
 
 type SearchFiltersPanelProps = Readonly<{
   includeSourceInSearch: boolean;
+  sourceYears: number[];
+  sourceYear: string;
   createdFrom: string;
   createdTo: string;
   onIncludeSourceInSearchChange: (enabled: boolean) => void;
+  onSourceYearChange: (value: string) => void;
   onCreatedFromChange: (value: string) => void;
   onCreatedToChange: (value: string) => void;
 }>;
 
 function unique(values: string[]) {
+  return Array.from(new Set(values));
+}
+
+function uniqueNumbers(values: number[]) {
   return Array.from(new Set(values));
 }
 
@@ -63,6 +70,10 @@ function practiceValues(practice: PracticeListItem): Record<FilterKey, string[]>
       ),
     ),
   };
+}
+
+function practiceReferenceYears(practice: PracticeListItem) {
+  return uniqueNumbers(practice.papers.map((paper) => paper.reference.year));
 }
 
 function practiceCreatedAtTimestamp(practice: PracticeListItem) {
@@ -91,9 +102,12 @@ function PracticeCard({ practice }: PracticeCardProps) {
 
 function SearchFiltersPanel({
   includeSourceInSearch,
+  sourceYears,
+  sourceYear,
   createdFrom,
   createdTo,
   onIncludeSourceInSearchChange,
+  onSourceYearChange,
   onCreatedFromChange,
   onCreatedToChange,
 }: SearchFiltersPanelProps) {
@@ -109,6 +123,22 @@ function SearchFiltersPanel({
         />
         <span>Search by source reference title</span>
       </label>
+
+      {includeSourceInSearch ? (
+        <label className="sidebar-date-field">
+          <span>Source year</span>
+          <select value={sourceYear} onChange={(event) => onSourceYearChange(event.target.value)}>
+            <option key="all-years" value="">
+              All years
+            </option>
+            {sourceYears.map((year) => (
+              <option key={year} value={String(year)}>
+                {year}
+              </option>
+            ))}
+          </select>
+        </label>
+      ) : null}
 
       <div className="sidebar-date-fields">
         <label className="sidebar-date-field">
@@ -164,6 +194,7 @@ function FilterPanel({ groups, selectedFilters, onToggleFilter }: FilterPanelPro
 export default function CatalogClient({ practices, sidebarData }: CatalogClientProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [includeSourceInSearch, setIncludeSourceInSearch] = useState(false);
+  const [sourceYear, setSourceYear] = useState("");
   const [createdFrom, setCreatedFrom] = useState("");
   const [createdTo, setCreatedTo] = useState("");
   const [selectedFilters, setSelectedFilters] = useState<Record<FilterKey, string[]>>({
@@ -177,12 +208,20 @@ export default function CatalogClient({ practices, sidebarData }: CatalogClientP
   const sidebarGroups: SidebarGroup[] = useMemo(
     () => [
       { key: "categories", title: "Categories", items: sidebarData.categories },
-      { key: "models", title: "Models", items: sidebarData.models },
       { key: "promptTechniques", title: "Prompt Techniques", items: sidebarData.promptTechniques },
       { key: "hyperparameters", title: "Hyperparameters", items: sidebarData.hyperparameters },
+      { key: "models", title: "Models", items: sidebarData.models },
       { key: "datasets", title: "Datasets", items: sidebarData.datasets },
     ],
     [sidebarData],
+  );
+
+  const sourceYears = useMemo(
+    () =>
+      uniqueNumbers(practices.flatMap((practice) => practiceReferenceYears(practice))).sort(
+        (left, right) => right - left,
+      ),
+    [practices],
   );
 
   function toggleFilter(groupKey: FilterKey, item: string) {
@@ -216,9 +255,11 @@ export default function CatalogClient({ practices, sidebarData }: CatalogClientP
       createdFromTimestamp !== null && createdToTimestamp !== null
         ? Math.max(createdFromTimestamp, createdToTimestamp)
         : createdToTimestamp;
+    const selectedSourceYearValue = sourceYear ? Number(sourceYear) : null;
 
     return practices.filter((practice) => {
       const values = practiceValues(practice);
+      const referenceYears = practiceReferenceYears(practice);
       const createdAtTimestamp = practiceCreatedAtTimestamp(practice);
 
       const matchesNameOrDescription =
@@ -238,8 +279,12 @@ export default function CatalogClient({ practices, sidebarData }: CatalogClientP
       const passesCreatedAtTo =
         maxCreatedTimestamp === null ||
         (createdAtTimestamp !== null && createdAtTimestamp <= maxCreatedTimestamp);
+      const passesSourceYear =
+        !includeSourceInSearch ||
+        selectedSourceYearValue === null ||
+        referenceYears.includes(selectedSourceYearValue);
 
-      if (!passesSearch || !passesCreatedAtFrom || !passesCreatedAtTo) {
+      if (!passesSearch || !passesCreatedAtFrom || !passesCreatedAtTo || !passesSourceYear) {
         return false;
       }
 
@@ -257,6 +302,7 @@ export default function CatalogClient({ practices, sidebarData }: CatalogClientP
     practices,
     searchQuery,
     includeSourceInSearch,
+    sourceYear,
     createdFrom,
     createdTo,
     selectedFilters,
@@ -281,9 +327,12 @@ export default function CatalogClient({ practices, sidebarData }: CatalogClientP
             <div className="sidebar-mobile-panel">
               <SearchFiltersPanel
                 includeSourceInSearch={includeSourceInSearch}
+                sourceYears={sourceYears}
+                sourceYear={sourceYear}
                 createdFrom={createdFrom}
                 createdTo={createdTo}
                 onIncludeSourceInSearchChange={setIncludeSourceInSearch}
+                onSourceYearChange={setSourceYear}
                 onCreatedFromChange={setCreatedFrom}
                 onCreatedToChange={setCreatedTo}
               />
@@ -320,9 +369,12 @@ export default function CatalogClient({ practices, sidebarData }: CatalogClientP
               <div className="sidebar-mobile-panel">
                 <SearchFiltersPanel
                   includeSourceInSearch={includeSourceInSearch}
+                  sourceYears={sourceYears}
+                  sourceYear={sourceYear}
                   createdFrom={createdFrom}
                   createdTo={createdTo}
                   onIncludeSourceInSearchChange={setIncludeSourceInSearch}
+                  onSourceYearChange={setSourceYear}
                   onCreatedFromChange={setCreatedFrom}
                   onCreatedToChange={setCreatedTo}
                 />

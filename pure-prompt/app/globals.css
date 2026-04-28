@@ -11,6 +11,7 @@
   --accent: #14558a;
   --accent-contrast: #ffffff;
   --shadow-soft: 0 10px 32px rgb(17 19 26 / 8%);
+  --link: #019bca;
 }
 
 :root[data-theme="light"] {
@@ -24,6 +25,7 @@
   --accent: #14558a;
   --accent-contrast: #ffffff;
   --shadow-soft: 0 10px 32px rgb(17 19 26 / 8%);
+  --link: #019bca;
 }
 
 :root[data-theme="dark"] {
@@ -37,6 +39,7 @@
   --accent: #0e4d7f;
   --accent-contrast: #f8fbff;
   --shadow-soft: none;
+  --link: #00c3ff;
 }
 
 @theme inline {
@@ -621,6 +624,7 @@ a {
   justify-content: space-between;
   gap: 12px;
   align-items: flex-start;
+  flex-direction: column;
 }
 
 .practice-card h2 {
@@ -638,6 +642,11 @@ a {
 
 .practice-card small {
   color: color-mix(in srgb, var(--text-muted) 85%, transparent);
+}
+
+.reference-link {
+  margin-top: 8px;
+  color: var(--link);
 }
 
 .tags {
@@ -769,6 +778,45 @@ a {
   padding-top: 16px;
   display: grid;
   grid-template-columns: 1fr 1fr 2fr 1fr;
+}
+
+.reference-facts-grid {
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.reference-facts-grid article {
+  min-width: 0;
+}
+
+.reference-facts-grid article:nth-child(1) {
+  grid-column: span 7;
+}
+
+.reference-facts-grid article:nth-child(2) {
+  grid-column: span 2;
+}
+
+.reference-facts-grid article:nth-child(3) {
+  grid-column: span 3;
+}
+
+.reference-facts-grid article:nth-child(4) {
+  grid-column: span 7;
+}
+
+.reference-facts-grid article:nth-child(5) {
+  grid-column: span 5;
+}
+
+.reference-facts-grid h2 {
+  font-size: 1.15rem;
+  margin-bottom: 8px;
+}
+
+.reference-facts-grid li {
+  font-size: 0.96rem;
+  line-height: 1.5;
 }
 
 .practice-facts-grid article {
@@ -974,10 +1022,6 @@ a {
     width: 100%;
   }
 
-  .practice-card header {
-    flex-direction: column;
-  }
-
   .practice-details-page {
     padding: 26px 20px;
   }
@@ -998,6 +1042,14 @@ a {
   .practice-facts-grid {
     grid-template-columns: 1fr;
     border-top-width: 1px;
+  }
+
+  .reference-facts-grid {
+    gap: 0;
+  }
+
+  .reference-facts-grid article:nth-child(n) {
+    grid-column: auto;
   }
 
   .practice-facts-grid article {

@@ -152,7 +152,9 @@ export default async function PracticeDetailsPage({
           <ul>
             {practice.papers.map((entry) => (
               <li key={entry.reference.title}>
-                {entry.reference.title} ({entry.reference.year})
+                <Link href={`/catalog/references/${entry.reference.title}`} className="reference-link">
+                  {entry.reference.title ?? "Reference"}{entry.reference.year && ` (${entry.reference.year})`}
+                </Link>
               </li>
             ))}
           </ul>
