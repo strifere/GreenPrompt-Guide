@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { cookies } from "next/headers";
-import Script from "next/script";
 import { montserrat } from "./ui/fonts";
+import { CarbonBadge } from "./ui/carbon-badge";
 import { ThemeToggle } from "./ui/theme-toggle";
 import { TopbarMenu } from "./ui/topbar-menu";
 import "./globals.css";
@@ -122,13 +122,9 @@ export default async function RootLayout({
               <p className="site-footer-label">Sustainable browsing</p>
               <p className="site-footer-copy">PurePrompt is tracked with the Website Carbon Badge.</p>
             </div>
-            <div id="wcb" className="carbonbadge wcb-d" aria-label="Website Carbon badge" />
+            <CarbonBadge initialTheme={initialTheme} url="nattech.fib.upc.edu:40470" />
           </div>
         </footer>
-        <Script
-          src="https://unpkg.com/website-carbon-badges@1.1.3/b.min.js"
-          strategy="afterInteractive"
-        />
       </body>
     </html>
   );
