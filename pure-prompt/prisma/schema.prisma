@@ -163,6 +163,7 @@ model Reference {
   task             String?
   venue            String? // conference, journal, arxiv, etc.
   toolAvailability String?
+  link             String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
