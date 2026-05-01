@@ -12,7 +12,7 @@ type CarbonBadgeProps = {
 };
 
 function getResolvedTheme(): ResolvedTheme {
-  const rootTheme = globalThis.document.documentElement.getAttribute("data-theme");
+  const rootTheme = globalThis.document.documentElement.dataset.theme;
 
   if (rootTheme === "light" || rootTheme === "dark") {
     return rootTheme;
@@ -21,7 +21,7 @@ function getResolvedTheme(): ResolvedTheme {
   return globalThis.window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 
-export function CarbonBadge({ initialTheme, url }: CarbonBadgeProps) {
+export function CarbonBadge({ initialTheme, url }: Readonly<CarbonBadgeProps>) {
   const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme | null>(() => {
     if (initialTheme === "light" || initialTheme === "dark") {
       return initialTheme;

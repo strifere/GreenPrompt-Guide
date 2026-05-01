@@ -95,8 +95,8 @@ export default async function RootLayout({
             <Link href="/catalog" className="animated-link">
               Catalog
             </Link>
-            <Link href="/contribute" className="animated-link">
-              Contribute
+            <Link href="/collaboration" className="animated-link">
+              Collaboration
             </Link>
             <Link href="/" className="animated-link">
               About

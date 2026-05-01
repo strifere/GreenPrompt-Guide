@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Search } from "lucide-react";
 import type { PracticeListItem, SidebarData } from "@/domain/practice-repository";
+import { catalogPracticeHref } from "./catalog-paths";
 
 type FilterKey = keyof SidebarData;
 
@@ -83,7 +84,7 @@ function practiceCreatedAtTimestamp(practice: PracticeListItem) {
 
 function PracticeCard({ practice }: PracticeCardProps) {
   return (
-    <Link href={`/catalog/practices/${practice.name}`} className="practice-card">
+    <Link href={catalogPracticeHref(practice.name)} className="practice-card">
       <header>
         <h2>{practice.name}</h2>
         <div className="tags" aria-label="Practice categories">
@@ -317,8 +318,7 @@ export default function CatalogClient({ practices, sidebarData }: CatalogClientP
     selectedFilters.datasets.length;
 
   return (
-    <>
-      <div className="layout-grid">
+    <div className="layout-grid">
         <aside className="sidebar" aria-label="Practice filters">
           <details className="sidebar-mobile-disclosure sidebar-desktop-disclosure" open>
             <summary className="sidebar-mobile-summary">
@@ -394,15 +394,5 @@ export default function CatalogClient({ practices, sidebarData }: CatalogClientP
           </div>
         </main>
       </div>
-
-      <footer className="mobile-footer" aria-hidden>
-        <span>PurePrompt</span>
-        <span>Catalog</span>
-        <span>Search</span>
-        <span>Contribute</span>
-        <span>About us</span>
-        <span>Sign up</span>
-      </footer>
-    </>
   );
 }

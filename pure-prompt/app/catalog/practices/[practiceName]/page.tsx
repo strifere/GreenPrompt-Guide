@@ -2,6 +2,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { getPracticeByName } from "@/domain/practice-repository";
+import {
+  catalogDatasetHref,
+  catalogModelHref,
+  catalogPromptTechniqueHref,
+  catalogReferenceHref,
+} from "../../catalog-paths";
 
 type PracticeDetailsProps = {
   params: Promise<{ practiceName: string }>;
@@ -30,7 +36,7 @@ export default async function PracticeDetailsPage({
   const secondaryExample = practice.practiceExamples[1] ?? primaryExample;
 
   return (
-    <main className="practice-details-page">
+    <main className="details-page">
       <div className="practice-details-shell">
         <header className="practice-details-header">
           <Link href="/catalog" className="practice-back-link" aria-label="Back to practices">
@@ -99,7 +105,11 @@ export default async function PracticeDetailsPage({
             <ul>
               {practice.prompts.length > 0 ? (
                 practice.prompts.map((entry, index) => (
-                  <li key={`technique-${practice.name}-${index}`}>{entry.promptTechnique.name}</li>
+                  <li key={`technique-${practice.name}-${index}`}>
+                    <Link href={catalogPromptTechniqueHref(entry.promptTechnique.name)} className="reference-link">
+                      {entry.promptTechnique.name}
+                    </Link>
+                  </li>
                 ))
               ) : (
                 <li>No prompt techniques mapped yet.</li>
@@ -112,7 +122,11 @@ export default async function PracticeDetailsPage({
             <ul>
               {practice.models.length > 0 ? (
                 practice.models.map((entry, index) => (
-                  <li key={`model-${practice.name}-${index}`}>{entry.model.name}</li>
+                  <li key={`model-${practice.name}-${index}`}>
+                    <Link href={catalogModelHref(entry.model.name)} className="reference-link">
+                      {entry.model.name}
+                    </Link>
+                  </li>
                 ))
               ) : (
                 <li>No models mapped yet.</li>
@@ -139,7 +153,13 @@ export default async function PracticeDetailsPage({
             <h2>Datasets</h2>
             <ul>
               {relatedDatasets.length > 0 ? (
-                relatedDatasets.map((dataset) => <li key={dataset.name}>{dataset.name}</li>)
+                relatedDatasets.map((dataset) => (
+                  <li key={dataset.name}>
+                    <Link href={catalogDatasetHref(dataset.name)} className="reference-link">
+                      {dataset.name}
+                    </Link>
+                  </li>
+                ))
               ) : (
                 <li>No datasets linked through references yet.</li>
               )}
@@ -152,7 +172,7 @@ export default async function PracticeDetailsPage({
           <ul>
             {practice.papers.map((entry) => (
               <li key={entry.reference.title}>
-                <Link href={`/catalog/references/${entry.reference.title}`} className="reference-link">
+                <Link href={catalogReferenceHref(entry.reference.title)} className="reference-link">
                   {entry.reference.title ?? "Reference"}{entry.reference.year && ` (${entry.reference.year})`}
                 </Link>
               </li>

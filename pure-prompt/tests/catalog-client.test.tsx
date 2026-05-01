@@ -81,7 +81,7 @@ describe("Catalog page requirements", () => {
       name: /token-aware prompting/i,
     });
 
-    expect(firstPracticeLink).toHaveAttribute("href", "/catalog/practices/Token-aware Prompting");
+    expect(firstPracticeLink).toHaveAttribute("href", "/catalog/practices/Token-aware%20Prompting");
     expect(screen.getByText(/reduce output length/i)).toBeInTheDocument();
     expect(screen.getByText(/extracted from: green prompting in practice/i)).toBeInTheDocument();
   });

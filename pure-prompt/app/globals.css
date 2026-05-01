@@ -671,7 +671,7 @@ a {
   background: color-mix(in srgb, var(--surface) 80%, transparent);
 }
 
-.practice-details-page {
+.details-page {
   padding: 36px 24px;
 }
 
@@ -780,6 +780,14 @@ a {
   grid-template-columns: 1fr 1fr 2fr 1fr;
 }
 
+.facts-grid {
+  margin-top: 18px;
+  border-top: 2px solid color-mix(in srgb, var(--text-main) 55%, transparent);
+  padding-top: 16px;
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+}
+
 .reference-facts-grid {
   grid-template-columns: repeat(12, minmax(0, 1fr));
   gap: 12px;
@@ -819,30 +827,35 @@ a {
   line-height: 1.5;
 }
 
-.practice-facts-grid article {
+.practice-facts-grid article,
+.facts-grid article {
   padding: 12px 14px;
   border-right: 1px solid color-mix(in srgb, var(--line) 55%, transparent);
 }
 
-.practice-facts-grid article:last-child {
+.practice-facts-grid article:last-child,
+.facts-grid article:last-child {
   border-right: 0;
 }
 
-.practice-facts-grid h2 {
+.practice-facts-grid h2,
+.facts-grid h2 {
   margin: 0 0 10px;
   font-size: 1.45rem;
   font-family: var(--font-display), "Trebuchet MS", sans-serif;
 }
 
 .practice-facts-grid ul,
-.practice-references ul {
+.practice-references ul,
+.facts-grid ul {
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
 .practice-facts-grid li,
-.practice-references li {
+.practice-references li,
+.facts-grid li {
   margin: 6px 0;
   color: var(--text-muted);
 }
@@ -1022,7 +1035,7 @@ a {
     width: 100%;
   }
 
-  .practice-details-page {
+  .details-page {
     padding: 26px 20px;
   }
 
@@ -1039,7 +1052,8 @@ a {
     grid-template-columns: 1fr 1fr;
   }
 
-  .practice-facts-grid {
+  .practice-facts-grid, 
+  .facts-grid {
     grid-template-columns: 1fr;
     border-top-width: 1px;
   }
@@ -1052,13 +1066,15 @@ a {
     grid-column: auto;
   }
 
-  .practice-facts-grid article {
+  .practice-facts-grid article, 
+  .facts-grid article {
     border-right: 0;
     border-bottom: 1px solid color-mix(in srgb, var(--line) 45%, transparent);
     padding: 12px 0;
   }
 
-  .practice-facts-grid article:last-child {
+  .practice-facts-grid article:last-child,
+  .facts-grid article:last-child {
     border-bottom: 0;
   }
 

@@ -71,8 +71,8 @@ export function TopbarMenu() {
             <Link href="/catalog" className="animated-link" onClick={closeMenu}>
               Catalog
             </Link>
-            <Link href="/contribute" className="animated-link" onClick={closeMenu}>
-              Contribute
+            <Link href="/collaboration" className="animated-link" onClick={closeMenu}>
+              Collaboration
             </Link>
             <Link href="/" className="animated-link" onClick={closeMenu}>
               About
