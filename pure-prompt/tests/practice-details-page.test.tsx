@@ -77,11 +77,25 @@ describe("Practice details requirements", () => {
     expect(screen.getByText(/summarization pipeline/i)).toBeInTheDocument();
     expect(screen.getByText(/summarize in 5 bullet points/i)).toBeInTheDocument();
     expect(screen.getByText(/energy use/i)).toBeInTheDocument();
-    expect(screen.getByText(/few-shot/i)).toBeInTheDocument();
-    expect(screen.getByText(/gpt-4o-mini/i)).toBeInTheDocument();
     expect(screen.getByText(/temperature: 0.1 \(float\)/i)).toBeInTheDocument();
-    expect(screen.getByText(/mmlu/i)).toBeInTheDocument();
     expect(screen.getByText(/low-energy prompt engineering \(2025\)/i)).toBeInTheDocument();
+
+    // Verify links to related resources
+    const fewShotLink = screen.getByRole("link", { name: /few-shot/i });
+    expect(fewShotLink).toBeInTheDocument();
+    expect(fewShotLink).toHaveAttribute("href", expect.stringContaining("promptTechniques"));
+
+    const modelLink = screen.getByRole("link", { name: /gpt-4o-mini/i });
+    expect(modelLink).toBeInTheDocument();
+    expect(modelLink).toHaveAttribute("href", expect.stringContaining("models"));
+
+    const datasetLink = screen.getByRole("link", { name: /mmlu/i });
+    expect(datasetLink).toBeInTheDocument();
+    expect(datasetLink).toHaveAttribute("href", expect.stringContaining("datasets"));
+
+    const referenceLink = screen.getByRole("link", { name: /low-energy prompt engineering \(2025\)/i });
+    expect(referenceLink).toBeInTheDocument();
+    expect(referenceLink).toHaveAttribute("href", expect.stringContaining("references"));
   });
 
   it("US2: falls back to green score card when explicit metrics are missing", async () => {
@@ -96,6 +110,151 @@ describe("Practice details requirements", () => {
 
     expect(screen.getByText(/green score/i)).toBeInTheDocument();
     expect(screen.getByText("82")).toBeInTheDocument();
+  });
+
+  it("displays practice categories", async () => {
+    vi.mocked(getPracticeByName).mockResolvedValue(buildPractice() as never);
+
+    render(
+      await PracticeDetailsPage({
+        params: Promise.resolve({ practiceName: "Constraint-first Prompting" }),
+      }),
+    );
+
+    expect(screen.getByText(/prompt compression/i)).toBeInTheDocument();
+  });
+
+  it("displays practice examples with scenario, original, improved prompts and observations", async () => {
+    vi.mocked(getPracticeByName).mockResolvedValue(buildPractice() as never);
+
+    render(
+      await PracticeDetailsPage({
+        params: Promise.resolve({ practiceName: "Constraint-first Prompting" }),
+      }),
+    );
+
+    expect(screen.getByText(/scenario:/i)).toBeInTheDocument();
+    expect(screen.getByText(/summarization pipeline/i)).toBeInTheDocument();
+    expect(screen.getByText(/original prompt/i)).toBeInTheDocument();
+    expect(screen.getByText(/improved prompt/i)).toBeInTheDocument();
+    expect(screen.getByText(/observations:/i)).toBeInTheDocument();
+    expect(screen.getByText(/lower token usage and stable quality/i)).toBeInTheDocument();
+  });
+
+  it("displays hyperparameters with name, value, and data type", async () => {
+    vi.mocked(getPracticeByName).mockResolvedValue(buildPractice() as never);
+
+    render(
+      await PracticeDetailsPage({
+        params: Promise.resolve({ practiceName: "Constraint-first Prompting" }),
+      }),
+    );
+
+    expect(screen.getByText(/temperature: 0\.1 \(float\)/i)).toBeInTheDocument();
+  });
+
+  it("handles missing practice examples gracefully", async () => {
+    const practiceWithoutExamples = { ...buildPractice(), practiceExamples: [] };
+    vi.mocked(getPracticeByName).mockResolvedValue(practiceWithoutExamples as never);
+
+    render(
+      await PracticeDetailsPage({
+        params: Promise.resolve({ practiceName: "Constraint-first Prompting" }),
+      }),
+    );
+
+    expect(screen.getByText(/no scenario available for this practice yet/i)).toBeInTheDocument();
+    expect(screen.getByText(/no original prompt registered/i)).toBeInTheDocument();
+  });
+
+  it("handles empty related prompt techniques", async () => {
+    const practiceWithoutTechniques = { ...buildPractice(), prompts: [] };
+    vi.mocked(getPracticeByName).mockResolvedValue(practiceWithoutTechniques as never);
+
+    render(
+      await PracticeDetailsPage({
+        params: Promise.resolve({ practiceName: "Constraint-first Prompting" }),
+      }),
+    );
+
+    expect(screen.getByText(/no prompt techniques mapped yet/i)).toBeInTheDocument();
+  });
+
+  it("handles empty related models", async () => {
+    const practiceWithoutModels = { ...buildPractice(), models: [] };
+    vi.mocked(getPracticeByName).mockResolvedValue(practiceWithoutModels as never);
+
+    render(
+      await PracticeDetailsPage({
+        params: Promise.resolve({ practiceName: "Constraint-first Prompting" }),
+      }),
+    );
+
+    expect(screen.getByText(/no models mapped yet/i)).toBeInTheDocument();
+  });
+
+  it("handles empty hyperparameters", async () => {
+    const practiceWithoutHyperparameters = { ...buildPractice(), hyperparameters: [] };
+    vi.mocked(getPracticeByName).mockResolvedValue(practiceWithoutHyperparameters as never);
+
+    render(
+      await PracticeDetailsPage({
+        params: Promise.resolve({ practiceName: "Constraint-first Prompting" }),
+      }),
+    );
+
+    expect(screen.getByText(/no hyperparameters mapped yet/i)).toBeInTheDocument();
+  });
+
+  it("handles empty datasets", async () => {
+    const practiceWithoutDatasets = {
+      ...buildPractice(),
+      papers: [
+        {
+          referenceId: 30,
+          reference: {
+            title: "Low-energy Prompt Engineering",
+            year: 2025,
+            datasets: [],
+          },
+        },
+      ],
+    };
+    vi.mocked(getPracticeByName).mockResolvedValue(practiceWithoutDatasets as never);
+
+    render(
+      await PracticeDetailsPage({
+        params: Promise.resolve({ practiceName: "Constraint-first Prompting" }),
+      }),
+    );
+
+    expect(screen.getByText(/no datasets linked through references yet/i)).toBeInTheDocument();
+  });
+
+  it("decodes URL-encoded practice name", async () => {
+    vi.mocked(getPracticeByName).mockResolvedValue(buildPractice() as never);
+
+    render(
+      await PracticeDetailsPage({
+        params: Promise.resolve({ practiceName: "Constraint-first%20Prompting" }),
+      }),
+    );
+
+    expect(vi.mocked(getPracticeByName)).toHaveBeenCalledWith("Constraint-first Prompting");
+  });
+
+  it("displays back link to practices catalog", async () => {
+    vi.mocked(getPracticeByName).mockResolvedValue(buildPractice() as never);
+
+    render(
+      await PracticeDetailsPage({
+        params: Promise.resolve({ practiceName: "Constraint-first Prompting" }),
+      }),
+    );
+
+    const backLink = screen.getByRole("link", { name: /back to practices/i });
+    expect(backLink).toBeInTheDocument();
+    expect(backLink).toHaveAttribute("href", "/catalog");
   });
 
   it("handles missing practice by delegating to notFound", async () => {
