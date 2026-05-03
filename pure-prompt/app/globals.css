@@ -68,6 +68,14 @@
   :root:not([data-theme]) .logo-dark {
     display: block;
   }
+
+  :root:not([data-theme]) .footer-logo-light {
+    display: none;
+  }
+
+  :root:not([data-theme]) .footer-logo-dark {
+    display: block;
+  }
 }
 
 * {
@@ -101,30 +109,55 @@ body {
   gap: 20px;
   max-width: 1280px;
   margin: 0 auto;
+  flex-wrap: wrap;
 }
 
-.site-footer-copygroup {
-  display: grid;
-  gap: 4px;
+.site-footer-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  flex: 0 0 auto;
 }
 
-.site-footer-label {
-  margin: 0;
+.site-footer-heading {
+  margin: 0 0 8px;
   font-family: var(--font-display), "Trebuchet MS", sans-serif;
-  font-size: 0.95rem;
+  font-size: 1.1rem;
   font-weight: 700;
   letter-spacing: 0.02em;
 }
 
-.site-footer-copy {
+.site-footer-description {
   margin: 0;
   color: var(--text-muted);
   font-size: 0.95rem;
+  max-width: 300px;
 }
 
 .carbonbadge {
   display: inline-flex;
   align-items: center;
+  flex: 0 0 auto;
+}
+
+.footer-logo,
+.footer-logo-light,
+.footer-logo-dark {
+  width: auto;
+  height: clamp(40px, 8vw, 60px);
+  opacity: 0.8;
+  transition: opacity 200ms ease;
+}
+
+.footer-logo:hover,
+.footer-logo-light:hover,
+.footer-logo-dark:hover {
+  opacity: 1;
+}
+
+.footer-logo-dark {
+  display: none;
 }
 
 a {
@@ -139,7 +172,8 @@ a {
 }
 
 .topbar {
-  position: relative;
+  position: sticky;
+  top: 0;
   z-index: 1000;
   height: 86px;
   display: grid;
@@ -177,6 +211,14 @@ a {
 }
 
 :root[data-theme="dark"] .logo-dark {
+  display: block;
+}
+
+:root[data-theme="dark"] .footer-logo-light {
+  display: none;
+}
+
+:root[data-theme="dark"] .footer-logo-dark {
   display: block;
 }
 
@@ -739,7 +781,7 @@ a {
 
 .practice-example-card,
 .practice-metric-card {
-  min-height: 190px;
+  min-height: 50px;
   border: 1px solid color-mix(in srgb, var(--line-strong) 85%, transparent);
   border-radius: 22px;
   background: color-mix(in srgb, var(--surface) 95%, transparent);
@@ -1095,6 +1137,14 @@ a {
 
   .site-footer-content {
     flex-direction: column;
-    align-items: flex-start;
+    justify-content: center;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .site-footer-info {
+    width: 100%;
+    align-items: center;
+    text-align: center;
   }
 }

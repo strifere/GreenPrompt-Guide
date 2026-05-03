@@ -26,7 +26,12 @@ const practiceDetailsArgs = Prisma.validator<Prisma.PracticeDefaultArgs>()({
     prompts: { include: { promptTechnique: true } },
     models: { include: { model: true } },
     hyperparameters: true,
-    metrics: true,
+    metrics: {
+      include: {
+        energyMetrics: true,
+        accuracyMetrics: true,
+      },
+    },
     papers: {
       include: {
         reference: {
