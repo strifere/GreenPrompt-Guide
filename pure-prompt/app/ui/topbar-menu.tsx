@@ -2,7 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ThemeToggle } from "./theme-toggle";
+import { useAuth } from "@/lib/use-auth";
 import { Menu } from "lucide-react";
 
 function MenuIcon() {
@@ -11,8 +13,59 @@ function MenuIcon() {
   );
 }
 
+type MenuAuthActionsProps = {
+  loading: boolean;
+  user: string | null;
+  loggingOut: boolean;
+  closeMenu: () => void;
+  handleLogout: () => void;
+};
+
+function MenuAuthActions({
+  loading,
+  user,
+  loggingOut,
+  closeMenu,
+  handleLogout,
+}: Readonly<MenuAuthActionsProps>) {
+  if (loading) {
+    return null;
+  }
+
+  if (user) {
+    return (
+      <>
+        <span style={{ fontSize: "0.95rem" }}>Welcome, {user}</span>
+        <button
+          type="button"
+          className="ghost-btn"
+          onClick={handleLogout}
+          disabled={loggingOut}
+          style={{ cursor: loggingOut ? "not-allowed" : "pointer", opacity: loggingOut ? 0.6 : 1 }}
+        >
+          {loggingOut ? "Logging Out..." : "Log Out"}
+        </button>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <Link href="/login" className="ghost-btn" onClick={closeMenu}>
+        Log in
+      </Link>
+      <Link href="/signup" className="solid-btn" onClick={closeMenu}>
+        Sign up
+      </Link>
+    </>
+  );
+}
+
 export function TopbarMenu() {
+  const { user, loading } = useAuth();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
@@ -50,6 +103,30 @@ export function TopbarMenu() {
     setOpen(false);
   }
 
+  async function handleLogout() {
+    setLoggingOut(true);
+
+    try {
+      const response = await fetch("/api/auth/logout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        globalThis.dispatchEvent(new Event("auth-changed"));
+        router.refresh();
+        closeMenu();
+        router.push("/");
+      }
+    } catch (error: unknown) {
+      console.error("Logout error:", error);
+    } finally {
+      setLoggingOut(false);
+    }
+  }
+
   return (
     <div className="topbar-menu-wrap">
       <button
@@ -81,12 +158,13 @@ export function TopbarMenu() {
 
           <div className="topbar-menu-actions">
             <ThemeToggle />
-            <Link href="/login" className="ghost-btn" onClick={closeMenu}>
-              Log in
-            </Link>
-            <Link href="/signup" className="solid-btn" onClick={closeMenu}>
-              Sign up
-            </Link>
+            <MenuAuthActions
+              loading={loading}
+              user={user}
+              loggingOut={loggingOut}
+              closeMenu={closeMenu}
+              handleLogout={handleLogout}
+            />
           </div>
         </div>
       ) : null}
