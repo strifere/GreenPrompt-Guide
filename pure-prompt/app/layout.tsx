@@ -6,6 +6,7 @@ import { montserrat } from "./ui/fonts";
 import { CarbonBadge } from "./ui/carbon-badge";
 import { ThemeToggle } from "./ui/theme-toggle";
 import { TopbarMenu } from "./ui/topbar-menu";
+import { AuthButtons } from "./ui/auth-buttons";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -104,12 +105,7 @@ export default async function RootLayout({
           </nav>
           <div className="topbar-cta topbar-cta-desktop">
             <ThemeToggle />
-            <Link href="/login" className="ghost-btn">
-              Log in
-            </Link>
-            <Link href="/signup" className="solid-btn">
-              Sign up
-            </Link>
+            <AuthButtons />
           </div>
           <TopbarMenu />
         </header>
