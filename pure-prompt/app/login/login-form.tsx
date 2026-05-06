@@ -3,6 +3,7 @@
 import { useState, type ChangeEvent, type SyntheticEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { PasswordRecoveryModal } from "@/app/ui/password-recovery-modal";
 
 export function LoginForm() {
   const router = useRouter();
@@ -12,6 +13,7 @@ export function LoginForm() {
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isRecoveryModalOpen, setIsRecoveryModalOpen] = useState(false);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -56,62 +58,73 @@ export function LoginForm() {
   };
 
   return (
-    <div className="auth-form-container">
-      <div className="auth-form-wrapper">
-        <h1>Log in</h1>
+    <>
+      <div className="auth-form-container">
+        <div className="auth-form-wrapper">
+          <h1>Log in</h1>
 
-        {error && <div className="error-message">{error}</div>}
+          {error && <div className="error-message">{error}</div>}
 
-        <form onSubmit={handleSubmit} className="auth-form">
-          <div className="form-group">
-            <label htmlFor="identifier">Username or email</label>
-            <input
-              type="text"
-              id="identifier"
-              name="identifier"
-              value={formData.identifier}
-              onChange={handleChange}
-              required
-              placeholder="username or email"
-              autoComplete="username"
-            />
+          <form onSubmit={handleSubmit} className="auth-form">
+            <div className="form-group">
+              <label htmlFor="identifier">Username or email</label>
+              <input
+                type="text"
+                id="identifier"
+                name="identifier"
+                value={formData.identifier}
+                onChange={handleChange}
+                required
+                placeholder="username or email"
+                autoComplete="username"
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="password">Password</label>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+                placeholder="password"
+                autoComplete="current-password"
+              />
+            </div>
+
+            <button
+              type="button"
+              className="login-helper-link"
+              onClick={() => setIsRecoveryModalOpen(true)}
+            >
+              Forgot your password?
+            </button>
+
+            <button
+              type="submit"
+              className="login-outline-btn"
+              disabled={loading}
+            >
+              {loading ? "Logging in..." : "Log in"}
+            </button>
+          </form>
+
+          <div className="login-separator" aria-hidden="true">
+            <span>or</span>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-              placeholder="password"
-              autoComplete="current-password"
-            />
-          </div>
-
-          <Link href="/signup" className="login-helper-link">
-            Forgot your password?
+          <Link href="/signup" className="login-create-account-btn">
+            Create an account
           </Link>
-
-          <button
-            type="submit"
-            className="login-outline-btn"
-            disabled={loading}
-          >
-            {loading ? "Logging in..." : "Log in"}
-          </button>
-        </form>
-
-        <div className="login-separator" aria-hidden="true">
-          <span>or</span>
         </div>
-
-        <Link href="/signup" className="login-create-account-btn">
-          Create an account
-        </Link>
       </div>
-    </div>
+
+      <PasswordRecoveryModal
+        isOpen={isRecoveryModalOpen}
+        onClose={() => setIsRecoveryModalOpen(false)}
+      />
+    </>
   );
 }

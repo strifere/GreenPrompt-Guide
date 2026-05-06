@@ -22,7 +22,8 @@
     "pg": "^8.20.0",
     "react": "19.2.5",
     "react-dom": "19.2.5",
-    "react-websitecarbon-badge": "^1.0.6"
+    "react-websitecarbon-badge": "^1.0.6",
+    "resend": "^6.12.2"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
