@@ -9,9 +9,13 @@ const SESSION_COOKIE_MAX_AGE = 30 * 24 * 60 * 60; // 30 days in seconds
 export async function createSessionCookie(username: string): Promise<void> {
   const cookieStore = await cookies();
   
+  const secureCookie = process.env.COOKIE_SECURE
+    ? process.env.COOKIE_SECURE === "true"
+    : process.env.NODE_ENV === "production";
+
   cookieStore.set(SESSION_COOKIE_NAME, username, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: secureCookie,
     sameSite: "lax",
     maxAge: SESSION_COOKIE_MAX_AGE,
     path: "/",
