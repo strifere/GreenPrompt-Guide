@@ -6,6 +6,7 @@ import { montserrat } from "./ui/fonts";
 import { CarbonBadge } from "./ui/carbon-badge";
 import { ThemeToggle } from "./ui/theme-toggle";
 import { TopbarMenu } from "./ui/topbar-menu";
+import { AuthButtons } from "./ui/auth-buttons";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -104,12 +105,7 @@ export default async function RootLayout({
           </nav>
           <div className="topbar-cta topbar-cta-desktop">
             <ThemeToggle />
-            <Link href="/login" className="ghost-btn">
-              Log in
-            </Link>
-            <Link href="/signup" className="solid-btn">
-              Sign up
-            </Link>
+            <AuthButtons />
           </div>
           <TopbarMenu />
         </header>
@@ -118,10 +114,37 @@ export default async function RootLayout({
         </main>
         <footer className="site-footer">
           <div className="site-footer-content">
-            <div className="site-footer-copygroup">
-              <p className="site-footer-label">Sustainable browsing</p>
-              <p className="site-footer-copy">PurePrompt is tracked with the Website Carbon Badge.</p>
+            <div className="site-footer-info">
+              <h2 className="site-footer-heading">PurePrompt</h2>
+              <p className="site-footer-description">
+                A catalog of Green Prompt Engineering practices.
+              </p>
             </div>
+            <a href="https://www.fib.upc.edu/" target="_blank" rel="noopener noreferrer" aria-label="FIB - Barcelona School of Informatics">
+              <Image
+                src="/fib_logo.png"
+                alt="FIB - Barcelona School of Informatics"
+                width={80}
+                height={80}
+                className="footer-logo"
+              />
+            </a>
+            <a href="https://www.upc.edu/" target="_blank" rel="noopener noreferrer" aria-label="UPC - Universitat Politècnica de Catalunya">
+              <Image
+                src="/upc_logo-light.png"
+                alt="UPC - Universitat Politècnica de Catalunya"
+                width={80}
+                height={80}
+                className="footer-logo footer-logo-light"
+              />
+              <Image
+                src="/upc_logo-dark.png"
+                alt="UPC - Universitat Politècnica de Catalunya"
+                width={80}
+                height={80}
+                className="footer-logo footer-logo-dark"
+              />
+            </a>
             <CarbonBadge initialTheme={initialTheme} url="nattech.fib.upc.edu:40470" />
           </div>
         </footer>

@@ -9,6 +9,54 @@ import {
   catalogReferenceHref,
 } from "../../catalog-paths";
 
+const energyMetricUnitLabels: Record<string, string> = {
+  PERCENTAGE: "%",
+  TEMPERATURE: "ºC",
+  CELSIUS: "ºC",
+  FAHRENHEIT: "ºF",
+  KELVIN: "K",
+  WATT_HOUR: "Wh",
+  KILOWATT_HOUR: "kWh",
+  JOULE: "J",
+};
+
+function formatAccuracyLevel(level: string) {
+  switch (level) {
+    case "WORSE":
+      return "Worse accuracy";
+    case "SAME_OR_WORSE":
+      return "Same or worse accuracy";
+    case "SAME":
+      return "Same accuracy";
+    case "SAME_OR_BETTER":
+      return "Same or better accuracy";
+    case "BETTER":
+      return "Better accuracy";
+    case "MUCH_BETTER":
+      return "Much better accuracy";
+    case "NEAR_PERFECT":
+      return "Near-perfect accuracy";
+    default:
+      return level;
+  }
+}
+
+function formatEnergyMetricUnit(unit: string) {
+  return energyMetricUnitLabels[unit] ?? unit;
+}
+
+function formatMetricConfidence(confidence: number) {
+  return `${Math.round(confidence * 100)}%`;
+}
+
+function formatMetricValueWithUnit(value: number | null, unit: string) {
+  if (value === null) {
+    return "Not available";
+  }
+
+  return `${value}${formatEnergyMetricUnit(unit)}`;
+}
+
 type PracticeDetailsProps = {
   params: Promise<{ practiceName: string }>;
 };
@@ -34,6 +82,57 @@ export default async function PracticeDetailsPage({
 
   const primaryExample = practice.practiceExamples[0];
   const secondaryExample = practice.practiceExamples[1] ?? primaryExample;
+
+  const renderMetricDetails = (metric: (typeof practice.metrics)[number]) => {
+    const energyMetrics = metric.energyMetrics ?? [];
+    const accuracyMetrics = metric.accuracyMetrics ?? [];
+    const hasEnergyMetric = energyMetrics.length > 0;
+    const hasAccuracyMetric = accuracyMetrics.length > 0;
+    const shouldShowBaseValue = !hasEnergyMetric && !hasAccuracyMetric;
+
+    return (
+      <article key={metric.id} className="practice-metric-card">
+        <h3>{metric.title}</h3>
+        <p>
+          <strong>Confidence:</strong> {formatMetricConfidence(metric.confidence)}
+        </p>
+        {metric.description ? (
+          <p>
+            {metric.description}
+          </p>
+        ) : null}
+        {shouldShowBaseValue ? <p>{metric.value}</p> : null}
+
+        {energyMetrics.map((energyMetric) => (
+          <div key={energyMetric.metricId}>
+            <p>
+              <strong>Min value:</strong>{" "}
+              {formatMetricValueWithUnit(energyMetric.minValue, energyMetric.unit)}
+            </p>
+            <p>
+              <strong>Max value:</strong>{" "}
+              {formatMetricValueWithUnit(energyMetric.maxValue, energyMetric.unit)}
+            </p>
+            <p>
+              <strong>Best guess value:</strong>{" "}
+              {formatMetricValueWithUnit(energyMetric.bestGuessValue, energyMetric.unit)}
+            </p>
+          </div>
+        ))}
+
+        {accuracyMetrics.map((accuracyMetric) => (
+          <div key={accuracyMetric.metricId}>
+            <p>
+              <strong>Accuracy level:</strong> {formatAccuracyLevel(accuracyMetric.level)}
+            </p>
+            <p>
+              <strong>Score:</strong> {accuracyMetric.score ?? "Not available"}
+            </p>
+          </div>
+        ))}
+      </article>
+    );
+  };
 
   return (
     <main className="details-page">
@@ -84,12 +183,7 @@ export default async function PracticeDetailsPage({
           <h2>Metrics:</h2>
           <div className="practice-metrics-grid">
             {practice.metrics.length > 0 ? (
-              practice.metrics.map((metric) => (
-                <article key={metric.id} className="practice-metric-card">
-                  <h3>{metric.title}</h3>
-                  <p>{metric.value}</p>
-                </article>
-              ))
+              practice.metrics.map((metric) => renderMetricDetails(metric))
             ) : (
               <article className="practice-metric-card">
                 <h3>Green score</h3>

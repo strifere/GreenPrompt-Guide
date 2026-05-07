@@ -20,5 +20,8 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-pure_prompt}?schema=public
       NODE_ENV: production
       NEXT_TELEMETRY_DISABLED: "1"
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL:-Pure Prompt <onboarding@resend.dev>}
+      COOKIE_SECURE: ${COOKIE_SECURE:-true}
     ports:
       - "38080:3000"
