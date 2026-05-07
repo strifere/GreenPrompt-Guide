@@ -13,6 +13,9 @@
   --shadow-soft: 0 10px 32px rgb(17 19 26 / 8%);
   --error: #991b1b;
   --link: #019bca;
+  --background-elevated: color-mix(in srgb, var(--surface) 98%, transparent);
+  --home-green: #1f7a3f;
+  --home-blue: #14558a;
 }
 
 :root[data-theme="light"] {
@@ -28,6 +31,9 @@
   --shadow-soft: 0 10px 32px rgb(17 19 26 / 8%);
   --error: #991b1b;
   --link: #019bca;
+  --background-elevated: color-mix(in srgb, var(--surface) 98%, transparent);
+  --home-green: #1f7a3f;
+  --home-blue: #14558a;
 }
 
 :root[data-theme="dark"] {
@@ -42,6 +48,9 @@
   --accent-contrast: #f8fbff;
   --shadow-soft: none;
   --link: #00c3ff;
+  --background-elevated: color-mix(in srgb, var(--surface) 94%, transparent);
+  --home-green: #1f7a3f;
+  --home-blue: #14558a;
   --error: #e65C5C;
 }
 
@@ -62,6 +71,8 @@
     --accent: #0e4d7f;
     --accent-contrast: #f8fbff;
     --shadow-soft: none;
+    --home-green: #59b15f;
+    --home-blue: #4c93d7;
     --error: #e65C5C;
   }
 
@@ -173,6 +184,242 @@ a {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+}
+
+.home-page {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  padding: 60px 26px 72px;
+}
+
+.home-shell {
+  width: min(960px, 100%);
+  display: grid;
+  gap: 60px;
+  text-align: center;
+}
+
+.home-hero {
+  display: grid;
+  justify-items: center;
+}
+
+.home-title {
+  margin: 0 0 20px;
+  font-family: var(--font-display), "Trebuchet MS", sans-serif;
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.home-title-brand {
+  display: inline-block;
+}
+
+.home-title-brand-green {
+  color: var(--home-green);
+}
+
+.home-title-brand-blue {
+  color: var(--home-blue);
+}
+
+.home-tagline {
+  margin: 0 0 40px;
+  font-size: clamp(1.3rem, 2.5vw, 1.8rem);
+  font-weight: 500;
+  color: var(--text-main);
+  line-height: 1.4;
+}
+
+.home-emphasis {
+  color: var(--home-green);
+  font-weight: 700;
+}
+
+.home-actions {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  margin-bottom: 60px;
+  flex-wrap: wrap;
+}
+
+.home-summary {
+  margin: 0;
+  max-width: 880px;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: var(--text-main);
+}
+
+.home-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  padding: 22px;
+  border-radius: 18px;
+  background: var(--background-elevated);
+  color: var(--text-main);
+  border: 1px solid color-mix(in srgb, var(--line) 24%, transparent);
+  box-shadow: var(--shadow-soft);
+}
+
+.home-info-card {
+  padding: 4px 6px;
+  text-align: left;
+}
+
+.home-info-card h2 {
+  margin: 0 0 10px;
+  font-family: var(--font-display), "Trebuchet MS", sans-serif;
+  font-size: clamp(1.35rem, 2.2vw, 1.8rem);
+  font-weight: 700;
+}
+
+.home-info-card p {
+  margin: 0;
+  line-height: 1.65;
+  color: var(--text-main);
+}
+
+.instructions,
+.about {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  padding: 48px 0;
+}
+
+.instructions {
+  background-color: var(--background-elevated);
+}
+
+.instructions .instructions-inner {
+  width: min(960px, 100%);
+  margin: 0 auto;
+  padding: 0 26px;
+  text-align: left;
+}
+
+.about .about-inner {
+  width: min(960px, 100%);
+  margin: 0 auto;
+  padding: 0 26px;
+  text-align: left;
+}
+
+.about-inner > h2 {
+  margin: 0 0 12px;
+  font-family: var(--font-display), "Trebuchet MS", sans-serif;
+  font-size: clamp(1.5rem, 2.5vw, 2rem);
+  font-weight: 700;
+}
+
+.instructions-inner > h2 {
+  margin: 0 0 12px;
+  font-family: var(--font-display), "Trebuchet MS", sans-serif;
+  font-size: clamp(1.5rem, 2.5vw, 2rem);
+  font-weight: 700;
+}
+
+.instructions-inner > p {
+  margin: 0 0 32px;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--text-main);
+}
+
+.instructions-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 24px;
+}
+
+.instructions-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+  border: 1px solid color-mix(in srgb, var(--line) 28%, transparent);
+  border-radius: 12px;
+  background-color: var(--surface);
+  box-shadow: var(--shadow-soft);
+}
+
+.instructions-card--large {
+  grid-column: span 1.5;
+  padding: 32px;
+}
+
+.instructions-card h3 {
+  margin: 0 0 8px;
+  font-family: var(--font-display), "Trebuchet MS", sans-serif;
+  font-size: clamp(1.15rem, 2vw, 1.4rem);
+  font-weight: 700;
+}
+
+.instructions-card p {
+  margin: 0 0 auto;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--text-main);
+  flex-grow: 1;
+}
+
+.instructions-btn {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 24px;
+  background: color-mix(in srgb, var(--accent) 85%, white);
+  color: var(--accent-contrast);
+  font-weight: 600;
+  font-size: 0.95rem;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  transition:
+    background-color 160ms ease,
+    transform 160ms ease,
+    box-shadow 160ms ease;
+  text-decoration: none;
+}
+
+.instructions-btn:hover {
+  background: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgb(20 85 138 / 20%);
+}
+
+.instructions-btn:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 70%, white);
+  outline-offset: 2px;
+}
+
+.instructions-btn:active {
+  transform: scale(0.97);
+}
+
+.instructions h2 {
+  margin: 0 0 14px;
+  font-family: var(--font-display), "Trebuchet MS", sans-serif;
+  font-size: clamp(1.8rem, 4vw, 2.4rem);
+  font-weight: 700;
+}
+
+.instructions h3 {
+  margin: 0 0 10px;
+  font-family: var(--font-display), "Trebuchet MS", sans-serif;
+  font-size: clamp(1.25rem, 2vw, 1.5rem);
+  font-weight: 600;
+}
+
+.instructions p {
+  margin: 0 0 12px;
+  line-height: 1.65;
+  color: var(--text-main);
 }
 
 .topbar {
@@ -304,8 +551,11 @@ a {
 .topbar-menu-button:active,
 .ghost-btn:active,
 .solid-btn:active,
+.explore-btn:active,
 .theme-select:active,
-.practice-back-link:active {
+.practice-back-link:active,
+.home-signup-btn:active,
+.home-explore-btn:active {
   transform: scale(0.97);
 }
 
@@ -386,7 +636,9 @@ a {
 }
 
 .ghost-btn,
-.solid-btn {
+.solid-btn,
+.home-signup-btn {
+  text-align: center;
   border-radius: 999px;
   font-weight: 600;
   padding: 7.5px 16px;
@@ -401,13 +653,42 @@ a {
     border-radius 150ms ease;
 }
 
-.solid-btn {
+.explore-btn,
+.home-explore-btn {
+  text-align: center;
+  border-radius: 999px;
+  font-weight: 600;
+  padding: 7.5px 16px;
+  border: 4px solid var(--home-green);
+  background: var(--home-green);
+  color: var(--accent-contrast);
+  transition:
+    transform 150ms ease,
+    opacity 150ms ease,
+    box-shadow 150ms ease,
+    filter 150ms ease,
+    border-radius 150ms ease;
+}
+
+.home-explore-btn {
+  width: 300px;
+}
+
+.solid-btn,
+.home-signup-btn {
   background: var(--accent);
   color: var(--accent-contrast);
 }
 
+.home-signup-btn {
+  width: 300px;
+}
+
 .ghost-btn:hover,
-.solid-btn:hover {
+.solid-btn:hover,
+.explore-btn:hover,
+.home-signup-btn:hover, 
+.home-explore-btn:hover {
   transform: translateY(-1px);
   opacity: 0.94;
   box-shadow: 0 12px 26px rgb(17 19 26 / 12%);
@@ -1102,6 +1383,43 @@ a {
   .facts-grid {
     grid-template-columns: 1fr;
     border-top-width: 1px;
+  }
+
+  .instructions-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .home-page {
+    padding: 42px 20px 56px;
+  }
+
+  .home-shell {
+    gap: 42px;
+  }
+
+  .home-info-grid {
+    grid-template-columns: 1fr;
+    padding: 18px;
+  }
+
+  .home-info-card {
+    padding: 0;
+  }
+
+  .home-info-card + .home-info-card {
+    padding-top: 12px;
+    border-top: 1px solid color-mix(in srgb, var(--line) 30%, transparent);
+  }
+
+  .home-actions {
+    gap: 14px;
+    margin-bottom: 42px;
+  }
+
+  .home-signup-btn,
+  .home-explore-btn {
+    width: min(300px, 100%);
   }
 
   .reference-facts-grid {
