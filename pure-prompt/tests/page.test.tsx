@@ -74,7 +74,7 @@ describe("Home Page", () => {
     expect(exploreCatalogTexts.length).toBeGreaterThan(0);
 
     const exploreLink = screen.getAllByRole("link", { name: /Explore/i }).find(
-      (link) => link.getAttribute("href") === "/catalog" && link.getAttribute("class")?.includes("explore-btn"),
+      (link) => link.getAttribute("href") === "/catalog" && link.getAttribute("class")?.includes("green-btn"),
     );
     expect(exploreLink).toBeInTheDocument();
   });

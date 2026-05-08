@@ -1,0 +1,607 @@
+"use client";
+
+import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
+import { Pencil } from "lucide-react";
+import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
+
+type UserProfile = {
+	username: string;
+	email: string;
+};
+
+type Feedback = {
+	kind: "success" | "error";
+	message: string;
+} | null;
+
+type EmailChangeModalProps = {
+	isOpen: boolean;
+	currentEmail: string;
+	onClose: () => void;
+	onSuccess: (email: string) => void;
+};
+
+type EmailStep = "email" | "code" | "success";
+
+function EmailChangeModal({ isOpen, currentEmail, onClose, onSuccess }: Readonly<EmailChangeModalProps>) {
+	const [step, setStep] = useState<EmailStep>("email");
+	const [email, setEmail] = useState("");
+	const [code, setCode] = useState("");
+	const [error, setError] = useState("");
+	const [loading, setLoading] = useState(false);
+	const [canResend, setCanResend] = useState(false);
+	const [resendCountdown, setResendCountdown] = useState(0);
+	const resendIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+	const clearResendInterval = () => {
+		if (resendIntervalRef.current) {
+			clearInterval(resendIntervalRef.current);
+			resendIntervalRef.current = null;
+		}
+	};
+
+	const startResendCountdown = () => {
+		clearResendInterval();
+		setCanResend(false);
+		setResendCountdown(60);
+
+		resendIntervalRef.current = setInterval(() => {
+			setResendCountdown((previousValue) => {
+				if (previousValue <= 1) {
+					clearResendInterval();
+					setCanResend(true);
+					return 0;
+				}
+
+				return previousValue - 1;
+			});
+		}, 1000);
+	};
+
+	useEffect(() => () => clearResendInterval(), []);
+
+	const resetAndClose = () => {
+		clearResendInterval();
+		setStep("email");
+		setEmail("");
+		setCode("");
+		setError("");
+		setLoading(false);
+		setCanResend(false);
+		setResendCountdown(0);
+		onClose();
+	};
+
+	const handleRequestCode = async (event: FormEvent<HTMLFormElement>) => {
+		event.preventDefault();
+		setError("");
+		setLoading(true);
+
+		try {
+			const response = await fetch("/api/auth/profile/email/request", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ email }),
+			});
+
+			const data = await response.json();
+
+			if (!response.ok) {
+				setError(data.error || "Failed to send verification code");
+				return;
+			}
+
+			setStep("code");
+			startResendCountdown();
+		} catch (requestError) {
+			setError(
+				"An error occurred: " +
+					(requestError instanceof Error ? requestError.message : "Please try again.")
+			);
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	const handleResendCode = async () => {
+		setError("");
+		setLoading(true);
+
+		try {
+			const response = await fetch("/api/auth/profile/email/request", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ email }),
+			});
+
+			const data = await response.json();
+
+			if (!response.ok) {
+				setError(data.error || "Failed to resend verification code");
+				return;
+			}
+
+			setCode("");
+			startResendCountdown();
+		} catch (requestError) {
+			setError(
+				"An error occurred: " +
+					(requestError instanceof Error ? requestError.message : "Please try again.")
+			);
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	const handleVerifyCode = async (event: FormEvent<HTMLFormElement>) => {
+		event.preventDefault();
+		setError("");
+		setLoading(true);
+
+		try {
+			const response = await fetch("/api/auth/profile/email/verify", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ email, code }),
+			});
+
+			const data = await response.json();
+
+			if (!response.ok) {
+				setError(data.error || "Failed to verify code");
+				return;
+			}
+
+			onSuccess(data.user?.email || email);
+			setStep("success");
+		} catch (requestError) {
+			setError(
+				"An error occurred: " +
+					(requestError instanceof Error ? requestError.message : "Please try again.")
+			);
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	if (!isOpen) {
+		return null;
+	}
+
+	return (
+		<div className="recovery-modal-overlay">
+			<button
+				type="button"
+				className="recovery-modal-backdrop"
+				aria-label="Close email change modal"
+				onClick={resetAndClose}
+			/>
+			<div className="recovery-modal">
+				<button className="recovery-modal-close" onClick={resetAndClose}>
+					✕
+				</button>
+
+				{step === "email" && (
+					<>
+						<h2>Change Your Email</h2>
+						<p>Enter a new email address and we will send a verification code to it.</p>
+
+						{error && <div className="error-message">{error}</div>}
+
+						<form onSubmit={handleRequestCode} className="recovery-form">
+							<div className="form-group">
+								<label htmlFor="new-email">New Email</label>
+								<input
+									type="email"
+									id="new-email"
+									value={email}
+									onChange={(event: ChangeEvent<HTMLInputElement>) => setEmail(event.target.value)}
+									placeholder={currentEmail}
+									required
+									autoComplete="email"
+								/>
+							</div>
+
+							<button type="submit" className="recovery-btn" disabled={loading}>
+								{loading ? "Sending..." : "Send verification code"}
+							</button>
+						</form>
+					</>
+				)}
+
+				{step === "code" && (
+					<>
+						<h2>Verify Your Email</h2>
+						<p>We have sent a code to {email}</p>
+
+						{error && <div className="error-message">{error}</div>}
+
+						<form onSubmit={handleVerifyCode} className="recovery-form">
+							<div className="form-group">
+								<label htmlFor="email-code">Verification Code</label>
+								<input
+									type="text"
+									id="email-code"
+									value={code}
+									onChange={(event: ChangeEvent<HTMLInputElement>) => setCode(event.target.value.toUpperCase())}
+									placeholder="e.g., ABC123"
+									required
+								/>
+							</div>
+
+							<button type="submit" className="recovery-btn" disabled={loading}>
+								{loading ? "Verifying..." : "Verify email"}
+							</button>
+						</form>
+
+						<div className="recovery-footer">
+							<button
+								type="button"
+								className="resend-btn"
+								onClick={handleResendCode}
+								disabled={!canResend || loading}
+							>
+								{canResend ? "Resend code" : `Resend in ${resendCountdown}s`}
+							</button>
+						</div>
+					</>
+				)}
+
+				{step === "success" && (
+					<>
+						<h2>Email Changed Successfully</h2>
+						<p>Your email has been updated. The new address is now linked to your account.</p>
+
+						<button className="recovery-btn" onClick={resetAndClose}>
+							OK
+						</button>
+					</>
+				)}
+			</div>
+		</div>
+	);
+}
+
+export default function UserProfilePage() {
+	const router = useRouter();
+	const params = useParams<{ username?: string | string[] }>();
+	const [profile, setProfile] = useState<UserProfile | null>(null);
+	const [loadingProfile, setLoadingProfile] = useState(true);
+	const [pageError, setPageError] = useState("");
+	const [isEditingUsername, setIsEditingUsername] = useState(false);
+	const [usernameDraft, setUsernameDraft] = useState("");
+	const [usernameLoading, setUsernameLoading] = useState(false);
+	const [usernameFeedback, setUsernameFeedback] = useState<Feedback>(null);
+	const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+	const [passwordForm, setPasswordForm] = useState({
+		currentPassword: "",
+		password: "",
+		passwordConfirm: "",
+	});
+	const [passwordLoading, setPasswordLoading] = useState(false);
+	const [passwordFeedback, setPasswordFeedback] = useState<Feedback>(null);
+
+	const routeUsername = Array.isArray(params.username) ? params.username[0] : params.username;
+
+	useEffect(() => {
+		const fetchProfile = async () => {
+			try {
+				const response = await fetch("/api/auth/profile", {
+					method: "GET",
+					credentials: "include",
+					cache: "no-store",
+				});
+
+				const data = await response.json();
+
+				if (!response.ok) {
+					if (response.status === 401) {
+						router.replace("/login");
+						return;
+					}
+
+					setPageError(data.error || "Failed to load user details");
+					return;
+				}
+
+				setProfile(data.user);
+				setUsernameDraft(data.user.username);
+				setPageError("");
+
+				if (routeUsername && routeUsername !== data.user.username) {
+					router.replace(`/user/${data.user.username}`);
+				}
+			} catch (profileError) {
+				setPageError(
+					profileError instanceof Error
+						? profileError.message
+						: "An error occurred while loading your details"
+				);
+			} finally {
+				setLoadingProfile(false);
+			}
+		};
+
+		void fetchProfile();
+	}, [routeUsername, router]);
+
+	const handleUsernameEditOpen = () => {
+		setUsernameFeedback(null);
+		setUsernameDraft(profile?.username || "");
+		setIsEditingUsername(true);
+	};
+
+	const handleUsernameCancel = () => {
+		setIsEditingUsername(false);
+		setUsernameDraft(profile?.username || "");
+		setUsernameFeedback(null);
+	};
+
+	const handleUsernameSubmit = async (event: FormEvent<HTMLFormElement>) => {
+		event.preventDefault();
+
+		if (!profile) {
+			return;
+		}
+
+		setUsernameLoading(true);
+		setUsernameFeedback(null);
+
+		try {
+			const response = await fetch("/api/auth/profile/username", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ username: usernameDraft }),
+			});
+
+			const data = await response.json();
+
+			if (!response.ok) {
+				setUsernameFeedback({ kind: "error", message: data.error || "Failed to update username" });
+				return;
+			}
+
+			setProfile(data.user);
+			setUsernameDraft(data.user.username);
+			setIsEditingUsername(false);
+			setUsernameFeedback({ kind: "success", message: data.message || "Username updated successfully" });
+			globalThis.dispatchEvent(new Event("auth-changed"));
+			router.replace(`/user/${data.user.username}`);
+		} catch (usernameError) {
+			setUsernameFeedback({
+				kind: "error",
+				message:
+					usernameError instanceof Error
+						? usernameError.message
+						: "An error occurred while updating the username",
+			});
+		} finally {
+			setUsernameLoading(false);
+		}
+	};
+
+	const handlePasswordChange = async (event: FormEvent<HTMLFormElement>) => {
+		event.preventDefault();
+
+		setPasswordLoading(true);
+		setPasswordFeedback(null);
+
+		try {
+			const response = await fetch("/api/auth/profile/password", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(passwordForm),
+			});
+
+			const data = await response.json();
+
+			if (!response.ok) {
+				setPasswordFeedback({ kind: "error", message: data.error || "Failed to change password" });
+				return;
+			}
+
+			setPasswordForm({ currentPassword: "", password: "", passwordConfirm: "" });
+			setPasswordFeedback({ kind: "success", message: data.message || "Password changed successfully" });
+		} catch (passwordError) {
+			setPasswordFeedback({
+				kind: "error",
+				message:
+					passwordError instanceof Error
+						? passwordError.message
+						: "An error occurred while changing the password",
+			});
+		} finally {
+			setPasswordLoading(false);
+		}
+	};
+
+	if (loadingProfile) {
+		return (
+			<main className="user-page">
+				<div className="user-page-shell">
+					<div className="user-card">
+						<p className="user-page-kicker">Account</p>
+						<h1 className="user-page-title">Loading your details</h1>
+						<p className="user-page-description">Please wait while we fetch your account information.</p>
+					</div>
+				</div>
+			</main>
+		);
+	}
+
+	if (pageError || !profile) {
+		return (
+			<main className="user-page">
+				<div className="user-page-shell">
+					<div className="user-card">
+						<p className="user-page-kicker">Account</p>
+						<h1 className="user-page-title">Your details</h1>
+						<div className="error-message">{pageError || "We could not load your account."}</div>
+						<div className="user-actions-row">
+							<Link href="/login" className="solid-btn">
+								Go to login
+							</Link>
+						</div>
+					</div>
+				</div>
+			</main>
+		);
+	}
+
+	return (
+		<>
+			<main className="user-page">
+				<div className="user-page-shell">
+					<section className="user-hero">
+						<p className="user-page-kicker">Account</p>
+						<h1 className="user-page-title">Your details</h1>
+						<p className="user-page-description">
+							Update your username, confirm a new email address, and change your password from one place.
+						</p>
+					</section>
+
+					{usernameFeedback && (
+						<div className={usernameFeedback.kind === "error" ? "error-message" : "user-success-message"}>
+							{usernameFeedback.message}
+						</div>
+					)}
+
+					<section className="user-card">
+						<div className="user-detail-row">
+							<div>
+								<h2 className="user-detail-label">Username</h2>
+								{isEditingUsername ? (
+									<form className="user-inline-form" onSubmit={handleUsernameSubmit}>
+										<div className="form-group user-inline-input">
+											<label htmlFor="username-edit" className="sr-only">
+												Username
+											</label>
+											<input
+												id="username-edit"
+												value={usernameDraft}
+												onChange={(event: ChangeEvent<HTMLInputElement>) => setUsernameDraft(event.target.value)}
+												autoComplete="off"
+												required
+											/>
+										</div>
+										<div className="user-actions-row">
+											<button type="submit" className="solid-btn" disabled={usernameLoading}>
+												{usernameLoading ? "Saving..." : "Save username"}
+											</button>
+											<button type="button" className="ghost-btn" onClick={handleUsernameCancel}>
+												Cancel
+											</button>
+										</div>
+									</form>
+								) : (
+									<p className="user-detail-value">{profile.username}</p>
+								)}
+							</div>
+							{!isEditingUsername && (
+								<button type="button" className="user-icon-button" onClick={handleUsernameEditOpen} aria-label="Edit username">
+									<Pencil size={18} />
+								</button>
+							)}
+						</div>
+
+						<div className="user-detail-row">
+							<div>
+								<h2 className="user-detail-label">Email</h2>
+								<p className="user-detail-value">{profile.email}</p>
+							</div>
+							<button
+								type="button"
+								className="user-icon-button"
+								onClick={() => setIsEmailModalOpen(true)}
+								aria-label="Edit email"
+							>
+								<Pencil size={18} />
+							</button>
+						</div>
+					</section>
+
+					<section className="user-card">
+						<div className="user-section-heading">
+							<h2 className="user-section-title">Change password</h2>
+							<p className="user-section-description">
+								Confirm your current password before setting a new one.
+							</p>
+						</div>
+
+						{passwordFeedback && (
+							<div className={passwordFeedback.kind === "error" ? "error-message" : "user-success-message"}>
+								{passwordFeedback.message}
+							</div>
+						)}
+
+						<form className="user-password-form" onSubmit={handlePasswordChange}>
+							<div className="user-password-grid">
+								<div className="form-group">
+									<label htmlFor="current-password">Confirm current password</label>
+									<input
+										type="password"
+										id="current-password"
+										value={passwordForm.currentPassword}
+										onChange={(event: ChangeEvent<HTMLInputElement>) =>
+											setPasswordForm((previousValue) => ({ ...previousValue, currentPassword: event.target.value }))
+										}
+										placeholder="current password here..."
+										autoComplete="current-password"
+										required
+									/>
+								</div>
+
+								<div className="form-group">
+									<label htmlFor="new-password">New password</label>
+									<input
+										type="password"
+										id="new-password"
+										value={passwordForm.password}
+										onChange={(event: ChangeEvent<HTMLInputElement>) =>
+											setPasswordForm((previousValue) => ({ ...previousValue, password: event.target.value }))
+										}
+										placeholder="type your new password here..."
+										autoComplete="new-password"
+										required
+									/>
+								</div>
+
+								<div className="form-group">
+									<label htmlFor="confirm-password">Confirm new password</label>
+									<input
+										type="password"
+										id="confirm-password"
+										value={passwordForm.passwordConfirm}
+										onChange={(event: ChangeEvent<HTMLInputElement>) =>
+											setPasswordForm((previousValue) => ({
+												...previousValue,
+												passwordConfirm: event.target.value,
+											}))
+										}
+										placeholder="confirm your new password here..."
+										autoComplete="new-password"
+										required
+									/>
+								</div>
+							</div>
+
+							<div className="user-actions-row user-actions-row-end">
+								<button type="submit" className="green-btn" disabled={passwordLoading}>
+									{passwordLoading ? "Changing..." : "Change password"}
+								</button>
+							</div>
+						</form>
+					</section>
+				</div>
+			</main>
+
+			<EmailChangeModal
+				isOpen={isEmailModalOpen}
+				currentEmail={profile.email}
+				onClose={() => setIsEmailModalOpen(false)}
+				onSuccess={(email) => setProfile((previousValue) => (previousValue ? { ...previousValue, email } : previousValue))}
+			/>
+		</>
+	);
+}

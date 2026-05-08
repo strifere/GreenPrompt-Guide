@@ -79,6 +79,19 @@ class EmailService {
       html,
     });
   }
+
+  async sendEmailChangeVerificationCode(email: string, code: string): Promise<boolean> {
+    const subject = "Email Change Verification Code";
+    const text = `Your email change verification code is: ${code}\n\nThis code will expire in 15 minutes.`;
+    const html = `<p>Your email change verification code is: <strong>${code}</strong></p><p>This code will expire in 15 minutes.</p>`;
+
+    return this.send({
+      to: email,
+      subject,
+      text,
+      html,
+    });
+  }
 }
 
 export const emailService = new EmailService();

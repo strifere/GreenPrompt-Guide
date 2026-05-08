@@ -58,7 +58,7 @@ export default function HomePage() {
                 <p>
                   You can explore the catalog to find best practices for crafting Green Prompts. The catalog is organized into categories, and you can filter the practices by category, model, or other criteria. Each practice has a description, an example, and a set of tags that describe the practice.
                 </p>
-                <Link href="/catalog" className="explore-btn">
+                <Link href="/catalog" className="green-btn">
                   Explore
                 </Link>
               </article>
