@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 import { hashPassword, isValidPassword, verifyPassword } from "@/lib/auth";
 import { getSession } from "@/lib/session";
+import { getUserByUsernameWithPassword, updatePassword } from "@/domain/user-repository";
 
 export async function POST(request: NextRequest) {
   try {
@@ -31,9 +31,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const user = await prisma.user.findUnique({
-      where: { username: currentUsername },
-    });
+    const user = await getUserByUsernameWithPassword(currentUsername);
 
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -47,10 +45,7 @@ export async function POST(request: NextRequest) {
 
     const hashedPassword = await hashPassword(nextPassword);
 
-    await prisma.user.update({
-      where: { username: currentUsername },
-      data: { password: hashedPassword },
-    });
+    await updatePassword({ username: currentUsername, hashedPassword });
 
     return NextResponse.json(
       { message: "Password updated successfully" },

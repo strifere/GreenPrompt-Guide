@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 import { isValidPassword, hashPassword } from "@/lib/auth";
 import { passwordRecoveryStore } from "@/lib/password-recovery";
+import { getUserByEmail, updatePasswordByEmail } from "@/domain/user-repository";
 
 export async function POST(request: NextRequest) {
   try {
@@ -57,9 +57,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Find user by email
-    const user = await prisma.user.findUnique({
-      where: { email },
-    });
+    const user = await getUserByEmail(email);
 
     if (!user) {
       return NextResponse.json(
@@ -72,9 +70,9 @@ export async function POST(request: NextRequest) {
     const hashedPassword = await hashPassword(password);
 
     // Update user password
-    await prisma.user.update({
-      where: { email },
-      data: { password: hashedPassword },
+    await updatePasswordByEmail({
+      email,
+      hashedPassword,
     });
 
     // Consume the reset token to prevent reuse

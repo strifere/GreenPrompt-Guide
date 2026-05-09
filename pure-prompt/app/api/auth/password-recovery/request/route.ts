@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 import { isValidEmail } from "@/lib/auth";
 import { passwordRecoveryStore } from "@/lib/password-recovery";
 import { emailService } from "@/lib/email-service";
+import { getUserByEmail } from "@/domain/user-repository";
 
 export async function POST(request: NextRequest) {
   try {
@@ -25,9 +25,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user exists with this email
-    const user = await prisma.user.findUnique({
-      where: { email },
-    });
+    const user = await getUserByEmail(email);
 
     if (!user) {
       // Don't reveal if email exists for security

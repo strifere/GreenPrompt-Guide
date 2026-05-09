@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 import { isValidEmail } from "@/lib/auth";
 import { getSession } from "@/lib/session";
 import { passwordRecoveryStore } from "@/lib/password-recovery";
+import { getUserEmailByUsername, getUserByEmail, updateEmail } from "@/domain/user-repository";
 
 export async function POST(request: NextRequest) {
   try {
@@ -37,27 +37,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const currentUser = await prisma.user.findUnique({
-      where: { username: currentUsername },
-      select: { email: true },
-    });
+    const currentUser = await getUserEmailByUsername(currentUsername);
 
     if (!currentUser) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const existingUser = await prisma.user.findUnique({
-      where: { email: nextEmail },
-    });
+    const existingUser = await getUserByEmail(nextEmail);
 
     if (existingUser && existingUser.username !== currentUsername) {
       return NextResponse.json({ error: "Email already registered" }, { status: 409 });
     }
 
-    await prisma.user.update({
-      where: { username: currentUsername },
-      data: { email: nextEmail },
-    });
+    await updateEmail({ username: currentUsername, newEmail: nextEmail });
 
     passwordRecoveryStore.consumeResetToken(resetToken);
 

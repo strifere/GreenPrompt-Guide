@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 import { createSessionCookie, getSession } from "@/lib/session";
+import {
+  getUserByUsername,
+  isUsernameAvailable,
+  updateUsername,
+} from "@/domain/user-repository";
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,10 +22,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (nextUsername === currentUsername) {
-      const user = await prisma.user.findUnique({
-        where: { username: currentUsername },
-        select: { username: true, email: true },
-      });
+      const user = await getUserByUsername(currentUsername);
 
       if (!user) {
         return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -30,19 +31,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: "Username unchanged", user }, { status: 200 });
     }
 
-    const existingUser = await prisma.user.findUnique({
-      where: { username: nextUsername },
-    });
+    const available = await isUsernameAvailable(nextUsername);
 
-    if (existingUser) {
+    if (!available) {
       return NextResponse.json({ error: "Username already taken" }, { status: 409 });
     }
 
-    const updatedUser = await prisma.user.update({
-      where: { username: currentUsername },
-      data: { username: nextUsername },
-      select: { username: true, email: true },
-    });
+    const updatedUser = await updateUsername({ currentUsername, newUsername: nextUsername });
 
     await createSessionCookie(updatedUser.username);
 

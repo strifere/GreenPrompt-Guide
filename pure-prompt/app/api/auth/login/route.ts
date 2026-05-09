@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 import { verifyPassword } from "@/lib/auth";
 import { createSessionCookie } from "@/lib/session";
+import { getUserByIdentifier } from "@/domain/user-repository";
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,11 +18,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Find user by username or email
-    const user = await prisma.user.findFirst({
-      where: {
-        OR: [{ username: loginIdentifier }, { email: loginIdentifier }],
-      },
-    });
+    const user = await getUserByIdentifier(loginIdentifier);
 
     if (!user) {
       return NextResponse.json(
