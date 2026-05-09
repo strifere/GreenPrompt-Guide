@@ -15,6 +15,8 @@ export default defineConfig({
         "tests/",
         "prisma.config.ts",
         "vitest.config.ts",
+          "vitest.setup.ts",
+          "eslint.config.mjs",
         "fonts.ts",
       ],
     },

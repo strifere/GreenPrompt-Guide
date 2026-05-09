@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 
 export default function HomePage() {
   return (
@@ -87,9 +88,91 @@ export default function HomePage() {
         <section className="about" aria-label="About PurePrompt">
           <div className="about-inner">
             <h2>About PurePrompt</h2>
-            <p>
-              This project is developed by a student of the Bahcelor&apos;s Degree in Informatics Engineering at Barcelona School of Informatics as part of the bachelor&apos;s thesis. The goal of this project is to promote environmentally aware practices in the field of Prompt Engineering and to provide a platform for sharing best practices. The project is open source, and we welcome contributions from the community. If you are interested in contributing, please check our GitHub repository for more information.
-            </p>
+
+            <article className="about-subsection about-us">
+              <h3>About Us</h3>
+              <p>
+                PurePrompt is an initiative born from a passion for sustainable technology and innovative education. This project is developed by a student of the Bachelor&apos;s Degree in Informatics Engineering at Barcelona School of Informatics as part of their bachelor&apos;s thesis. Our mission is to promote environmentally aware practices in the field of Prompt Engineering and to provide a comprehensive platform for sharing and discovering best practices. We believe that technology can be powerful, efficient, and sustainable.
+              </p>
+            </article>
+
+            <article className="about-subsection about-team">
+              <h3>Team</h3>
+              <div className="team-grid">
+                <div className="team-card">
+                  <Image 
+                    src="/victor.png" 
+                    alt="Víctor Llorens" 
+                    className="team-card-image"
+                    width={120}
+                    height={120}
+                  />
+                  <h4>Víctor Llorens</h4>
+                  <p className="team-role">Thesis author</p>
+                  <p className="team-bio">
+                    Universitat Politécnica de Catalunya.
+                  </p>
+                </div>
+                <div className="team-card">
+                  <Image 
+                    src="/vincenzo.png" 
+                    alt="Vincenzo De Martino" 
+                    className="team-card-image"
+                    width={120}
+                    height={120}
+                  />
+                  <h4>Vincenzo De Martino</h4>
+                  <p className="team-role">Thesis supervisor</p>
+                  <p className="team-bio">
+                    Universitat Politécnica de Catalunya.
+                  </p>
+                </div>
+                <div className="team-card">
+                  <Image 
+                    src="/silverio.png" 
+                    alt="Silverio Martínez-Fernández" 
+                    className="team-card-image"
+                    width={120}
+                    height={120}
+                  />
+                  <h4>Silverio Martínez-Fernández</h4>
+                  <p className="team-role">Thesis co-supervisor</p>
+                  <p className="team-bio">
+                    Universitat Politécnica de Catalunya.
+                  </p>
+                </div>
+              </div>
+            </article>
+
+            <article className="about-subsection about-contribute">
+              <h3>Contribute</h3>
+              <p>
+                PurePrompt is an open-source project, and we actively welcome contributions from the community. Whether you&apos;re a developer, researcher, or prompt engineering enthusiast, there are many ways you can help us grow and improve this platform.
+              </p>
+              <div className="contribute-items">
+                <div className="contribute-item">
+                  <h4>Share Your Practices</h4>
+                  <p>
+                    Have you discovered an effective green prompt engineering technique? Submit your best practices to our catalog and help the community learn from your experience.
+                  </p>
+                </div>
+                <div className="contribute-item">
+                  <h4>Develop Features</h4>
+                  <p>
+                    Interested in development? Check out our GitHub repository for open issues and feature requests. We welcome pull requests and collaborative improvements.
+                  </p>
+                </div>
+                <div className="contribute-item">
+                  <h4>Report Issues</h4>
+                  <p>
+                    Found a bug or have a suggestion? Open an issue on GitHub or reach out to our team. Your feedback helps us improve PurePrompt.
+                  </p>
+                </div>
+              </div>
+              <p>
+                For more information on how to contribute, please visit our <a className="reference-link" href="https://github.com/MLEvol/PurePrompt.git" target="_blank" rel="noopener noreferrer">GitHub</a> repository and check our contribution guidelines.
+              </p>
+            </article>
           </div>
         </section>
       </div>

@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 import type { PracticeListItem, SidebarData } from "@/domain/practice-repository";
 import { catalogPracticeHref } from "./catalog-paths";
 
@@ -27,6 +27,7 @@ type FilterPanelProps = Readonly<{
 
 type PracticeCardProps = Readonly<{
   practice: PracticeListItem;
+  isAnimating?: boolean;
 }>;
 
 type SearchFiltersPanelProps = Readonly<{
@@ -39,6 +40,11 @@ type SearchFiltersPanelProps = Readonly<{
   onSourceYearChange: (value: string) => void;
   onCreatedFromChange: (value: string) => void;
   onCreatedToChange: (value: string) => void;
+}>;
+
+type ActiveFiltersDisplayProps = Readonly<{
+  filters: Record<FilterKey, string[]>;
+  onRemoveFilter: (groupKey: FilterKey, item: string) => void;
 }>;
 
 function unique(values: string[]) {
@@ -82,9 +88,12 @@ function practiceCreatedAtTimestamp(practice: PracticeListItem) {
   return Number.isNaN(value) ? null : value;
 }
 
-function PracticeCard({ practice }: PracticeCardProps) {
+function PracticeCard({ practice, isAnimating }: PracticeCardProps) {
   return (
-    <Link href={catalogPracticeHref(practice.name)} className="practice-card">
+    <Link 
+      href={catalogPracticeHref(practice.name)} 
+      className={`practice-card ${isAnimating ? "animate-in" : ""}`}
+    >
       <header>
         <h2>{practice.name}</h2>
         <div className="tags" aria-label="Practice categories">
@@ -192,6 +201,56 @@ function FilterPanel({ groups, selectedFilters, onToggleFilter }: FilterPanelPro
   );
 }
 
+function ActiveFiltersDisplay({ filters, onRemoveFilter }: ActiveFiltersDisplayProps) {
+  const activeFilterEntries: Array<[FilterKey, string]> = [];
+  
+  for (const [key, values] of Object.entries(filters) as Array<[FilterKey, string[]]>) {
+    for (const value of values) {
+      activeFilterEntries.push([key, value]);
+    }
+  }
+
+  if (activeFilterEntries.length === 0) {
+    return null;
+  }
+
+  // Format filter key for display (e.g., "promptTechniques" -> "Prompt Techniques")
+  function formatFilterKey(key: FilterKey): string {
+    const keyMap: Record<FilterKey, string> = {
+      categories: "Category",
+      models: "Model",
+      promptTechniques: "Technique",
+      hyperparameters: "Hyperparameter",
+      datasets: "Dataset",
+    };
+    return keyMap[key];
+  }
+
+  return (
+    <div className="active-filters">
+      {activeFilterEntries.map(([key, value]) => (
+        <div key={`${key}-${value}`} className="filter-tag">
+          <span>
+            {formatFilterKey(key)}: {value}
+          </span>
+          <button
+            className="filter-tag-close"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onRemoveFilter(key, value);
+            }}
+            aria-label={`Remove ${formatFilterKey(key)} filter: ${value}`}
+            type="button"
+          >
+            <X size={16} />
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function CatalogClient({ practices, sidebarData }: CatalogClientProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [includeSourceInSearch, setIncludeSourceInSearch] = useState(false);
@@ -205,6 +264,11 @@ export default function CatalogClient({ practices, sidebarData }: CatalogClientP
     hyperparameters: [],
     datasets: [],
   });
+  const [shouldAnimate, setShouldAnimate] = useState(false);
+  const practiceListRef = useRef<HTMLDivElement>(null);
+  const previousPracticeCountRef = useRef<number>(0);
+  const sidebarDisclosureRef = useRef<HTMLDetailsElement>(null);
+  const mobileInlineDisclosureRef = useRef<HTMLDetailsElement>(null);
 
   const sidebarGroups: SidebarGroup[] = useMemo(
     () => [
@@ -235,6 +299,16 @@ export default function CatalogClient({ practices, sidebarData }: CatalogClientP
         [groupKey]: isSelected
           ? groupFilters.filter((entry) => entry !== item)
           : [...groupFilters, item],
+      };
+    });
+  }
+
+  function removeFilter(groupKey: FilterKey, item: string) {
+    setSelectedFilters((currentFilters) => {
+      const groupFilters = currentFilters[groupKey];
+      return {
+        ...currentFilters,
+        [groupKey]: groupFilters.filter((entry) => entry !== item),
       };
     });
   }
@@ -310,6 +384,50 @@ export default function CatalogClient({ practices, sidebarData }: CatalogClientP
     sidebarGroups,
   ]);
 
+  // Handle scrolling when filtered practices change
+  useEffect(() => {
+    const currentCount = filteredPractices.length;
+    
+    // Only update if the count changed
+    if (currentCount !== previousPracticeCountRef.current) {
+      previousPracticeCountRef.current = currentCount;
+      
+      // Scroll to top smoothly
+      if (practiceListRef.current && "scrollTo" in practiceListRef.current) {
+        practiceListRef.current.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    }
+  }, [filteredPractices]);
+
+  // Handle animation timing separately
+  useEffect(() => {
+    if (shouldAnimate) {
+      const animationTimeout = setTimeout(() => {
+        setShouldAnimate(false);
+      }, 400);
+      
+      return () => clearTimeout(animationTimeout);
+    }
+  }, [shouldAnimate]);
+
+  // Trigger animation when filter changes (separate from effect logic)
+  const previousCountRef = useRef<number>(0);
+  useEffect(() => {
+    if (filteredPractices.length !== previousCountRef.current) {
+      previousCountRef.current = filteredPractices.length;
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setShouldAnimate(true);
+    }
+  }, [filteredPractices]);
+
+  // Close mobile filter panels when filters are applied
+  useEffect(() => {
+    
+    if (mobileInlineDisclosureRef.current) {
+      mobileInlineDisclosureRef.current.open = false;
+    }
+  }, [selectedFilters]);
+
   const totalSelectedFilters =
     selectedFilters.categories.length +
     selectedFilters.models.length +
@@ -320,7 +438,7 @@ export default function CatalogClient({ practices, sidebarData }: CatalogClientP
   return (
     <div className="layout-grid">
         <aside className="sidebar" aria-label="Practice filters">
-          <details className="sidebar-mobile-disclosure sidebar-desktop-disclosure" open>
+          <details className="sidebar-mobile-disclosure sidebar-desktop-disclosure" open ref={sidebarDisclosureRef}>
             <summary className="sidebar-mobile-summary">
               Filters{totalSelectedFilters > 0 ? ` (${totalSelectedFilters})` : ""}
             </summary>
@@ -362,7 +480,7 @@ export default function CatalogClient({ practices, sidebarData }: CatalogClientP
                 </label>
             </div>
 
-            <details className="sidebar-mobile-disclosure sidebar-mobile-inline">
+            <details className="sidebar-mobile-disclosure sidebar-mobile-inline" ref={mobileInlineDisclosureRef}>
               <summary className="sidebar-mobile-summary">
                 Filters{totalSelectedFilters > 0 ? ` (${totalSelectedFilters})` : ""}
               </summary>
@@ -386,9 +504,18 @@ export default function CatalogClient({ practices, sidebarData }: CatalogClientP
               </div>
             </details>
 
-            <div className="practice-list">
+            <ActiveFiltersDisplay 
+              filters={selectedFilters}
+              onRemoveFilter={removeFilter}
+            />
+
+            <div className="practice-list" ref={practiceListRef}>
               {filteredPractices.map((practice) => (
-                <PracticeCard key={practice.name} practice={practice} />
+                <PracticeCard 
+                  key={practice.name} 
+                  practice={practice}
+                  isAnimating={shouldAnimate}
+                />
               ))}
             </div>
           </div>

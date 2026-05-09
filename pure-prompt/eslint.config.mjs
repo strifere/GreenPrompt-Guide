@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    "vitest.setup.ts",
+    "eslint.config.mjs",
   ]),
   // Allow explicit any in test files for mocking purposes
   {

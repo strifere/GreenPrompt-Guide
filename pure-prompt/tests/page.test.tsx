@@ -115,10 +115,10 @@ describe("Home Page", () => {
     expect(aboutHeading).toBeInTheDocument();
 
     expect(
-      screen.getByText(/This project is developed by a student of the Bahcelor's Degree in Informatics Engineering/i),
+      screen.getByText(/PurePrompt is an initiative born from a passion for sustainable technology/i),
     ).toBeInTheDocument();
 
-    expect(screen.getByText(/The goal of this project is to promote environmentally aware practices/i)).toBeInTheDocument();
+    expect(screen.getByText(/Our mission is to promote environmentally aware practices in the field of Prompt Engineering/i)).toBeInTheDocument();
   });
 
   it("renders all main sections with proper accessibility labels", () => {
@@ -184,9 +184,9 @@ describe("Home Page", () => {
   it("displays open source and community contribution information", () => {
     render(<HomePage />);
 
-    expect(screen.getByText(/The project is open source/i)).toBeInTheDocument();
-    expect(screen.getByText(/we welcome contributions from the community/i)).toBeInTheDocument();
-    expect(screen.getByText(/please check our GitHub repository/i)).toBeInTheDocument();
+    expect(screen.getByText(/PurePrompt is an open-source project/i)).toBeInTheDocument();
+    expect(screen.getByText(/we actively welcome contributions from the community/i)).toBeInTheDocument();
+    expect(screen.getByText(/Check out our GitHub repository for open issues/i)).toBeInTheDocument();
   });
 
   it("renders hero title with brand styling (Pure and Prompt spans)", () => {
