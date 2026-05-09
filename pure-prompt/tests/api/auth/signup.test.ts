@@ -2,18 +2,16 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { POST } from "@/app/api/auth/signup/route";
 import { createJsonRequest } from "@/tests/test-utils";
 
-const prismaMock = vi.hoisted(() => ({
-  user: {
-    findUnique: vi.fn(),
-    create: vi.fn(),
-  },
-}));
-
+const isUsernameAvailableMock = vi.hoisted(() => vi.fn());
+const isEmailAvailableMock = vi.hoisted(() => vi.fn());
+const createUserMock = vi.hoisted(() => vi.fn());
 const hashPasswordMock = vi.hoisted(() => vi.fn());
 const createSessionCookieMock = vi.hoisted(() => vi.fn());
 
-vi.mock("@/lib/prisma", () => ({
-  prisma: prismaMock,
+vi.mock("@/domain/user-repository", () => ({
+  isUsernameAvailable: isUsernameAvailableMock,
+  isEmailAvailable: isEmailAvailableMock,
+  createUser: createUserMock,
 }));
 
 vi.mock("@/lib/auth", () => ({
@@ -80,7 +78,7 @@ describe("POST /api/auth/signup", () => {
   });
 
   it("returns 409 when the username is already taken", async () => {
-    prismaMock.user.findUnique.mockResolvedValueOnce({ username: "victor" });
+    isUsernameAvailableMock.mockResolvedValueOnce(false);
 
     const response = await POST(createJsonRequest("/api/auth/signup", {
       username: "victor",
@@ -89,14 +87,14 @@ describe("POST /api/auth/signup", () => {
       passwordConfirm: "password123",
     }));
 
+    expect(isUsernameAvailableMock).toHaveBeenCalledWith("victor");
     expect(response.status).toBe(409);
     expect(await response.json()).toEqual({ error: "Username already taken" });
   });
 
   it("returns 409 when the email is already registered", async () => {
-    prismaMock.user.findUnique
-      .mockResolvedValueOnce(null)
-      .mockResolvedValueOnce({ email: "victor@example.com" });
+    isUsernameAvailableMock.mockResolvedValueOnce(true);
+    isEmailAvailableMock.mockResolvedValueOnce(false);
 
     const response = await POST(createJsonRequest("/api/auth/signup", {
       username: "victor",
@@ -105,18 +103,19 @@ describe("POST /api/auth/signup", () => {
       passwordConfirm: "password123",
     }));
 
+    expect(isEmailAvailableMock).toHaveBeenCalledWith("victor@example.com");
     expect(response.status).toBe(409);
     expect(await response.json()).toEqual({ error: "Email already registered" });
   });
 
   it("creates the account, session, and returns the new user", async () => {
-    prismaMock.user.findUnique
-      .mockResolvedValueOnce(null)
-      .mockResolvedValueOnce(null);
+    isUsernameAvailableMock.mockResolvedValueOnce(true);
+    isEmailAvailableMock.mockResolvedValueOnce(true);
     hashPasswordMock.mockResolvedValueOnce("hashed-password");
-    prismaMock.user.create.mockResolvedValueOnce({
+    createUserMock.mockResolvedValueOnce({
       username: "victor",
       email: "victor@example.com",
+      role: "user",
     });
 
     const response = await POST(createJsonRequest("/api/auth/signup", {
@@ -127,12 +126,10 @@ describe("POST /api/auth/signup", () => {
     }));
 
     expect(hashPasswordMock).toHaveBeenCalledWith("password123");
-    expect(prismaMock.user.create).toHaveBeenCalledWith({
-      data: {
-        username: "victor",
-        email: "victor@example.com",
-        password: "hashed-password",
-      },
+    expect(createUserMock).toHaveBeenCalledWith({
+      username: "victor",
+      email: "victor@example.com",
+      password: "hashed-password",
     });
     expect(createSessionCookieMock).toHaveBeenCalledWith("victor");
     expect(response.status).toBe(201);

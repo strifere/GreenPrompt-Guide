@@ -62,6 +62,10 @@ export type CreateUserInput = {
   password: string; // hashed
 };
 
+function hasErrorCode(error: unknown): error is { code: string } {
+  return typeof error === "object" && error !== null && "code" in error;
+}
+
 export async function createUser(input: CreateUserInput): Promise<UserPublic> {
   try {
     const user = await prisma.user.create({
@@ -73,7 +77,7 @@ export async function createUser(input: CreateUserInput): Promise<UserPublic> {
     });
     return user as UserPublic;
   } catch (error) {
-    if ((error as any)?.code === "P2002") {
+    if (hasErrorCode(error) && error.code === "P2002") {
       throw new Error("User already exists");
     }
     throw error;
