@@ -105,8 +105,8 @@ export default async function RootLayout({
           </nav>
           <div className="topbar-cta topbar-cta-desktop">
             <ThemeToggle />
-            <AuthButtons />
           </div>
+          <AuthButtons />
           <TopbarMenu />
         </header>
         <main className="app-main" >

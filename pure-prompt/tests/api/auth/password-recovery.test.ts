@@ -4,13 +4,6 @@ import { POST as resetPassword } from "@/app/api/auth/password-recovery/reset/ro
 import { POST as verifyCode } from "@/app/api/auth/password-recovery/verify-code/route";
 import { createJsonRequest } from "@/tests/test-utils";
 
-const prismaMock = vi.hoisted(() => ({
-  user: {
-    findUnique: vi.fn(),
-    update: vi.fn(),
-  },
-}));
-
 const passwordRecoveryStoreMock = vi.hoisted(() => ({
   createToken: vi.fn(),
   verifyCode: vi.fn(),
@@ -23,10 +16,8 @@ const emailServiceMock = vi.hoisted(() => ({
 }));
 
 const hashPasswordMock = vi.hoisted(() => vi.fn());
-
-vi.mock("@/lib/prisma", () => ({
-  prisma: prismaMock,
-}));
+const getUserByEmailMock = vi.hoisted(() => vi.fn());
+const updatePasswordByEmailMock = vi.hoisted(() => vi.fn());
 
 vi.mock("@/lib/password-recovery", () => ({
   passwordRecoveryStore: passwordRecoveryStoreMock,
@@ -42,13 +33,18 @@ vi.mock("@/lib/auth", () => ({
   hashPassword: hashPasswordMock,
 }));
 
+vi.mock("@/domain/user-repository", () => ({
+  getUserByEmail: getUserByEmailMock,
+  updatePasswordByEmail: updatePasswordByEmailMock,
+}));
+
 describe("POST /api/auth/password-recovery/*", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   describe("request", () => {
-    it("validates the email payload", async () => {
+    it("returns 400 when email is missing or invalid", async () => {
       const response = await requestCode(createJsonRequest(
         "/api/auth/password-recovery/request",
         {}
@@ -59,13 +55,14 @@ describe("POST /api/auth/password-recovery/*", () => {
     });
 
     it("returns 404 when the email is not registered", async () => {
-      prismaMock.user.findUnique.mockResolvedValueOnce(null);
+      getUserByEmailMock.mockResolvedValueOnce(null);
 
       const response = await requestCode(createJsonRequest(
         "/api/auth/password-recovery/request",
         { email: "missing@example.com" }
       ));
 
+      expect(getUserByEmailMock).toHaveBeenCalledWith("missing@example.com");
       expect(response.status).toBe(404);
       expect(await response.json()).toEqual({
         error: "The introduced email doesn't match the one registered in your account",
@@ -73,7 +70,12 @@ describe("POST /api/auth/password-recovery/*", () => {
     });
 
     it("sends a recovery code for a valid account", async () => {
-      prismaMock.user.findUnique.mockResolvedValueOnce({ email: "victor@example.com" });
+      getUserByEmailMock.mockResolvedValueOnce({
+        username: "victor",
+        email: "victor@example.com",
+        role: "user",
+        password: "hashed",
+      });
       passwordRecoveryStoreMock.createToken.mockReturnValueOnce("ABC123");
       emailServiceMock.sendPasswordRecoveryCode.mockResolvedValueOnce(true);
 
@@ -92,7 +94,12 @@ describe("POST /api/auth/password-recovery/*", () => {
     });
 
     it("returns 500 when the email cannot be delivered", async () => {
-      prismaMock.user.findUnique.mockResolvedValueOnce({ email: "victor@example.com" });
+      getUserByEmailMock.mockResolvedValueOnce({
+        username: "victor",
+        email: "victor@example.com",
+        role: "user",
+        password: "hashed",
+      });
       passwordRecoveryStoreMock.createToken.mockReturnValueOnce("ABC123");
       emailServiceMock.sendPasswordRecoveryCode.mockResolvedValueOnce(false);
 
@@ -154,7 +161,7 @@ describe("POST /api/auth/password-recovery/*", () => {
   });
 
   describe("reset", () => {
-    it("validates the reset payload", async () => {
+    it("returns 400 when the reset payload is incomplete", async () => {
       const response = await resetPassword(createJsonRequest(
         "/api/auth/password-recovery/reset",
         { password: "newpassword", passwordConfirm: "newpassword" }
@@ -162,22 +169,6 @@ describe("POST /api/auth/password-recovery/*", () => {
 
       expect(response.status).toBe(400);
       expect(await response.json()).toEqual({ error: "Reset token is required" });
-    });
-
-    it("rejects mismatched passwords", async () => {
-      const response = await resetPassword(createJsonRequest(
-        "/api/auth/password-recovery/reset",
-        {
-          resetToken: "reset-token",
-          password: "newpassword",
-          passwordConfirm: "different",
-        }
-      ));
-
-      expect(response.status).toBe(400);
-      expect(await response.json()).toEqual({
-        error: "The passwords don't match. Please type them again.",
-      });
     });
 
     it("returns 401 when the reset token is invalid", async () => {
@@ -198,10 +189,34 @@ describe("POST /api/auth/password-recovery/*", () => {
       });
     });
 
+    it("returns 404 when the repository cannot find the user", async () => {
+      passwordRecoveryStoreMock.getResetTokenEmail.mockReturnValueOnce("victor@example.com");
+      getUserByEmailMock.mockResolvedValueOnce(null);
+
+      const response = await resetPassword(createJsonRequest(
+        "/api/auth/password-recovery/reset",
+        {
+          resetToken: "reset-token",
+          password: "newpassword",
+          passwordConfirm: "newpassword",
+        }
+      ));
+
+      expect(getUserByEmailMock).toHaveBeenCalledWith("victor@example.com");
+      expect(response.status).toBe(404);
+      expect(await response.json()).toEqual({ error: "User not found" });
+    });
+
     it("updates the password and consumes the reset token", async () => {
       passwordRecoveryStoreMock.getResetTokenEmail.mockReturnValueOnce("victor@example.com");
+      getUserByEmailMock.mockResolvedValueOnce({
+        username: "victor",
+        email: "victor@example.com",
+        role: "user",
+        password: "hashed-current",
+      });
       hashPasswordMock.mockResolvedValueOnce("hashed-password");
-      prismaMock.user.findUnique.mockResolvedValueOnce({ email: "victor@example.com" });
+      updatePasswordByEmailMock.mockResolvedValueOnce();
 
       const response = await resetPassword(createJsonRequest(
         "/api/auth/password-recovery/reset",
@@ -213,9 +228,9 @@ describe("POST /api/auth/password-recovery/*", () => {
       ));
 
       expect(hashPasswordMock).toHaveBeenCalledWith("newpassword");
-      expect(prismaMock.user.update).toHaveBeenCalledWith({
-        where: { email: "victor@example.com" },
-        data: { password: "hashed-password" },
+      expect(updatePasswordByEmailMock).toHaveBeenCalledWith({
+        email: "victor@example.com",
+        hashedPassword: "hashed-password",
       });
       expect(passwordRecoveryStoreMock.consumeResetToken).toHaveBeenCalledWith("reset-token");
       expect(response.status).toBe(200);

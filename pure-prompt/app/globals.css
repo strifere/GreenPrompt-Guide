@@ -428,7 +428,7 @@ a {
   z-index: 1000;
   height: 86px;
   display: grid;
-  grid-template-columns: 1fr auto auto;
+  grid-template-columns: 1fr auto auto auto;
   gap: 28px;
   align-items: center;
   padding: 0 26px;
@@ -551,7 +551,7 @@ a {
 .topbar-menu-button:active,
 .ghost-btn:active,
 .solid-btn:active,
-.explore-btn:active,
+.green-btn:active,
 .theme-select:active,
 .practice-back-link:active,
 .home-signup-btn:active,
@@ -587,6 +587,116 @@ a {
   box-shadow: 0 18px 50px rgb(17 19 26 / 16%);
   backdrop-filter: blur(18px);
   animation: pop-in 180ms ease-out;
+}
+
+.topbar-user-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.topbar-user-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  border: 1px solid color-mix(in srgb, var(--line) 55%, var(--accent));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  color: var(--text-main);
+  font-weight: 600;
+  box-shadow: var(--shadow-soft);
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    background-color 160ms ease,
+    border-radius 160ms ease;
+}
+
+.topbar-user-button::after {
+  content: "▾";
+  font-size: 0.9rem;
+}
+
+.topbar-user-button:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 70%, white);
+  outline-offset: 2px;
+}
+
+.topbar-user-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgb(17 19 26 / 14%);
+}
+
+.topbar-user-button[data-open="true"] {
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
+  box-shadow: 0 14px 32px rgb(17 19 26 / 18%);
+}
+
+.topbar-user-button[data-open="true"]::after {
+  content: "▴";
+}
+
+.topbar-user-name {
+  font-size: 0.95rem;
+}
+
+.topbar-user-panel {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  z-index: 1100;
+  min-width: min(220px, calc(100vw - 32px));
+  padding: 10px;
+  border: 1px solid color-mix(in srgb, var(--line) 35%, transparent);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--surface) 98%, transparent);
+  box-shadow: 0 18px 50px rgb(17 19 26 / 16%);
+  backdrop-filter: blur(18px);
+  display: grid;
+  gap: 8px;
+  animation: pop-in 180ms ease-out;
+}
+
+.topbar-user-item {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-main);
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    transform 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease,
+    border-color 160ms ease;
+}
+
+.topbar-user-item:hover,
+.topbar-user-item:focus-visible {
+  transform: translateY(-1px);
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  border-color: color-mix(in srgb, var(--line) 35%, transparent);
+  box-shadow: 0 12px 26px rgb(17 19 26 / 12%);
+}
+
+.topbar-user-item:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 70%, white);
+  outline-offset: 2px;
+}
+
+.topbar-user-item:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .topbar-menu-actions {
@@ -653,7 +763,7 @@ a {
     border-radius 150ms ease;
 }
 
-.explore-btn,
+.green-btn,
 .home-explore-btn {
   text-align: center;
   border-radius: 999px;
@@ -686,7 +796,7 @@ a {
 
 .ghost-btn:hover,
 .solid-btn:hover,
-.explore-btn:hover,
+.green-btn:hover,
 .home-signup-btn:hover, 
 .home-explore-btn:hover {
   transform: translateY(-1px);
@@ -1197,19 +1307,57 @@ a {
 
 @media (max-width: 1000px) {
   .topbar {
-    grid-template-columns: 1fr auto;
+    grid-template-columns: 1fr auto auto;
     height: auto;
     gap: 10px;
     padding: 14px 20px;
   }
 
+  .topbar > nav,
+  .topbar > .topbar-cta {
+    display: none;
+  }
+
   .topnav-links-desktop,
-  .topbar-cta-desktop {
+  .topbar-cta-desktop,
+  .topbar-auth-desktop {
     display: none;
   }
 
   .topbar-menu-wrap {
     display: block;
+    grid-column: 3;
+    justify-self: end;
+  }
+
+  .topbar-user-wrap {
+    display: inline-flex;
+    grid-column: 2;
+    justify-self: end;
+    z-index: 1200;
+  }
+
+  .topbar-user-name {
+    display: none;
+  }
+
+  .topbar-user-button {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    gap: 0;
+    justify-content: center;
+  }
+
+  .topbar-user-button::after {
+    content: "";
+  }
+
+  .topbar-user-panel {
+    right: 0;
+    left: auto;
+    min-width: min(240px, calc(100vw - 24px));
+    z-index: 1200;
   }
 
   .topnav-links-mobile {
@@ -1711,7 +1859,7 @@ a {
   margin-top: 6px;
   border: 0;
   border-radius: 999px;
-  background: #488325;
+  background: var(--home-green);
   color: #ffffff;
   font-size: 1rem;
   font-weight: 700;
@@ -1729,6 +1877,201 @@ a {
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
+}
+
+/* User details page */
+
+.user-page {
+  flex: 1;
+  padding: 56px 24px 72px;
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--surface-alt) 55%, transparent), transparent 42%),
+    radial-gradient(circle at top right, color-mix(in srgb, var(--line) 18%, transparent), transparent 34%);
+}
+
+.user-page-shell {
+  width: min(100%, 980px);
+  margin: 0 auto;
+  display: grid;
+  gap: 24px;
+}
+
+.user-hero,
+.user-card {
+  border: 1px solid color-mix(in srgb, var(--line) 30%, transparent);
+  border-radius: 28px;
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
+  box-shadow: var(--shadow-soft);
+}
+
+.user-hero {
+  padding: 8px 4px 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+
+.user-page-kicker {
+  margin: 0 0 10px;
+  color: var(--link);
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.user-page-title {
+  margin: 0;
+  font-family: var(--font-display), "Trebuchet MS", sans-serif;
+  font-size: clamp(2.4rem, 5vw, 4.1rem);
+  line-height: 0.96;
+}
+
+.user-page-description {
+  width: min(100%, 64ch);
+  margin: 14px 0 0;
+  color: var(--text-muted);
+  font-size: 1.02rem;
+  line-height: 1.6;
+}
+
+.user-card {
+  padding: 28px;
+}
+
+.user-detail-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 22px 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 22%, transparent);
+}
+
+.user-detail-row:first-child {
+  padding-top: 0;
+}
+
+.user-detail-row:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.user-detail-label,
+.user-section-title {
+  margin: 0;
+  font-size: 1.18rem;
+  font-weight: 800;
+}
+
+.user-detail-value,
+.user-section-description {
+  margin: 10px 0 0;
+  color: var(--text-muted);
+  font-size: 0.98rem;
+  line-height: 1.6;
+}
+
+.user-icon-button {
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  border: 1px solid color-mix(in srgb, var(--line) 35%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  color: var(--text-main);
+  cursor: pointer;
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+
+.user-icon-button:hover,
+.user-icon-button:focus-visible {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--accent) 60%, var(--line));
+  box-shadow: 0 12px 26px rgb(17 19 26 / 12%);
+}
+
+.user-icon-button:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 70%, white);
+  outline-offset: 2px;
+}
+
+.user-inline-form,
+.user-password-form {
+  display: grid;
+  gap: 16px;
+}
+
+.user-inline-form {
+  margin-top: 14px;
+}
+
+.user-inline-input {
+  min-width: min(100%, 380px);
+}
+
+.user-actions-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.user-actions-row-end {
+  justify-content: flex-end;
+}
+
+.user-password-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.user-section-heading {
+  margin-bottom: 22px;
+}
+
+.user-success-message {
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  border-radius: 12px;
+  background: color-mix(in srgb, #16a34a 16%, transparent);
+  color: color-mix(in srgb, #16a34a 82%, var(--text-main));
+  border: 1px solid color-mix(in srgb, #16a34a 36%, transparent);
+  font-size: 0.95rem;
+}
+
+@media (max-width: 840px) {
+  .user-page {
+    padding-inline: 16px;
+  }
+
+  .user-card {
+    padding: 22px;
+  }
+
+  .user-detail-row {
+    flex-direction: column;
+  }
+
+  .user-password-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .user-actions-row-end {
+    justify-content: stretch;
+  }
+
+  .user-actions-row-end > * {
+    width: 100%;
+  }
+
+  .user-icon-button {
+    align-self: flex-start;
+  }
 }
 
 /* Password Recovery Modal */

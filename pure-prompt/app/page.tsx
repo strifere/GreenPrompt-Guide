@@ -34,7 +34,7 @@ export default function HomePage() {
           <article className="home-info-card">
             <h2>What is Prompt Engineering?</h2>
             <p>
-              Prompt Engineering is a field of research that studies how prompt crafting affects Language Models' performance, including energy, accuracy, response time, and many other metrics that describe how the model that processes the prompts behaves.
+              Prompt Engineering is a field of research that studies how prompt crafting affects Language Models&apos; performance, including energy, accuracy, response time, and many other metrics that describe how the model that processes the prompts behaves.
             </p>
           </article>
 
@@ -58,14 +58,14 @@ export default function HomePage() {
                 <p>
                   You can explore the catalog to find best practices for crafting Green Prompts. The catalog is organized into categories, and you can filter the practices by category, model, or other criteria. Each practice has a description, an example, and a set of tags that describe the practice.
                 </p>
-                <Link href="/catalog" className="explore-btn">
+                <Link href="/catalog" className="green-btn">
                   Explore
                 </Link>
               </article>
               <article className="instructions-card">
                 <h3>Contribute to the catalog</h3>
                 <p>
-                  You can contribute to the catalog by sharing your own best practices. To contribute, you need to create an account and log in. Once you are logged in, you can submit a new practice by filling out a form with the practice's description, example, and tags. Your submission will be reviewed by our team before being published in the catalog.
+                  You can contribute to the catalog by sharing your own best practices. To contribute, you need to create an account and log in. Once you are logged in, you can submit a new practice by filling out a form with the practice&apos;s description, example, and tags. Your submission will be reviewed by our team before being published in the catalog.
                 </p>
                 <Link href="/collaboration" className="ghost-btn">
                   Collaborate
@@ -88,7 +88,7 @@ export default function HomePage() {
           <div className="about-inner">
             <h2>About PurePrompt</h2>
             <p>
-              This project is developed by a student of the Bahcelor's Degree in Informatics Engineering at Barcelona School of Informatics as part of the bachelor's thesis. The goal of this project is to promote environmentally aware practices in the field of Prompt Engineering and to provide a platform for sharing best practices. The project is open source, and we welcome contributions from the community. If you are interested in contributing, please check our GitHub repository for more information.
+              This project is developed by a student of the Bahcelor&apos;s Degree in Informatics Engineering at Barcelona School of Informatics as part of the bachelor&apos;s thesis. The goal of this project is to promote environmentally aware practices in the field of Prompt Engineering and to provide a platform for sharing best practices. The project is open source, and we welcome contributions from the community. If you are interested in contributing, please check our GitHub repository for more information.
             </p>
           </div>
         </section>

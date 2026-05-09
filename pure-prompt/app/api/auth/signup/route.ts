@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 import { hashPassword, isValidEmail, isValidPassword } from "@/lib/auth";
 import { createSessionCookie } from "@/lib/session";
+import { isUsernameAvailable, isEmailAvailable, createUser } from "@/domain/user-repository";
 
 export async function POST(request: NextRequest) {
   try {
@@ -38,22 +38,18 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user already exists
-    const existingUserByUsername = await prisma.user.findUnique({
-      where: { username },
-    });
+    const usernameAvailable = await isUsernameAvailable(username);
 
-    if (existingUserByUsername) {
+    if (!usernameAvailable) {
       return NextResponse.json(
         { error: "Username already taken" },
         { status: 409 }
       );
     }
 
-    const existingUserByEmail = await prisma.user.findUnique({
-      where: { email },
-    });
+    const emailAvailable = await isEmailAvailable(email);
 
-    if (existingUserByEmail) {
+    if (!emailAvailable) {
       return NextResponse.json(
         { error: "Email already registered" },
         { status: 409 }
@@ -63,13 +59,7 @@ export async function POST(request: NextRequest) {
     // Hash password and create user
     const hashedPassword = await hashPassword(password);
 
-    const user = await prisma.user.create({
-      data: {
-        username,
-        email,
-        password: hashedPassword,
-      },
-    });
+    const user = await createUser({ username, email, password: hashedPassword });
 
     // Create session
     await createSessionCookie(user.username);

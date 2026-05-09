@@ -2,17 +2,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { POST } from "@/app/api/auth/login/route";
 import { createJsonRequest } from "@/tests/test-utils";
 
-const prismaMock = vi.hoisted(() => ({
-  user: {
-    findFirst: vi.fn(),
-  },
-}));
-
+const getUserByIdentifierMock = vi.hoisted(() => vi.fn());
 const verifyPasswordMock = vi.hoisted(() => vi.fn());
 const createSessionCookieMock = vi.hoisted(() => vi.fn());
 
-vi.mock("@/lib/prisma", () => ({
-  prisma: prismaMock,
+vi.mock("@/domain/user-repository", () => ({
+  getUserByIdentifier: getUserByIdentifierMock,
 }));
 
 vi.mock("@/lib/auth", () => ({
@@ -41,18 +36,14 @@ describe("POST /api/auth/login", () => {
   });
 
   it("returns 401 when no matching user exists", async () => {
-    prismaMock.user.findFirst.mockResolvedValueOnce(null);
+    getUserByIdentifierMock.mockResolvedValueOnce(null);
 
     const response = await POST(createJsonRequest("/api/auth/login", {
       identifier: "victor",
       password: "password123",
     }));
 
-    expect(prismaMock.user.findFirst).toHaveBeenCalledWith({
-      where: {
-        OR: [{ username: "victor" }, { email: "victor" }],
-      },
-    });
+    expect(getUserByIdentifierMock).toHaveBeenCalledWith("victor");
     expect(response.status).toBe(401);
     expect(await response.json()).toEqual({
       error: "Invalid username, email, or password",
@@ -60,10 +51,11 @@ describe("POST /api/auth/login", () => {
   });
 
   it("returns 401 when the password is invalid", async () => {
-    prismaMock.user.findFirst.mockResolvedValueOnce({
+    getUserByIdentifierMock.mockResolvedValueOnce({
       username: "victor",
       email: "victor@example.com",
       password: "hashed",
+      role: "user",
     });
     verifyPasswordMock.mockResolvedValueOnce(false);
 
@@ -78,10 +70,11 @@ describe("POST /api/auth/login", () => {
   });
 
   it("creates a session and returns the logged in user", async () => {
-    prismaMock.user.findFirst.mockResolvedValueOnce({
+    getUserByIdentifierMock.mockResolvedValueOnce({
       username: "victor",
       email: "victor@example.com",
       password: "hashed-password",
+      role: "user",
     });
     verifyPasswordMock.mockResolvedValueOnce(true);
 
@@ -90,11 +83,7 @@ describe("POST /api/auth/login", () => {
       password: "password123",
     }));
 
-    expect(prismaMock.user.findFirst).toHaveBeenCalledWith({
-      where: {
-        OR: [{ username: "victor@example.com" }, { email: "victor@example.com" }],
-      },
-    });
+    expect(getUserByIdentifierMock).toHaveBeenCalledWith("victor@example.com");
     expect(createSessionCookieMock).toHaveBeenCalledWith("victor");
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({
@@ -104,7 +93,7 @@ describe("POST /api/auth/login", () => {
   });
 
   it("returns 500 when the handler throws", async () => {
-    prismaMock.user.findFirst.mockRejectedValueOnce(new Error("db down"));
+    getUserByIdentifierMock.mockRejectedValueOnce(new Error("db down"));
 
     const response = await POST(createJsonRequest("/api/auth/login", {
       identifier: "victor",
