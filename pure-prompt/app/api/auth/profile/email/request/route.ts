@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 import { isValidEmail } from "@/lib/auth";
 import { getSession } from "@/lib/session";
 import { passwordRecoveryStore } from "@/lib/password-recovery";
 import { emailService } from "@/lib/email-service";
+import { getUserEmailByUsername, isEmailAvailable } from "@/domain/user-repository";
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,10 +24,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid email format" }, { status: 400 });
     }
 
-    const currentUser = await prisma.user.findUnique({
-      where: { username: currentUsername },
-      select: { email: true },
-    });
+    const currentUser = await getUserEmailByUsername(currentUsername);
 
     if (!currentUser) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -40,11 +37,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const existingUser = await prisma.user.findUnique({
-      where: { email: nextEmail },
-    });
+    const available = await isEmailAvailable(nextEmail);
 
-    if (existingUser) {
+    if (!available) {
       return NextResponse.json({ error: "Email already registered" }, { status: 409 });
     }
 

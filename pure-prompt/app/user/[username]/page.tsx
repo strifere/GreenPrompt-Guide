@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { Pencil } from "lucide-react";
-import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
+import { useEffect, useRef, useState, type ChangeEvent, type SyntheticEvent } from "react";
 
 type UserProfile = {
 	username: string;
@@ -73,7 +73,7 @@ function EmailChangeModal({ isOpen, currentEmail, onClose, onSuccess }: Readonly
 		onClose();
 	};
 
-	const handleRequestCode = async (event: FormEvent<HTMLFormElement>) => {
+	const handleRequestCode = async (event: SyntheticEvent<HTMLFormElement>) => {
 		event.preventDefault();
 		setError("");
 		setLoading(true);
@@ -134,7 +134,7 @@ function EmailChangeModal({ isOpen, currentEmail, onClose, onSuccess }: Readonly
 		}
 	};
 
-	const handleVerifyCode = async (event: FormEvent<HTMLFormElement>) => {
+	const handleVerifyCode = async (event: SyntheticEvent<HTMLFormElement>) => {
 		event.preventDefault();
 		setError("");
 		setLoading(true);
@@ -338,7 +338,7 @@ export default function UserProfilePage() {
 		setUsernameFeedback(null);
 	};
 
-	const handleUsernameSubmit = async (event: FormEvent<HTMLFormElement>) => {
+	const handleUsernameSubmit = async (event: SyntheticEvent<HTMLFormElement>) => {
 		event.preventDefault();
 
 		if (!profile) {
@@ -381,7 +381,7 @@ export default function UserProfilePage() {
 		}
 	};
 
-	const handlePasswordChange = async (event: FormEvent<HTMLFormElement>) => {
+	const handlePasswordChange = async (event: SyntheticEvent<HTMLFormElement>) => {
 		event.preventDefault();
 
 		setPasswordLoading(true);
