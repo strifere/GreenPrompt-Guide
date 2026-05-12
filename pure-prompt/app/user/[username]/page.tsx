@@ -384,6 +384,14 @@ export default function UserProfilePage() {
 	const handlePasswordChange = async (event: SyntheticEvent<HTMLFormElement>) => {
 		event.preventDefault();
 
+		// Quick client-side check: if the user entered the same new password as
+		// their current password in the form, warn immediately to avoid an
+		// unnecessary round-trip. The server will also enforce this check.
+		if (passwordForm.password === passwordForm.currentPassword) {
+			setPasswordFeedback({ kind: "error", message: "New password must be different from the current password" });
+			return;
+		}
+
 		setPasswordLoading(true);
 		setPasswordFeedback(null);
 

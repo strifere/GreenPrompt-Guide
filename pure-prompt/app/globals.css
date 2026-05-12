@@ -972,6 +972,7 @@ a {
   display: flex;
   flex-direction: column;
   scroll-behavior: smooth;
+  padding: 26px;
 }
 
 .sidebar-desktop {
@@ -1105,14 +1106,6 @@ a {
   width: 8px;
   height: 1px;
   background: color-mix(in srgb, var(--line) 85%, transparent);
-}
-
-.content {
-  padding: 26px;
-  overflow-y: auto;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
 }
 
 .catalog-body {

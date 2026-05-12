@@ -43,6 +43,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Current password is incorrect" }, { status: 401 });
     }
 
+    // Prevent users from reusing their current password. We can safely compare
+    // the plaintext candidate against the stored hash using `verifyPassword`.
+    const isSameAsCurrent = await verifyPassword(nextPassword, user.password);
+
+    if (isSameAsCurrent) {
+      return NextResponse.json({ error: "New password must be different from the current password" }, { status: 400 });
+    }
+
     const hashedPassword = await hashPassword(nextPassword);
 
     await updatePassword({ username: currentUsername, hashedPassword });

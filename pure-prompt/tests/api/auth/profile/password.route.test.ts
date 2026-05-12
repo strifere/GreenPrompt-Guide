@@ -139,6 +139,35 @@ describe("POST /api/auth/profile/password", () => {
     expect(await response.json()).toEqual({ error: "Current password is incorrect" });
   });
 
+  it("returns 400 when the new password is the same as the current password", async () => {
+    mockGetSession.mockResolvedValueOnce("currentuser");
+    mockIsValidPassword.mockReturnValueOnce(true);
+    mockGetUserByUsernameWithPassword.mockResolvedValueOnce({
+      username: "currentuser",
+      email: "user@example.com",
+      role: "user",
+      password: "hashedoldpass",
+    });
+    // First call verifies the provided current password; second call checks
+    // whether the candidate new password matches the stored hash. Both should
+    // return true to simulate the 'new equals current' case.
+    mockVerifyPassword.mockResolvedValueOnce(true).mockResolvedValueOnce(true);
+
+    const response = await POST(new NextRequest(new URL("http://localhost:3000"), {
+      method: "POST",
+      body: JSON.stringify({
+        currentPassword: "oldpass123",
+        password: "oldpass123",
+        passwordConfirm: "oldpass123",
+      }),
+    }));
+
+    expect(mockVerifyPassword).toHaveBeenCalledWith("oldpass123", "hashedoldpass");
+    // The second verify compares the candidate new password
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: "New password must be different from the current password" });
+  });
+
   it("updates the password after validating the current one", async () => {
     mockGetSession.mockResolvedValueOnce("currentuser");
     mockIsValidPassword.mockReturnValueOnce(true);
