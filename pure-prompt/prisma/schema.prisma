@@ -108,6 +108,7 @@ model PracticeExample {
   // Relationship stored only here (disjoint: PracticeExample is specific to one Practice)
   practice Practice @relation(fields: [practiceName], references: [name], onDelete: Cascade)
 
+  @@index([practiceName], map: "idx_practice_examples_practice_name")
   @@map("practice_examples")
 }
 
@@ -191,6 +192,8 @@ model Hyperparameter {
   practice  Practice? @relation(fields: [practiceName], references: [name], onDelete: SetNull)
 
   @@unique([name, value, referenceTitle])
+  @@index([referenceTitle], map: "idx_hyperparameters_reference_title")
+  @@index([practiceName], map: "idx_hyperparameters_practice_name")
   @@map("hyperparameters")
 }
 
@@ -209,6 +212,7 @@ model Metric {
   energyMetrics   EnergyMetric[]
   accuracyMetrics AccuracyMetric[]
 
+  @@index([practiceName], map: "idx_metrics_practice_name")
   @@map("metrics")
 }
 
@@ -246,6 +250,7 @@ model PracticeCategory {
   category Category @relation(fields: [categoryName], references: [name], onDelete: Cascade)
 
   @@id([practiceName, categoryName])
+  @@index([categoryName], map: "idx_practice_categories_category_name")
   @@map("practice_categories")
 }
 
@@ -258,6 +263,7 @@ model PracticePromptTechnique {
   promptTechnique PromptTechnique @relation(fields: [promptTechniqueName], references: [name], onDelete: Cascade)
 
   @@id([practiceName, promptTechniqueName])
+  @@index([promptTechniqueName], map: "idx_practice_prompt_techniques_prompt_technique_name")
   @@map("practice_prompt_techniques")
 }
 
@@ -270,6 +276,7 @@ model PracticeModel {
   model    Model    @relation(fields: [modelName], references: [name], onDelete: Cascade)
 
   @@id([practiceName, modelName])
+  @@index([modelName], map: "idx_practice_models_model_name")
   @@map("practice_models")
 }
 
@@ -282,6 +289,7 @@ model ModelReference {
   reference Reference @relation(fields: [referenceTitle], references: [title], onDelete: Cascade)
 
   @@id([modelName, referenceTitle])
+  @@index([referenceTitle], map: "idx_model_references_reference_title")
   @@map("model_references")
 }
 
@@ -294,6 +302,7 @@ model PaperPractice {
   reference Reference @relation(fields: [referenceTitle], references: [title], onDelete: Cascade)
 
   @@id([practiceName, referenceTitle])
+  @@index([referenceTitle], map: "idx_paper_practices_reference_title")
   @@map("paper_practices")
 }
 
@@ -306,6 +315,7 @@ model PaperDataset {
   reference Reference @relation(fields: [referenceTitle], references: [title], onDelete: Cascade)
 
   @@id([datasetName, referenceTitle])
+  @@index([referenceTitle], map: "idx_paper_datasets_reference_title")
   @@map("paper_datasets")
 }
 
@@ -318,5 +328,6 @@ model PaperPromptTechnique {
   reference       Reference       @relation(fields: [referenceTitle], references: [title], onDelete: Cascade)
 
   @@id([promptTechniqueName, referenceTitle])
+  @@index([referenceTitle], map: "idx_paper_prompt_techniques_reference_title")
   @@map("paper_prompt_techniques")
 }
