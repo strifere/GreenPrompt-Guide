@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
 const listPracticesArgs = Prisma.validator<Prisma.PracticeFindManyArgs>()({
-  orderBy: { id: "asc" },
+  orderBy: { name: "asc" },
   include: {
     categories: { include: { category: true } },
     models: { include: { model: true } },
@@ -26,7 +26,12 @@ const practiceDetailsArgs = Prisma.validator<Prisma.PracticeDefaultArgs>()({
     prompts: { include: { promptTechnique: true } },
     models: { include: { model: true } },
     hyperparameters: true,
-    metrics: true,
+    metrics: {
+      include: {
+        energyMetrics: true,
+        accuracyMetrics: true,
+      },
+    },
     papers: {
       include: {
         reference: {
@@ -54,12 +59,12 @@ export async function listPractices(): Promise<PracticeListItem[]> {
   return prisma.practice.findMany(listPracticesArgs);
 }
 
-export async function getPracticeById(
-  practiceId: number,
+export async function getPracticeByName(
+  practiceName: string,
 ): Promise<PracticeDetails | null> {
   return prisma.practice.findUnique({
     ...practiceDetailsArgs,
-    where: { id: practiceId },
+    where: { name: practiceName },
   });
 }
 

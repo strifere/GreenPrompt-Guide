@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 import type { PracticeListItem, SidebarData } from "@/domain/practice-repository";
+import { catalogPracticeHref } from "./catalog-paths";
 
 type FilterKey = keyof SidebarData;
 
@@ -26,18 +27,31 @@ type FilterPanelProps = Readonly<{
 
 type PracticeCardProps = Readonly<{
   practice: PracticeListItem;
+  isAnimating?: boolean;
 }>;
 
 type SearchFiltersPanelProps = Readonly<{
   includeSourceInSearch: boolean;
+  sourceYears: number[];
+  sourceYear: string;
   createdFrom: string;
   createdTo: string;
   onIncludeSourceInSearchChange: (enabled: boolean) => void;
+  onSourceYearChange: (value: string) => void;
   onCreatedFromChange: (value: string) => void;
   onCreatedToChange: (value: string) => void;
 }>;
 
+type ActiveFiltersDisplayProps = Readonly<{
+  filters: Record<FilterKey, string[]>;
+  onRemoveFilter: (groupKey: FilterKey, item: string) => void;
+}>;
+
 function unique(values: string[]) {
+  return Array.from(new Set(values));
+}
+
+function uniqueNumbers(values: number[]) {
   return Array.from(new Set(values));
 }
 
@@ -65,19 +79,26 @@ function practiceValues(practice: PracticeListItem): Record<FilterKey, string[]>
   };
 }
 
+function practiceReferenceYears(practice: PracticeListItem) {
+  return uniqueNumbers(practice.papers.map((paper) => paper.reference.year));
+}
+
 function practiceCreatedAtTimestamp(practice: PracticeListItem) {
   const value = new Date(practice.createdAt).getTime();
   return Number.isNaN(value) ? null : value;
 }
 
-function PracticeCard({ practice }: PracticeCardProps) {
+function PracticeCard({ practice, isAnimating }: PracticeCardProps) {
   return (
-    <Link href={`/catalog/practices/${practice.id}`} className="practice-card">
+    <Link 
+      href={catalogPracticeHref(practice.name)} 
+      className={`practice-card ${isAnimating ? "animate-in" : ""}`}
+    >
       <header>
         <h2>{practice.name}</h2>
         <div className="tags" aria-label="Practice categories">
           {practice.categories.map((category) => (
-            <span key={`${practice.id}-${category.category.name}`}>
+            <span key={`${practice.name}-${category.category.name}`}>
               {category.category.name}
             </span>
           ))}
@@ -91,9 +112,12 @@ function PracticeCard({ practice }: PracticeCardProps) {
 
 function SearchFiltersPanel({
   includeSourceInSearch,
+  sourceYears,
+  sourceYear,
   createdFrom,
   createdTo,
   onIncludeSourceInSearchChange,
+  onSourceYearChange,
   onCreatedFromChange,
   onCreatedToChange,
 }: SearchFiltersPanelProps) {
@@ -109,6 +133,22 @@ function SearchFiltersPanel({
         />
         <span>Search by source reference title</span>
       </label>
+
+      {includeSourceInSearch ? (
+        <label className="sidebar-date-field">
+          <span>Source year</span>
+          <select value={sourceYear} onChange={(event) => onSourceYearChange(event.target.value)}>
+            <option key="all-years" value="">
+              All years
+            </option>
+            {sourceYears.map((year) => (
+              <option key={year} value={String(year)}>
+                {year}
+              </option>
+            ))}
+          </select>
+        </label>
+      ) : null}
 
       <div className="sidebar-date-fields">
         <label className="sidebar-date-field">
@@ -161,9 +201,60 @@ function FilterPanel({ groups, selectedFilters, onToggleFilter }: FilterPanelPro
   );
 }
 
+function ActiveFiltersDisplay({ filters, onRemoveFilter }: ActiveFiltersDisplayProps) {
+  const activeFilterEntries: Array<[FilterKey, string]> = [];
+  
+  for (const [key, values] of Object.entries(filters) as Array<[FilterKey, string[]]>) {
+    for (const value of values) {
+      activeFilterEntries.push([key, value]);
+    }
+  }
+
+  if (activeFilterEntries.length === 0) {
+    return null;
+  }
+
+  // Format filter key for display (e.g., "promptTechniques" -> "Prompt Techniques")
+  function formatFilterKey(key: FilterKey): string {
+    const keyMap: Record<FilterKey, string> = {
+      categories: "Category",
+      models: "Model",
+      promptTechniques: "Technique",
+      hyperparameters: "Hyperparameter",
+      datasets: "Dataset",
+    };
+    return keyMap[key];
+  }
+
+  return (
+    <div className="active-filters">
+      {activeFilterEntries.map(([key, value]) => (
+        <div key={`${key}-${value}`} className="filter-tag">
+          <span>
+            {formatFilterKey(key)}: {value}
+          </span>
+          <button
+            className="filter-tag-close"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onRemoveFilter(key, value);
+            }}
+            aria-label={`Remove ${formatFilterKey(key)} filter: ${value}`}
+            type="button"
+          >
+            <X size={16} />
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function CatalogClient({ practices, sidebarData }: CatalogClientProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [includeSourceInSearch, setIncludeSourceInSearch] = useState(false);
+  const [sourceYear, setSourceYear] = useState("");
   const [createdFrom, setCreatedFrom] = useState("");
   const [createdTo, setCreatedTo] = useState("");
   const [selectedFilters, setSelectedFilters] = useState<Record<FilterKey, string[]>>({
@@ -173,16 +264,29 @@ export default function CatalogClient({ practices, sidebarData }: CatalogClientP
     hyperparameters: [],
     datasets: [],
   });
+  const [shouldAnimate, setShouldAnimate] = useState(false);
+  const practiceListRef = useRef<HTMLDivElement>(null);
+  const previousPracticeCountRef = useRef<number>(0);
+  const sidebarDisclosureRef = useRef<HTMLDetailsElement>(null);
+  const mobileInlineDisclosureRef = useRef<HTMLDetailsElement>(null);
 
   const sidebarGroups: SidebarGroup[] = useMemo(
     () => [
       { key: "categories", title: "Categories", items: sidebarData.categories },
-      { key: "models", title: "Models", items: sidebarData.models },
       { key: "promptTechniques", title: "Prompt Techniques", items: sidebarData.promptTechniques },
       { key: "hyperparameters", title: "Hyperparameters", items: sidebarData.hyperparameters },
+      { key: "models", title: "Models", items: sidebarData.models },
       { key: "datasets", title: "Datasets", items: sidebarData.datasets },
     ],
     [sidebarData],
+  );
+
+  const sourceYears = useMemo(
+    () =>
+      uniqueNumbers(practices.flatMap((practice) => practiceReferenceYears(practice))).sort(
+        (left, right) => right - left,
+      ),
+    [practices],
   );
 
   function toggleFilter(groupKey: FilterKey, item: string) {
@@ -195,6 +299,16 @@ export default function CatalogClient({ practices, sidebarData }: CatalogClientP
         [groupKey]: isSelected
           ? groupFilters.filter((entry) => entry !== item)
           : [...groupFilters, item],
+      };
+    });
+  }
+
+  function removeFilter(groupKey: FilterKey, item: string) {
+    setSelectedFilters((currentFilters) => {
+      const groupFilters = currentFilters[groupKey];
+      return {
+        ...currentFilters,
+        [groupKey]: groupFilters.filter((entry) => entry !== item),
       };
     });
   }
@@ -216,9 +330,11 @@ export default function CatalogClient({ practices, sidebarData }: CatalogClientP
       createdFromTimestamp !== null && createdToTimestamp !== null
         ? Math.max(createdFromTimestamp, createdToTimestamp)
         : createdToTimestamp;
+    const selectedSourceYearValue = sourceYear ? Number(sourceYear) : null;
 
     return practices.filter((practice) => {
       const values = practiceValues(practice);
+      const referenceYears = practiceReferenceYears(practice);
       const createdAtTimestamp = practiceCreatedAtTimestamp(practice);
 
       const matchesNameOrDescription =
@@ -238,8 +354,12 @@ export default function CatalogClient({ practices, sidebarData }: CatalogClientP
       const passesCreatedAtTo =
         maxCreatedTimestamp === null ||
         (createdAtTimestamp !== null && createdAtTimestamp <= maxCreatedTimestamp);
+      const passesSourceYear =
+        !includeSourceInSearch ||
+        selectedSourceYearValue === null ||
+        referenceYears.includes(selectedSourceYearValue);
 
-      if (!passesSearch || !passesCreatedAtFrom || !passesCreatedAtTo) {
+      if (!passesSearch || !passesCreatedAtFrom || !passesCreatedAtTo || !passesSourceYear) {
         return false;
       }
 
@@ -257,11 +377,56 @@ export default function CatalogClient({ practices, sidebarData }: CatalogClientP
     practices,
     searchQuery,
     includeSourceInSearch,
+    sourceYear,
     createdFrom,
     createdTo,
     selectedFilters,
     sidebarGroups,
   ]);
+
+  // Handle scrolling when filtered practices change
+  useEffect(() => {
+    const currentCount = filteredPractices.length;
+    
+    // Only update if the count changed
+    if (currentCount !== previousPracticeCountRef.current) {
+      previousPracticeCountRef.current = currentCount;
+      
+      // Scroll to top smoothly
+      if (practiceListRef.current && "scrollTo" in practiceListRef.current) {
+        practiceListRef.current.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    }
+  }, [filteredPractices]);
+
+  // Handle animation timing separately
+  useEffect(() => {
+    if (shouldAnimate) {
+      const animationTimeout = setTimeout(() => {
+        setShouldAnimate(false);
+      }, 400);
+      
+      return () => clearTimeout(animationTimeout);
+    }
+  }, [shouldAnimate]);
+
+  // Trigger animation when filter changes (separate from effect logic)
+  const previousCountRef = useRef<number>(0);
+  useEffect(() => {
+    if (filteredPractices.length !== previousCountRef.current) {
+      previousCountRef.current = filteredPractices.length;
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setShouldAnimate(true);
+    }
+  }, [filteredPractices]);
+
+  // Close mobile filter panels when filters are applied
+  useEffect(() => {
+    
+    if (mobileInlineDisclosureRef.current) {
+      mobileInlineDisclosureRef.current.open = false;
+    }
+  }, [selectedFilters]);
 
   const totalSelectedFilters =
     selectedFilters.categories.length +
@@ -271,19 +436,21 @@ export default function CatalogClient({ practices, sidebarData }: CatalogClientP
     selectedFilters.datasets.length;
 
   return (
-    <>
-      <div className="layout-grid">
+    <div className="layout-grid">
         <aside className="sidebar" aria-label="Practice filters">
-          <details className="sidebar-mobile-disclosure sidebar-desktop-disclosure" open>
+          <details className="sidebar-mobile-disclosure sidebar-desktop-disclosure" open ref={sidebarDisclosureRef}>
             <summary className="sidebar-mobile-summary">
               Filters{totalSelectedFilters > 0 ? ` (${totalSelectedFilters})` : ""}
             </summary>
             <div className="sidebar-mobile-panel">
               <SearchFiltersPanel
                 includeSourceInSearch={includeSourceInSearch}
+                sourceYears={sourceYears}
+                sourceYear={sourceYear}
                 createdFrom={createdFrom}
                 createdTo={createdTo}
                 onIncludeSourceInSearchChange={setIncludeSourceInSearch}
+                onSourceYearChange={setSourceYear}
                 onCreatedFromChange={setCreatedFrom}
                 onCreatedToChange={setCreatedTo}
               />
@@ -313,16 +480,19 @@ export default function CatalogClient({ practices, sidebarData }: CatalogClientP
                 </label>
             </div>
 
-            <details className="sidebar-mobile-disclosure sidebar-mobile-inline">
+            <details className="sidebar-mobile-disclosure sidebar-mobile-inline" ref={mobileInlineDisclosureRef}>
               <summary className="sidebar-mobile-summary">
                 Filters{totalSelectedFilters > 0 ? ` (${totalSelectedFilters})` : ""}
               </summary>
               <div className="sidebar-mobile-panel">
                 <SearchFiltersPanel
                   includeSourceInSearch={includeSourceInSearch}
+                  sourceYears={sourceYears}
+                  sourceYear={sourceYear}
                   createdFrom={createdFrom}
                   createdTo={createdTo}
                   onIncludeSourceInSearchChange={setIncludeSourceInSearch}
+                  onSourceYearChange={setSourceYear}
                   onCreatedFromChange={setCreatedFrom}
                   onCreatedToChange={setCreatedTo}
                 />
@@ -334,23 +504,22 @@ export default function CatalogClient({ practices, sidebarData }: CatalogClientP
               </div>
             </details>
 
-            <div className="practice-list">
+            <ActiveFiltersDisplay 
+              filters={selectedFilters}
+              onRemoveFilter={removeFilter}
+            />
+
+            <div className="practice-list" ref={practiceListRef}>
               {filteredPractices.map((practice) => (
-                <PracticeCard key={practice.id} practice={practice} />
+                <PracticeCard 
+                  key={practice.name} 
+                  practice={practice}
+                  isAnimating={shouldAnimate}
+                />
               ))}
             </div>
           </div>
         </main>
       </div>
-
-      <footer className="mobile-footer" aria-hidden>
-        <span>PurePrompt</span>
-        <span>Catalog</span>
-        <span>Search</span>
-        <span>Contribute</span>
-        <span>About us</span>
-        <span>Sign up</span>
-      </footer>
-    </>
   );
 }

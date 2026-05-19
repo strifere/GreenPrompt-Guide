@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ThemeToggle } from "./theme-toggle";
+import { useAuth } from "@/lib/use-auth";
 import { Menu } from "lucide-react";
 
 function MenuIcon() {
@@ -12,6 +13,7 @@ function MenuIcon() {
 }
 
 export function TopbarMenu() {
+  const { user, loading } = useAuth();
   const [open, setOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -71,22 +73,26 @@ export function TopbarMenu() {
             <Link href="/catalog" className="animated-link" onClick={closeMenu}>
               Catalog
             </Link>
-            <Link href="/contribute" className="animated-link" onClick={closeMenu}>
-              Contribute
+            <Link href="/collaboration" className="animated-link" onClick={closeMenu}>
+              Collaboration
             </Link>
-            <Link href="/" className="animated-link" onClick={closeMenu}>
+            <Link href="/#about-pureprompt" className="animated-link" onClick={closeMenu}>
               About
             </Link>
           </nav>
 
           <div className="topbar-menu-actions">
             <ThemeToggle />
-            <Link href="/login" className="ghost-btn" onClick={closeMenu}>
-              Log in
-            </Link>
-            <Link href="/signup" className="solid-btn" onClick={closeMenu}>
-              Sign up
-            </Link>
+            {!loading && !user ? (
+              <>
+                <Link href="/login" className="ghost-btn" onClick={closeMenu}>
+                  Log in
+                </Link>
+                <Link href="/signup" className="solid-btn" onClick={closeMenu}>
+                  Sign up
+                </Link>
+              </>
+            ) : null}
           </div>
         </div>
       ) : null}

@@ -120,6 +120,9 @@ jobs:
           POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
           POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          RESEND_FROM_EMAIL: ${{ secrets.RESEND_FROM_EMAIL }}
+          COOKIE_SECURE: ${{ secrets.COOKIE_SECURE }}
         run: |
           set -e
 
@@ -195,6 +198,9 @@ jobs:
           APP_TAG: ${{ steps.extract-tag.outputs.tag }}
           GHCR_USER: ${{ github.actor }}
           GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          RESEND_FROM_EMAIL: ${{ secrets.RESEND_FROM_EMAIL }}
+          COOKIE_SECURE: ${{ secrets.COOKIE_SECURE }}
           DOCKER_CONFIG: ${{ runner.temp }}/.docker
         run: |
           set -e

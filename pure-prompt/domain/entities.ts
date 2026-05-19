@@ -30,7 +30,6 @@ export enum EnergyMetricType {
 
 export class User {
   constructor(
-    public readonly id: number,
     public readonly username: string,
     public readonly password: string,
     public readonly createdAt: Date,
@@ -62,7 +61,6 @@ export class PromptTechnique {
 
 export class Dataset {
   constructor(
-    public readonly id: number,
     public readonly name: string,
     public readonly description: string | null,
     public readonly size: string | null,
@@ -74,7 +72,6 @@ export class Dataset {
 
 export class Reference {
   constructor(
-    public readonly id: number,
     public readonly title: string,
     public readonly authors: string,
     public readonly abstract: string | null,
@@ -85,6 +82,7 @@ export class Reference {
     public readonly task: string | null,
     public readonly venue: string | null,
     public readonly toolAvailability: string | null,
+    public readonly link: string | null,
     public readonly createdAt: Date,
     public readonly updatedAt: Date,
   ) {}
@@ -174,7 +172,6 @@ export class PracticeExample {
 
 export class Practice {
   constructor(
-    public readonly id: number,
     public readonly name: string,
     public readonly description: string,
     public readonly greenScore: number,

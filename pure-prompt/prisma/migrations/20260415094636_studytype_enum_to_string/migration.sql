@@ -28,4 +28,4 @@ ALTER TABLE "references" RENAME COLUMN "studyType_new" TO "studyType";
 ALTER TABLE "references" ALTER COLUMN "studyType" SET NOT NULL;
 
 -- 4) Drop old enum type (now unused)
-DROP TYPE StudyType;
+DROP TYPE "StudyType";
