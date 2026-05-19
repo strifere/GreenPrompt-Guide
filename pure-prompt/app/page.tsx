@@ -87,9 +87,9 @@ export default function HomePage() {
 
         <section className="about" aria-label="About PurePrompt">
           <div className="about-inner">
-            <h2>About PurePrompt</h2>
+            <h2 id="about-pureprompt">About PurePrompt</h2>
 
-            <article className="about-subsection about-us">
+            <article id="about-us" className="about-subsection about-us">
               <h3>About Us</h3>
               <p>
                 PurePrompt is an initiative born from a passion for sustainable technology and innovative education. This project is developed by a student of the Bachelor&apos;s Degree in Informatics Engineering at Barcelona School of Informatics as part of their bachelor&apos;s thesis. Our mission is to promote environmentally aware practices in the field of Prompt Engineering and to provide a comprehensive platform for sharing and discovering best practices. We believe that technology can be powerful, efficient, and sustainable.

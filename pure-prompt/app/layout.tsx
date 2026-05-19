@@ -99,7 +99,7 @@ export default async function RootLayout({
             <Link href="/collaboration" className="animated-link">
               Collaboration
             </Link>
-            <Link href="/" className="animated-link">
+            <Link href="/#about-pureprompt" className="animated-link">
               About
             </Link>
           </nav>

@@ -332,6 +332,10 @@ a {
   margin-top: 24px;
 }
 
+#about-pureprompt {
+  scroll-margin-top: 108px;
+}
+
 .about-subsection h3 {
   margin: 0 0 16px;
   font-family: var(--font-display), "Trebuchet MS", sans-serif;

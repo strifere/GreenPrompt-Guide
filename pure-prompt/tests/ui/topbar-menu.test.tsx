@@ -188,7 +188,7 @@ describe("TopbarMenu", () => {
       await waitFor(() => {
         expect(screen.getByText("Catalog")).toHaveAttribute("href", "/catalog");
         expect(screen.getByText("Collaboration")).toHaveAttribute("href", "/collaboration");
-        expect(screen.getByText("About")).toHaveAttribute("href", "/");
+        expect(screen.getByText("About")).toHaveAttribute("href", "/#about-pureprompt");
       });
     });
 
