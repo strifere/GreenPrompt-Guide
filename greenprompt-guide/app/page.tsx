@@ -9,8 +9,8 @@ export default function HomePage() {
       <div className="home-shell">
         <section className="home-hero" aria-labelledby="home-title">
           <h1 id="home-title" className="home-title">
-            <span className="home-title-brand home-title-brand-green">Pure</span>
-            <span className="home-title-brand home-title-brand-blue">Prompt</span>
+            <span className="home-title-brand home-title-brand-green">Green</span>
+            <span className="home-title-brand home-title-brand-blue">Prompt Guide</span>
           </h1>
 
           <p className="home-tagline">
@@ -27,7 +27,7 @@ export default function HomePage() {
           </div>
 
           <p className="home-summary">
-            PurePrompt is a catalog of Green Prompt Engineering practices. It is a platform that collects, organizes, and shares best practices for crafting environmentally aware prompts for Language Models.
+            GreenPrompt Guide is a catalog of Green Prompt Engineering practices. It is a platform that collects, organizes, and shares best practices for crafting environmentally aware prompts for Language Models.
           </p>
         </section>
 
@@ -49,9 +49,9 @@ export default function HomePage() {
 
         <section className="instructions" aria-label="Instructions of the tool">
           <div className="instructions-inner">
-            <h2>How to use PurePrompt?</h2>
+            <h2>How to use GreenPrompt Guide?</h2>
             <p>
-              PurePrompt is a catalog of Green Prompt Engineering practices. It is a platform that collects, organizes, and shares best practices for crafting environmentally aware prompts for Language Models. You can explore the catalog to find best practices for crafting Green Prompts, or you can contribute to the catalog by sharing your own best practices.
+              GreenPrompt Guide is a catalog of Green Prompt Engineering practices. It is a platform that collects, organizes, and shares best practices for crafting environmentally aware prompts for Language Models. You can explore the catalog to find best practices for crafting Green Prompts, or you can contribute to the catalog by sharing your own best practices.
             </p>
             <div className="instructions-grid">
               <article className="instructions-card instructions-card--large">
@@ -75,7 +75,7 @@ export default function HomePage() {
               <article className="instructions-card">
                 <h3>Join the community</h3>
                 <p>
-                  You can join the PurePrompt community to connect with other people interested in Green Prompt Engineering. The community is a place where you can share your experiences, ask questions, and learn from others. You can join the community by creating an account and logging in.
+                  You can join the GreenPrompt Guide community to connect with other people interested in Green Prompt Engineering. The community is a place where you can share your experiences, ask questions, and learn from others. You can join the community by creating an account and logging in.
                 </p>
                 <Link href="/signup" className="solid-btn">
                   Create account
@@ -85,14 +85,14 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="about" aria-label="About PurePrompt">
+        <section className="about" aria-label="About GreenPrompt Guide">
           <div className="about-inner">
-            <h2 id="about-pureprompt">About PurePrompt</h2>
+            <h2 id="about-greenprompt-guide">About GreenPrompt Guide</h2>
 
             <article id="about-us" className="about-subsection about-us">
               <h3>About Us</h3>
               <p>
-                PurePrompt is an initiative born from a passion for sustainable technology and innovative education. This project is developed by a student of the Bachelor&apos;s Degree in Informatics Engineering at Barcelona School of Informatics as part of their bachelor&apos;s thesis. Our mission is to promote environmentally aware practices in the field of Prompt Engineering and to provide a comprehensive platform for sharing and discovering best practices. We believe that technology can be powerful, efficient, and sustainable.
+                GreenPrompt Guide is an initiative born from a passion for sustainable technology and innovative education. This project is developed by a student of the Bachelor&apos;s Degree in Informatics Engineering at Barcelona School of Informatics as part of their bachelor&apos;s thesis. Our mission is to promote environmentally aware practices in the field of Prompt Engineering and to provide a comprehensive platform for sharing and discovering best practices. We believe that technology can be powerful, efficient, and sustainable.
               </p>
             </article>
 
@@ -147,7 +147,7 @@ export default function HomePage() {
             <article className="about-subsection about-contribute">
               <h3>Contribute</h3>
               <p>
-                PurePrompt is an open-source project, and we actively welcome contributions from the community. Whether you&apos;re a developer, researcher, or prompt engineering enthusiast, there are many ways you can help us grow and improve this platform.
+                GreenPrompt Guide is an open-source project, and we actively welcome contributions from the community. Whether you&apos;re a developer, researcher, or prompt engineering enthusiast, there are many ways you can help us grow and improve this platform.
               </p>
               <div className="contribute-items">
                 <div className="contribute-item">
@@ -165,12 +165,12 @@ export default function HomePage() {
                 <div className="contribute-item">
                   <h4>Report Issues</h4>
                   <p>
-                    Found a bug or have a suggestion? Open an issue on GitHub or reach out to our team. Your feedback helps us improve PurePrompt.
+                    Found a bug or have a suggestion? Open an issue on GitHub or reach out to our team. Your feedback helps us improve GreenPrompt Guide.
                   </p>
                 </div>
               </div>
               <p>
-                For more information on how to contribute, please visit our <a className="reference-link" href="https://github.com/MLEvol/PurePrompt.git" target="_blank" rel="noopener noreferrer">GitHub</a> repository and check our contribution guidelines.
+                For more information on how to contribute, please visit our <a className="reference-link" href="https://github.com/strifere/GreenPrompt-Guide.git" target="_blank" rel="noopener noreferrer">GitHub</a> repository and check our contribution guidelines.
               </p>
             </article>
           </div>

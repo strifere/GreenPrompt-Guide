@@ -8,8 +8,8 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository_owner }}/pure-prompt
-  WORKING_DIR: pure-prompt
+  IMAGE_NAME: ${{ github.repository_owner }}/greenprompt-guide
+  WORKING_DIR: greenprompt-guide
   DATABASE_URL: postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@localhost:5432/${{ secrets.POSTGRES_DB }}?schema=public
 
 jobs:
@@ -193,7 +193,7 @@ jobs:
 
       - name: Deploy on self-hosted VM runner
         env:
-          VM_DEPLOY_PATH: ~/pure-prompt-deploy
+          VM_DEPLOY_PATH: ~/greenprompt-guide-deploy
           APP_IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           APP_TAG: ${{ steps.extract-tag.outputs.tag }}
           GHCR_USER: ${{ github.actor }}
@@ -294,6 +294,6 @@ jobs:
         if: failure()
         run: |
           echo "❌ Deployment to VM failed"
-          echo "Check VM logs at: ~/pure-prompt-deploy"
+          echo "Check VM logs at: ~/greenprompt-guide-deploy"
           exit 1
 # testing if the release pipeline works correctly

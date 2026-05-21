@@ -22,11 +22,11 @@ jobs:
 
       - name: Install dependencies
         run: npm install --ignore-scripts
-        working-directory: pure-prompt
+        working-directory: greenprompt-guide
 
       - name: Run tests with coverage
         run: npm run test -- --coverage
-        working-directory: pure-prompt
+        working-directory: greenprompt-guide
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@e44258b109568baa0df60ed515909fc6c72cba92

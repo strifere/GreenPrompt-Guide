@@ -11,7 +11,7 @@ class EmailService {
   private resendClient: Resend | null = null;
 
   private getFromAddress(): string {
-    return process.env.RESEND_FROM_EMAIL ?? "Pure Prompt <onboarding@resend.dev>";
+    return process.env.RESEND_FROM_EMAIL ?? "GreenPrompt Guide <onboarding@resend.dev>";
   }
 
   private getResendClient(): Resend | null {

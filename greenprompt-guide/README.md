@@ -1,4 +1,4 @@
-# Pure Prompt
+# GreenPrompt Guide
 
 Next.js app with PostgreSQL via Docker Compose and Prisma ORM.
 

@@ -6,14 +6,14 @@ describe("Home Page", () => {
   it("renders the home page", () => {
     render(<HomePage />);
 
-    const homeShell = screen.getByRole("heading", { name: /Pure/i, level: 1 });
+    const homeShell = screen.getByRole("heading", { name: /Green/i, level: 1 });
     expect(homeShell).toBeInTheDocument();
   });
 
   it("renders the hero section with title and tagline", () => {
     render(<HomePage />);
 
-    const title = screen.getByRole("heading", { name: /Pure/, level: 1 });
+    const title = screen.getByRole("heading", { name: /Green/, level: 1 });
     expect(title).toBeInTheDocument();
 
     const allTaglines = screen.getAllByText(/A catalog of Green Prompt Engineering practices/i);
@@ -35,7 +35,7 @@ describe("Home Page", () => {
   it("renders hero summary text", () => {
     render(<HomePage />);
 
-    const summaries = screen.getAllByText(/PurePrompt is a catalog of Green Prompt Engineering practices/i);
+    const summaries = screen.getAllByText(/GreenPrompt Guide is a catalog of Green Prompt Engineering practices/i);
     expect(summaries.length).toBeGreaterThan(0);
   });
 
@@ -60,7 +60,7 @@ describe("Home Page", () => {
   it("renders instructions section with how to use heading", () => {
     render(<HomePage />);
 
-    const instructionsHeading = screen.getByRole("heading", { name: /How to use PurePrompt?/i });
+    const instructionsHeading = screen.getByRole("heading", { name: /How to use GreenPrompt Guide?/i });
     expect(instructionsHeading).toBeInTheDocument();
   });
 
@@ -100,7 +100,7 @@ describe("Home Page", () => {
     expect(communityCardHeading).toBeInTheDocument();
 
     expect(
-      screen.getByText(/You can join the PurePrompt community to connect with other people interested in Green Prompt Engineering/i),
+      screen.getByText(/You can join the GreenPrompt Guide community to connect with other people interested in Green Prompt Engineering/i),
     ).toBeInTheDocument();
 
     const createAccountLink = screen.getByRole("link", { name: /Create account/i });
@@ -111,11 +111,11 @@ describe("Home Page", () => {
   it("renders about section with heading", () => {
     render(<HomePage />);
 
-    const aboutHeading = screen.getByRole("heading", { name: /About PurePrompt/i });
+    const aboutHeading = screen.getByRole("heading", { name: /About GreenPrompt Guide/i });
     expect(aboutHeading).toBeInTheDocument();
 
     expect(
-      screen.getByText(/PurePrompt is an initiative born from a passion for sustainable technology/i),
+      screen.getByText(/GreenPrompt Guide is an initiative born from a passion for sustainable technology/i),
     ).toBeInTheDocument();
 
     expect(screen.getByText(/Our mission is to promote environmentally aware practices in the field of Prompt Engineering/i)).toBeInTheDocument();
@@ -130,14 +130,14 @@ describe("Home Page", () => {
     const instructionsSection = screen.getByLabelText(/Instructions of the tool/i);
     expect(instructionsSection).toBeInTheDocument();
 
-    const aboutSection = screen.getByLabelText(/About PurePrompt/i);
+    const aboutSection = screen.getByLabelText(/About GreenPrompt Guide/i);
     expect(aboutSection).toBeInTheDocument();
   });
 
   it("renders home hero section with proper heading id", () => {
     render(<HomePage />);
 
-    const heroTitle = screen.getByRole("heading", { name: /Pure/, level: 1 });
+    const heroTitle = screen.getByRole("heading", { name: /Green/, level: 1 });
     expect(heroTitle).toHaveAttribute("id", "home-title");
   });
 
@@ -184,22 +184,22 @@ describe("Home Page", () => {
   it("displays open source and community contribution information", () => {
     render(<HomePage />);
 
-    expect(screen.getByText(/PurePrompt is an open-source project/i)).toBeInTheDocument();
+    expect(screen.getByText(/GreenPrompt Guide is an open-source project/i)).toBeInTheDocument();
     expect(screen.getByText(/we actively welcome contributions from the community/i)).toBeInTheDocument();
     expect(screen.getByText(/Check out our GitHub repository for open issues/i)).toBeInTheDocument();
   });
 
-  it("renders hero title with brand styling (Pure and Prompt spans)", () => {
+  it("renders hero title with brand styling (Green and Prompt spans)", () => {
     render(<HomePage />);
 
-    const heroTitle = screen.getByRole("heading", { name: /Pure/, level: 1 });
+    const heroTitle = screen.getByRole("heading", { name: /Green/, level: 1 });
     const titleBrands = heroTitle.querySelectorAll(".home-title-brand");
     expect(titleBrands).toHaveLength(2);
 
-    const pureSpan = Array.from(titleBrands).find((el) => el.textContent === "Pure");
-    expect(pureSpan).toHaveClass("home-title-brand-green");
+    const greenSpan = Array.from(titleBrands).find((el) => el.textContent === "Green");
+    expect(greenSpan).toHaveClass("home-title-brand-green");
 
-    const promptSpan = Array.from(titleBrands).find((el) => el.textContent === "Prompt");
+    const promptSpan = Array.from(titleBrands).find((el) => el.textContent === "Prompt Guide");
     expect(promptSpan).toHaveClass("home-title-brand-blue");
   });
 

@@ -76,7 +76,7 @@ export function TopbarMenu() {
             <Link href="/collaboration" className="animated-link" onClick={closeMenu}>
               Collaboration
             </Link>
-            <Link href="/#about-pureprompt" className="animated-link" onClick={closeMenu}>
+            <Link href="/#about-greenprompt-guide" className="animated-link" onClick={closeMenu}>
               About
             </Link>
           </nav>

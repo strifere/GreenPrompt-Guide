@@ -2,11 +2,11 @@ services:
   db:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-pure_prompt}
+      POSTGRES_DB: ${POSTGRES_DB:-greenprompt_guide}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-pure_prompt}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-greenprompt_guide}"]
       interval: 5s
       timeout: 3s
       retries: 20
@@ -17,11 +17,11 @@ services:
       db:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-pure_prompt}?schema=public
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-greenprompt_guide}?schema=public
       NODE_ENV: production
       NEXT_TELEMETRY_DISABLED: "1"
       RESEND_API_KEY: ${RESEND_API_KEY:-}
-      RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL:-Pure Prompt <onboarding@resend.dev>}
+      RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL:-GreenPrompt Guide <onboarding@resend.dev>}
       COOKIE_SECURE: ${COOKIE_SECURE:-true}
     ports:
       - "38080:3000"

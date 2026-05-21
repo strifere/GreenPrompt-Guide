@@ -10,7 +10,7 @@ import { AuthButtons } from "./ui/auth-buttons";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Pure Prompt",
+  title: "GreenPrompt Guide",
   description: "A catalog ofGreen Prompt Engineering practices",
 };
 
@@ -73,18 +73,18 @@ export default async function RootLayout({
       <body className="min-h-full flex flex-col">
         <header className="topbar">
           <div >
-            <Link href="/" className="brand brand-logo" aria-label="PurePrompt home">
+            <Link href="/" className="brand brand-logo" aria-label="GreenPrompt Guide home">
               <Image
-                src="/PurePrompt_final_logo.png"
-                alt="PurePrompt"
+                src="/GreenPrompt-Guide_final_logo.png"
+                alt="GreenPrompt Guide"
                 width={440}
                 height={378}
                 className="logo-light"
                 priority
               />
               <Image
-                src="/PurePrompt_final_logo_dark.png"
-                alt="PurePrompt"
+                src="/GreenPrompt-Guide_final_logo_dark.png"
+                alt="GreenPrompt Guide"
                 width={440}
                 height={378}
                 className="logo-dark"
@@ -99,7 +99,7 @@ export default async function RootLayout({
             <Link href="/collaboration" className="animated-link">
               Collaboration
             </Link>
-            <Link href="/#about-pureprompt" className="animated-link">
+            <Link href="/#about-greenprompt-guide" className="animated-link">
               About
             </Link>
           </nav>
@@ -115,7 +115,7 @@ export default async function RootLayout({
         <footer className="site-footer">
           <div className="site-footer-content">
             <div className="site-footer-info">
-              <h2 className="site-footer-heading">PurePrompt</h2>
+              <h2 className="site-footer-heading">GreenPrompt Guide</h2>
               <p className="site-footer-description">
                 A catalog of Green Prompt Engineering practices.
               </p>
