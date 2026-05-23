@@ -341,9 +341,7 @@ export function SignupForm() {
 
             {verificationError && <div className="error-message">{verificationError}</div>}
 
-            {!isVerificationCodeSent ? (
-              <p>Sending verification code to {formData.email}...</p>
-            ) : (
+            {isVerificationCodeSent ? (
               <>
                 <p>We sent a verification code to {formData.email}</p>
 
@@ -378,6 +376,8 @@ export function SignupForm() {
                   </button>
                 </div>
               </>
+            ) : (
+              <p>Sending verification code to {formData.email}...</p>
             )}
           </div>
         </div>

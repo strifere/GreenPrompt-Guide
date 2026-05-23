@@ -33,16 +33,26 @@ describe("UserProfilePage", () => {
   });
 
   describe("Profile Loading", () => {
-    it("should show loading state initially", () => {
-      (globalThis.fetch as any).mockImplementationOnce(
-        () =>
-          new Promise((resolve) =>
-            setTimeout(() => resolve({ ok: true, json: async () => ({}) }), 1000)
-          )
-      );
+    it("should render the profile page immediately", async () => {
+      (globalThis.fetch as any).mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          user: {
+            username: "testuser",
+            email: "test@example.com",
+          },
+        }),
+      });
 
       render(<UserProfilePage />);
-      expect(screen.getByText("Loading your details")).toBeInTheDocument();
+
+      expect(screen.getByText("Your details")).toBeInTheDocument();
+      expect(screen.queryByText("Loading your details")).not.toBeInTheDocument();
+
+      await waitFor(() => {
+        expect(screen.getByText("testuser")).toBeInTheDocument();
+      });
     });
 
     it("should fetch profile on mount", async () => {
@@ -87,7 +97,7 @@ describe("UserProfilePage", () => {
       });
     });
 
-    it("should display error message on fetch failure", async () => {
+    it("should keep rendering the page when profile fetch fails", async () => {
       (globalThis.fetch as any).mockResolvedValueOnce({
         ok: false,
         status: 500,
@@ -97,33 +107,10 @@ describe("UserProfilePage", () => {
       render(<UserProfilePage />);
 
       await waitFor(() => {
-        expect(screen.getByText("Server error")).toBeInTheDocument();
-      });
-    });
-
-    it("should display generic error message on network error", async () => {
-      (globalThis.fetch as any).mockRejectedValueOnce(new Error("Network error"));
-
-      render(<UserProfilePage />);
-
-      await waitFor(() => {
-        expect(screen.getByText("Network error")).toBeInTheDocument();
-      });
-    });
-
-    it("should show 'Go to login' button on error", async () => {
-      (globalThis.fetch as any).mockResolvedValueOnce({
-        ok: false,
-        status: 404,
-        json: async () => ({ error: "User not found" }),
+        expect(screen.getByText("Your details")).toBeInTheDocument();
       });
 
-      render(<UserProfilePage />);
-
-      await waitFor(() => {
-        const loginLink = screen.getByText("Go to login");
-        expect(loginLink).toHaveAttribute("href", "/login");
-      });
+      expect(screen.queryByText("Server error")).not.toBeInTheDocument();
     });
   });
 
@@ -774,11 +761,11 @@ describe("UserProfilePage", () => {
       render(<UserProfilePage />);
 
       await waitFor(() => {
-        expect(screen.getByText("Network error")).toBeInTheDocument();
+        expect(screen.getByText("Your details")).toBeInTheDocument();
       });
     });
 
-    it("should display default error message when error object is null", async () => {
+    it("should keep rendering the page when error object is null", async () => {
       (globalThis.fetch as any).mockResolvedValueOnce({
         ok: false,
         status: 500,
@@ -788,7 +775,7 @@ describe("UserProfilePage", () => {
       render(<UserProfilePage />);
 
       await waitFor(() => {
-        expect(screen.getByText("Failed to load user details")).toBeInTheDocument();
+        expect(screen.getByText("Your details")).toBeInTheDocument();
       });
     });
   });

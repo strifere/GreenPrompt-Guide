@@ -139,6 +139,8 @@ describe("Home Page", () => {
 
     const heroTitle = screen.getByRole("heading", { name: /Green/, level: 1 });
     expect(heroTitle).toHaveAttribute("id", "home-title");
+    // Ensure the title includes the space between 'Prompt' and 'Guide'
+    expect(heroTitle.textContent).toMatch(/GreenPrompt Guide/);
   });
 
   it("renders all required links with correct href values", () => {

@@ -1,7 +1,8 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { act } from "react";
 import type { ReactNode } from "react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { SignupForm } from "@/app/signup/signup-form";
 
 const getSessionMock = vi.hoisted(() => vi.fn());
@@ -28,6 +29,7 @@ vi.mock("@/lib/session", () => ({
 describe("Signup page and form", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useRealTimers();
     vi.stubGlobal(
       "fetch",
       vi.fn()
@@ -43,6 +45,11 @@ describe("Signup page and form", () => {
           }),
         })
     );
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.useRealTimers();
   });
 
   it("redirects signed-in users away from the signup page", async () => {
@@ -166,5 +173,123 @@ describe("Signup page and form", () => {
 
     expect(await screen.findByText(/email already registered/i)).toBeInTheDocument();
     expect(pushMock).not.toHaveBeenCalled();
+  });
+
+  it("shows a fallback error when verification code request fails without details", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        json: async () => ({}),
+      })
+    );
+
+    const user = userEvent.setup();
+    render(<SignupForm />);
+
+    await user.type(screen.getByLabelText(/^username$/i), "victor");
+    await user.type(screen.getByLabelText(/^email$/i), "victor@example.com");
+    await user.type(screen.getByLabelText(/^password$/i), "password123");
+    await user.type(screen.getByLabelText(/^confirm password$/i), "password123");
+    await user.click(screen.getByRole("button", { name: /create account/i }));
+
+    expect(await screen.findByText(/failed to send verification code/i)).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: /verify your email/i })).not.toBeInTheDocument();
+  });
+
+  it("shows a generic error when verification code request rejects with a non-error value", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue("network down"));
+
+    const user = userEvent.setup();
+    render(<SignupForm />);
+
+    await user.type(screen.getByLabelText(/^username$/i), "victor");
+    await user.type(screen.getByLabelText(/^email$/i), "victor@example.com");
+    await user.type(screen.getByLabelText(/^password$/i), "password123");
+    await user.type(screen.getByLabelText(/^confirm password$/i), "password123");
+    await user.click(screen.getByRole("button", { name: /create account/i }));
+
+    expect(await screen.findByText(/an error occurred\. please try again\./i)).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: /verify your email/i })).not.toBeInTheDocument();
+  });
+
+  it("enables resend after the countdown and shows resend failures", async () => {
+    vi.useFakeTimers();
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({ message: "Verification code sent to your email" }),
+        })
+        .mockResolvedValueOnce({
+          ok: false,
+          json: async () => ({}),
+        })
+    );
+
+    render(<SignupForm />);
+
+    const usernameInput = screen.getByLabelText(/^username$/i);
+    const emailInput = screen.getByLabelText(/^email$/i);
+    const passwordInput = screen.getByLabelText(/^password$/i);
+    const confirmPasswordInput = screen.getByLabelText(/^confirm password$/i);
+
+    fireEvent.change(usernameInput, { target: { value: "victor" } });
+    fireEvent.change(emailInput, { target: { value: "victor@example.com" } });
+    fireEvent.change(passwordInput, { target: { value: "password123" } });
+    fireEvent.change(confirmPasswordInput, { target: { value: "password123" } });
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: /create account/i }));
+    });
+
+    expect(screen.getByRole("button", { name: /resend in 60s/i })).toBeDisabled();
+
+    act(() => {
+      vi.advanceTimersByTime(60_000);
+    });
+
+    const resendButton = screen.getByRole("button", { name: /^resend code$/i });
+    expect(resendButton).toBeEnabled();
+
+    await act(async () => {
+      fireEvent.click(resendButton);
+    });
+
+    expect(screen.getByText(/failed to resend verification code/i)).toBeInTheDocument();
+  });
+
+  it("shows a verification error when the code submission fails without details", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({ message: "Verification code sent to your email" }),
+        })
+        .mockResolvedValueOnce({
+          ok: false,
+          json: async () => ({}),
+        })
+    );
+
+    const user = userEvent.setup();
+    render(<SignupForm />);
+
+    await user.type(screen.getByLabelText(/^username$/i), "victor");
+    await user.type(screen.getByLabelText(/^email$/i), "victor@example.com");
+    await user.type(screen.getByLabelText(/^password$/i), "password123");
+    await user.type(screen.getByLabelText(/^confirm password$/i), "password123");
+    await user.click(screen.getByRole("button", { name: /create account/i }));
+
+    expect(await screen.findByRole("heading", { name: /verify your email/i })).toBeInTheDocument();
+
+    await user.type(screen.getByLabelText(/^verification code$/i), "abc123");
+    await user.click(screen.getByRole("button", { name: /^verify email$/i }));
+
+    expect(await screen.findByText(/failed to verify email/i)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /verify your email/i })).toBeInTheDocument();
   });
 });

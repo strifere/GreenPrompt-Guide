@@ -1,9 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { Pencil } from "lucide-react";
-import { useEffect, useRef, useState, type ChangeEvent, type SyntheticEvent } from "react";
+import { useEffect, useRef, useState, type ChangeEvent, type Dispatch, type SetStateAction, type SyntheticEvent } from "react";
 
 type UserProfile = {
 	username: string;
@@ -14,6 +13,14 @@ type Feedback = {
 	kind: "success" | "error";
 	message: string;
 } | null;
+
+function FeedbackBanner({ feedback }: Readonly<{ feedback: Feedback }>) {
+	if (!feedback) {
+		return null;
+	}
+
+	return <div className={feedback.kind === "error" ? "error-message" : "user-success-message"}>{feedback.message}</div>;
+}
 
 type EmailChangeModalProps = {
 	isOpen: boolean;
@@ -30,6 +37,48 @@ type DeleteAccountModalProps = {
 	onConfirm: (currentPassword: string) => Promise<void>;
 	onSuccess: () => void;
 };
+
+type LoadProfileParams = {
+	router: ReturnType<typeof useRouter>;
+	routeUsername?: string;
+	setProfile: Dispatch<SetStateAction<UserProfile>>;
+	setUsernameDraft: Dispatch<SetStateAction<string>>;
+};
+
+async function loadProfile({ router, routeUsername, setProfile, setUsernameDraft }: LoadProfileParams) {
+	try {
+		const response = await fetch("/api/auth/profile", {
+			method: "GET",
+			credentials: "include",
+			cache: "no-store",
+		});
+
+		const data = await response.json();
+
+		if (!response.ok) {
+			if (response.status === 401) {
+				router.replace("/login");
+				return;
+			}
+
+			console.error(data.error || "Failed to load user details");
+			return;
+		}
+
+		setProfile(data.user);
+		setUsernameDraft(data.user.username);
+
+		if (routeUsername && routeUsername !== data.user.username) {
+			router.replace(`/user/${data.user.username}`);
+		}
+	} catch (profileError) {
+		console.error(
+			profileError instanceof Error
+				? profileError.message
+				: "An error occurred while loading your details"
+		);
+	}
+}
 
 function EmailChangeModal({ isOpen, currentEmail, onClose, onSuccess }: Readonly<EmailChangeModalProps>) {
 	const [step, setStep] = useState<EmailStep>("email");
@@ -371,9 +420,7 @@ function DeleteAccountModal({ isOpen, onClose, onConfirm, onSuccess }: Readonly<
 export default function UserProfilePage() {
 	const router = useRouter();
 	const params = useParams<{ username?: string | string[] }>();
-	const [profile, setProfile] = useState<UserProfile | null>(null);
-	const [loadingProfile, setLoadingProfile] = useState(true);
-	const [pageError, setPageError] = useState("");
+	const [profile, setProfile] = useState<UserProfile>({ username: "", email: "" });
 	const [isEditingUsername, setIsEditingUsername] = useState(false);
 	const [usernameDraft, setUsernameDraft] = useState("");
 	const [usernameLoading, setUsernameLoading] = useState(false);
@@ -394,45 +441,7 @@ export default function UserProfilePage() {
 	const routeUsername = Array.isArray(params.username) ? params.username[0] : params.username;
 
 	useEffect(() => {
-		const fetchProfile = async () => {
-			try {
-				const response = await fetch("/api/auth/profile", {
-					method: "GET",
-					credentials: "include",
-					cache: "no-store",
-				});
-
-				const data = await response.json();
-
-				if (!response.ok) {
-					if (response.status === 401) {
-						router.replace("/login");
-						return;
-					}
-
-					setPageError(data.error || "Failed to load user details");
-					return;
-				}
-
-				setProfile(data.user);
-				setUsernameDraft(data.user.username);
-				setPageError("");
-
-				if (routeUsername && routeUsername !== data.user.username) {
-					router.replace(`/user/${data.user.username}`);
-				}
-			} catch (profileError) {
-				setPageError(
-					profileError instanceof Error
-						? profileError.message
-						: "An error occurred while loading your details"
-				);
-			} finally {
-				setLoadingProfile(false);
-			}
-		};
-
-		void fetchProfile();
+		void loadProfile({ router, routeUsername, setProfile, setUsernameDraft });
 	}, [routeUsername, router]);
 
 	const handleUsernameEditOpen = () => {
@@ -449,10 +458,6 @@ export default function UserProfilePage() {
 
 	const handleUsernameSubmit = async (event: SyntheticEvent<HTMLFormElement>) => {
 		event.preventDefault();
-
-		if (!profile) {
-			return;
-		}
 
 		setUsernameLoading(true);
 		setUsernameFeedback(null);
@@ -556,39 +561,6 @@ export default function UserProfilePage() {
 		router.replace("/");
 	};
 
-	if (loadingProfile) {
-		return (
-			<main className="user-page">
-				<div className="user-page-shell">
-					<div className="user-card">
-						<p className="user-page-kicker">Account</p>
-						<h1 className="user-page-title">Loading your details</h1>
-						<p className="user-page-description">Please wait while we fetch your account information.</p>
-					</div>
-				</div>
-			</main>
-		);
-	}
-
-	if (pageError || !profile) {
-		return (
-			<main className="user-page">
-				<div className="user-page-shell">
-					<div className="user-card">
-						<p className="user-page-kicker">Account</p>
-						<h1 className="user-page-title">Your details</h1>
-						<div className="error-message">{pageError || "We could not load your account."}</div>
-						<div className="user-actions-row">
-							<Link href="/login" className="solid-btn">
-								Go to login
-							</Link>
-						</div>
-					</div>
-				</div>
-			</main>
-		);
-	}
-
 	return (
 		<>
 			<main className="user-page">
@@ -601,11 +573,7 @@ export default function UserProfilePage() {
 						</p>
 					</section>
 
-					{usernameFeedback && (
-						<div className={usernameFeedback.kind === "error" ? "error-message" : "user-success-message"}>
-							{usernameFeedback.message}
-						</div>
-					)}
+					<FeedbackBanner feedback={usernameFeedback} />
 
 					<section className="user-card">
 						<div className="user-detail-row">
@@ -635,7 +603,7 @@ export default function UserProfilePage() {
 										</div>
 									</form>
 								) : (
-									<p className="user-detail-value">{profile.username}</p>
+											<p className="user-detail-value">{profile.username}</p>
 								)}
 							</div>
 							{!isEditingUsername && (
@@ -669,11 +637,7 @@ export default function UserProfilePage() {
 							</p>
 						</div>
 
-						{passwordFeedback && (
-							<div className={passwordFeedback.kind === "error" ? "error-message" : "user-success-message"}>
-								{passwordFeedback.message}
-							</div>
-						)}
+						<FeedbackBanner feedback={passwordFeedback} />
 
 						<form className="user-password-form" onSubmit={handlePasswordChange}>
 							<div className="user-password-grid">
@@ -767,7 +731,7 @@ export default function UserProfilePage() {
 						</form>
 					</section>
 
-						<section className="user-card user-danger-card">
+								<section className="user-card user-danger-card">
 							<div className="user-section-heading">
 								<h2 className="user-section-title">Delete account</h2>
 								<p className="user-section-description">
@@ -788,7 +752,7 @@ export default function UserProfilePage() {
 				isOpen={isEmailModalOpen}
 				currentEmail={profile.email}
 				onClose={() => setIsEmailModalOpen(false)}
-				onSuccess={(email) => setProfile((previousValue) => (previousValue ? { ...previousValue, email } : previousValue))}
+				onSuccess={(email) => setProfile((previousValue) => ({ ...previousValue, email }))}
 			/>
 			<DeleteAccountModal
 				isOpen={isDeleteModalOpen}

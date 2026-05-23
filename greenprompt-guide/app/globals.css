@@ -258,6 +258,8 @@ a {
   display: grid;
   gap: 60px;
   text-align: center;
+  width: min(960px, 100%);
+  margin: 0 auto;
 }
 
 .home-title {
@@ -311,11 +313,12 @@ a {
 }
 
 .home-summary {
-  margin: 0;
   max-width: 880px;
   font-size: 1.05rem;
   line-height: 1.6;
   color: var(--text-main);
+  width: min(880px, 100%);
+  margin: 0 auto;
 }
 
 .home-info-grid {
@@ -761,7 +764,6 @@ a {
 .green-btn:active,
 .danger-btn:active,
 .theme-select:active,
-.practice-back-link:active,
 .home-signup-btn:active,
 .home-explore-btn:active {
   transform: scale(0.97);
@@ -1452,33 +1454,19 @@ a {
 }
 
 .practice-details-shell {
-  max-width: 1200px;
+  max-width: 2000px;
   margin: 0 auto;
 }
 
 .practice-details-header {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 14px;
-  align-items: start;
-}
-
-.practice-back-link {
-  width: 30px;
-  height: 30px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.4rem;
-  border-radius: 999px;
-}
-
-.practice-back-link:hover {
-  background: color-mix(in srgb, var(--surface) 70%, transparent);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: flex-start;
 }
 
 .practice-details-header h1 {
-  margin: 0;
+  margin-top: 10px;
   font-size: clamp(2rem, 4.1vw, 2.6rem);
   line-height: 1.1;
   font-family: var(--font-display), "Trebuchet MS", sans-serif;
@@ -1855,8 +1843,7 @@ a {
   }
 
   .practice-details-header {
-    grid-template-columns: auto 1fr;
-    gap: 10px;
+    gap: 12px;
   }
 
   .practice-example-grid {
@@ -2019,27 +2006,27 @@ a {
 }
 
 .auth-form {
-    padding: 10px 16px 12px;
+  display: grid;
   gap: 16px;
+  padding: 8px 0 0;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-    gap: 2px;
+  gap: 8px;
 }
 
 .form-group label {
   font-weight: 600;
   color: var(--text-main);
-    gap: 3px 3px;
 }
 
 .form-group input {
   padding: 10px 14px;
   border: 2px solid color-mix(in srgb, var(--line) 45%, transparent);
   border-radius: 12px;
-    width: max-content;
+  width: 100%;
   background: color-mix(in srgb, var(--surface) 96%, transparent);
   color: var(--text-main);
   font-size: 1rem;
@@ -2048,6 +2035,7 @@ a {
 }
 
 .password-field {
+  width: 100%;
   position: relative;
 }
 
@@ -2125,7 +2113,7 @@ a {
 }
 
 .login-helper-link {
-  margin-top: -2px;
+  margin-top: 2px;
   color: #1792ff;
   font-size: 0.98rem;
   line-height: 1.2;
@@ -2165,7 +2153,7 @@ a {
 .login-create-account-btn {
   background: var(--accent);
   color: var(--accent-contrast);
-  margin-top: 2px;
+  margin-top: 4px;
 }
 
 .login-outline-btn:hover,
@@ -2185,13 +2173,13 @@ a {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 6px 0 2px;
+  margin: 2px 0;
   color: var(--text-main);
   font-size: 1.1rem;
 }
 
 .auth-form-wrapper h1 + .auth-form {
-  margin-top: 6px;
+  margin-top: 10px;
 }
 
 .admin-toggle-row {
@@ -2256,7 +2244,7 @@ a {
 .signup-create-btn {
   width: 100%;
   min-height: 54px;
-  margin-top: 6px;
+  margin-top: 4px;
   border: 0;
   border-radius: 999px;
   background: var(--home-green);

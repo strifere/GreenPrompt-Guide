@@ -12,6 +12,107 @@ type ReferenceDetailsProps = {
   params: Promise<{ referenceTitle: string }>;
 };
 
+function formatReferenceCitation(reference: {
+  authors: string;
+  title: string;
+  year: number;
+  venue: string | null;
+  link: string | null;
+}) {
+  const splitAuthors = (authors: string) => {
+    const result: string[] = [];
+    let current = "";
+
+    for (let index = 0; index < authors.length; index += 1) {
+      const character = authors[index];
+
+      if (character === ";" || character === "&") {
+        if (current.trim()) {
+          result.push(current.trim());
+        }
+
+        current = "";
+        continue;
+      }
+
+      if (
+        authors.slice(index, index + 3).toLowerCase() === "and" &&
+        (index === 0 || /\s/.test(authors[index - 1])) &&
+        (index + 3 === authors.length || /\s/.test(authors[index + 3]))
+      ) {
+        if (current.trim()) {
+          result.push(current.trim());
+        }
+
+        current = "";
+        index += 2;
+        continue;
+      }
+
+      current += character;
+    }
+
+    if (current.trim()) {
+      result.push(current.trim());
+    }
+
+    return result;
+  };
+
+  const formatAuthorName = (author: string) => {
+    const normalizedAuthor = author.trim().replace(/\s+/g, " ");
+
+    if (!normalizedAuthor) {
+      return null;
+    }
+
+    const nameParts = normalizedAuthor.split(/\s+/).filter(Boolean);
+
+    if (nameParts.length < 2) {
+      return normalizedAuthor;
+    }
+
+    if (normalizedAuthor.includes(",")) {
+      const [lastNamePart, givenNamesPart] = normalizedAuthor
+        .split(",")
+        .map((part) => part.trim())
+        .filter(Boolean);
+
+      if (!lastNamePart || !givenNamesPart) {
+        return normalizedAuthor;
+      }
+
+      const initials = givenNamesPart
+        .split(/\s+/)
+        .filter(Boolean)
+        .map((part) => `${part[0].toUpperCase()}.`)
+        .join(" ");
+
+      return `${initials} ${lastNamePart}`;
+    }
+
+    const lastName = nameParts.at(-1);
+    const initials = nameParts.slice(0, -1).map((part) => `${part[0].toUpperCase()}.`).join(" ");
+
+    return `${initials} ${lastName}`;
+  };
+
+  const authors = splitAuthors(reference.authors)
+    .map((author) => formatAuthorName(author))
+    .filter((author): author is string => Boolean(author));
+
+  const formattedAuthors = authors.length > 0 ? authors.join(", ") : reference.authors.trim();
+  const venue = reference.venue?.trim();
+  const citationParts = [
+    `[1] ${formattedAuthors},`,
+    `"${reference.title},"`,
+    venue ? `${venue},` : null,
+    `${reference.year}.`,
+  ].filter(Boolean);
+
+  return citationParts.join(" ");
+}
+
 export default async function ReferenceDetailsPage({
   params,
 }: Readonly<ReferenceDetailsProps>) {
@@ -203,11 +304,14 @@ export default async function ReferenceDetailsPage({
               <li>No practices extracted from this reference yet.</li>
             )}
           </ul>
-          <h2>Link to full reference:</h2>
+          <h2>Citation:</h2>
+          <p>{formatReferenceCitation(reference)}</p>
           {reference.link ? (
-            <Link href={reference.link} className="reference-link" target="_blank" rel="noopener noreferrer">
-              {reference.link}
-            </Link>
+            <p>
+              <Link href={reference.link} className="reference-link" target="_blank" rel="noopener noreferrer">
+                Full reference link
+              </Link>
+            </p>
           ) : (
             <p>No link available yet.</p>
           )}

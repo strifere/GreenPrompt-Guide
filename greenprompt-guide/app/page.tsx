@@ -12,8 +12,8 @@ export default function HomePage() {
             <span className="home-title-wordmark">
               <span className="home-title-brand home-title-brand-green">Green</span>
               <span className="home-title-brand home-title-brand-blue">Prompt</span>
-            </span>
-            <span className="home-title-guide home-title-brand-blue"> Guide</span>
+            </span>{" "}
+            <span className="home-title-guide home-title-brand-blue">Guide</span>
           </h1>
 
           <p className="home-tagline">
