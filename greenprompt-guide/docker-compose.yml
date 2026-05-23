@@ -30,8 +30,12 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-greenprompt_guide}?schema=public
       NODE_ENV: production
       NEXT_TELEMETRY_DISABLED: "1"
-      RESEND_API_KEY: ${RESEND_API_KEY:-}
-      RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL:-GreenPrompt Guide <onboarding@resend.dev>}
+      EMAIL_HOST: ${EMAIL_HOST:-smtp.gmail.com}
+      EMAIL_PORT: ${EMAIL_PORT:-465}
+      EMAIL_SECURE: ${EMAIL_SECURE:-true}
+      EMAIL_USER: ${EMAIL_USER:-greenprompt.guide@gmail.com}
+      EMAIL_PASS: ${EMAIL_PASS:-your_google_app_password}
+      EMAIL_FROM: ${EMAIL_FROM:-GreenPrompt Guide <greenprompt.guide@gmail.com>}
       COOKIE_SECURE: ${COOKIE_SECURE:-true}
     ports:
       - "3000:3000"

@@ -65,7 +65,7 @@ describe("Signup page and form", () => {
     expect(screen.getByLabelText(/^username$/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/^email$/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/^password$/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/confirm password/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/^confirm password$/i)).toBeInTheDocument();
   });
 
   it("toggles visibility for both password fields", async () => {
@@ -73,7 +73,7 @@ describe("Signup page and form", () => {
     render(<SignupForm />);
 
     const passwordInput = screen.getByLabelText(/^password$/i);
-    const confirmPasswordInput = screen.getByLabelText(/confirm password/i);
+    const confirmPasswordInput = screen.getByLabelText(/^confirm password$/i);
 
     expect(passwordInput).toHaveAttribute("type", "password");
     expect(confirmPasswordInput).toHaveAttribute("type", "password");
@@ -111,7 +111,7 @@ describe("Signup page and form", () => {
     await user.type(screen.getByLabelText(/^username$/i), "victor");
     await user.type(screen.getByLabelText(/^email$/i), "victor@example.com");
     await user.type(screen.getByLabelText(/^password$/i), "password123");
-    await user.type(screen.getByLabelText(/confirm password/i), "password123");
+    await user.type(screen.getByLabelText(/^confirm password$/i), "password123");
     await user.click(screen.getByRole("button", { name: /create account/i }));
 
     await waitFor(() => expect(pushMock).toHaveBeenCalledWith("/catalog"));
@@ -138,7 +138,7 @@ describe("Signup page and form", () => {
     await user.type(screen.getByLabelText(/^username$/i), "victor");
     await user.type(screen.getByLabelText(/^email$/i), "victor@example.com");
     await user.type(screen.getByLabelText(/^password$/i), "password123");
-    await user.type(screen.getByLabelText(/confirm password/i), "password123");
+    await user.type(screen.getByLabelText(/^confirm password$/i), "password123");
     await user.click(screen.getByRole("button", { name: /create account/i }));
 
     expect(await screen.findByText(/email already registered/i)).toBeInTheDocument();
