@@ -120,31 +120,44 @@ export default async function RootLayout({
                 A catalog of Green Prompt Engineering practices.
               </p>
             </div>
-            <a href="https://www.fib.upc.edu/" target="_blank" rel="noopener noreferrer" aria-label="FIB - Barcelona School of Informatics">
-              <Image
-                src="/fib_logo.png"
-                alt="FIB - Barcelona School of Informatics"
-                width={80}
-                height={80}
-                className="footer-logo"
-              />
-            </a>
-            <a href="https://www.upc.edu/" target="_blank" rel="noopener noreferrer" aria-label="UPC - Universitat Politècnica de Catalunya">
-              <Image
-                src="/upc_logo-light.png"
-                alt="UPC - Universitat Politècnica de Catalunya"
-                width={80}
-                height={80}
-                className="footer-logo footer-logo-light"
-              />
-              <Image
-                src="/upc_logo-dark.png"
-                alt="UPC - Universitat Politècnica de Catalunya"
-                width={80}
-                height={80}
-                className="footer-logo footer-logo-dark"
-              />
-            </a>
+            <div className="site-footer-logos" aria-label="Institutional logos">
+              <div className="site-footer-brand-logos">
+                <a href="https://www.fib.upc.edu/" target="_blank" rel="noopener noreferrer" aria-label="FIB - Barcelona School of Informatics">
+                  <Image
+                    src="/fib_logo.png"
+                    alt="FIB - Barcelona School of Informatics"
+                    width={80}
+                    height={80}
+                    className="footer-logo footer-logo-fib"
+                  />
+                </a>
+                <a href="https://gessi.upc.edu/en" target="_blank" rel="noopener noreferrer" aria-label="GESSI - Software Engineering and AI-Based Systems Group ">
+                  <Image
+                    src="/gessi_logo.png"
+                    alt="GESSI"
+                    width={80}
+                    height={80}
+                    className="footer-logo footer-logo-gessi"
+                  />
+                </a>
+              </div>
+              <a href="https://www.upc.edu/" target="_blank" rel="noopener noreferrer" aria-label="UPC - Universitat Politècnica de Catalunya" className="footer-logo-upc-link">
+                <Image
+                  src="/upc_logo-light.svg"
+                  alt="UPC - Universitat Politècnica de Catalunya"
+                  width={80}
+                  height={80}
+                  className="footer-logo footer-logo-light footer-logo-upc"
+                />
+                <Image
+                  src="/upc_logo-dark.svg"
+                  alt="UPC - Universitat Politècnica de Catalunya"
+                  width={80}
+                  height={80}
+                  className="footer-logo footer-logo-dark footer-logo-upc"
+                />
+              </a>
+            </div>
             <CarbonBadge initialTheme={initialTheme} url="nattech.fib.upc.edu:40470" />
           </div>
         </footer>
