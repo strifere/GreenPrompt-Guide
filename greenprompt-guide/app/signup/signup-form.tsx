@@ -14,6 +14,8 @@ export function SignupForm() {
   });
   const [isAdministrator, setIsAdministrator] = useState(false);
   const [adminAuthCode, setAdminAuthCode] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -107,28 +109,50 @@ export function SignupForm() {
 
           <div className="form-group">
             <label htmlFor="password">Password</label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-              placeholder="password"
-            />
+            <div className="password-field">
+              <input
+                type={showPassword ? "text" : "password"}
+                id="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+                placeholder="password"
+              />
+              <button
+                type="button"
+                className="password-visibility-toggle"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                aria-pressed={showPassword}
+                onClick={() => setShowPassword((currentValue) => !currentValue)}
+              >
+                {showPassword ? "Hide" : "Show"}
+              </button>
+            </div>
           </div>
 
           <div className="form-group">
             <label htmlFor="passwordConfirm">Confirm Password</label>
-            <input
-              type="password"
-              id="passwordConfirm"
-              name="passwordConfirm"
-              value={formData.passwordConfirm}
-              onChange={handleChange}
-              required
-              placeholder="confirm password"
-            />
+            <div className="password-field">
+              <input
+                type={showPasswordConfirm ? "text" : "password"}
+                id="passwordConfirm"
+                name="passwordConfirm"
+                value={formData.passwordConfirm}
+                onChange={handleChange}
+                required
+                placeholder="confirm password"
+              />
+              <button
+                type="button"
+                className="password-visibility-toggle"
+                aria-label={showPasswordConfirm ? "Hide confirm password" : "Show confirm password"}
+                aria-pressed={showPasswordConfirm}
+                onClick={() => setShowPasswordConfirm((currentValue) => !currentValue)}
+              >
+                {showPasswordConfirm ? "Hide" : "Show"}
+              </button>
+            </div>
           </div>
 
           <div className="admin-toggle-row">

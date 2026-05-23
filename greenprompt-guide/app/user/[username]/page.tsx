@@ -24,6 +24,13 @@ type EmailChangeModalProps = {
 
 type EmailStep = "email" | "code" | "success";
 
+type DeleteAccountModalProps = {
+	isOpen: boolean;
+	onClose: () => void;
+	onConfirm: (currentPassword: string) => Promise<void>;
+	onSuccess: () => void;
+};
+
 function EmailChangeModal({ isOpen, currentEmail, onClose, onSuccess }: Readonly<EmailChangeModalProps>) {
 	const [step, setStep] = useState<EmailStep>("email");
 	const [email, setEmail] = useState("");
@@ -263,6 +270,104 @@ function EmailChangeModal({ isOpen, currentEmail, onClose, onSuccess }: Readonly
 	);
 }
 
+function DeleteAccountModal({ isOpen, onClose, onConfirm, onSuccess }: Readonly<DeleteAccountModalProps>) {
+	const [currentPassword, setCurrentPassword] = useState("");
+	const [showPassword, setShowPassword] = useState(false);
+	const [error, setError] = useState("");
+	const [loading, setLoading] = useState(false);
+
+	const resetAndClose = () => {
+		setCurrentPassword("");
+		setShowPassword(false);
+		setError("");
+		setLoading(false);
+		onClose();
+	};
+
+	const handleDelete = async (event: SyntheticEvent<HTMLFormElement>) => {
+		event.preventDefault();
+		setError("");
+		setLoading(true);
+
+		try {
+			await onConfirm(currentPassword);
+			resetAndClose();
+			onSuccess();
+		} catch (deleteError) {
+			setError(
+				deleteError instanceof Error
+					? deleteError.message
+					: "An error occurred while deleting your account"
+			);
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	if (!isOpen) {
+		return null;
+	}
+
+	return (
+		<div className="recovery-modal-overlay">
+			<button
+				type="button"
+				className="recovery-modal-backdrop"
+				aria-label="Close delete account modal"
+				onClick={resetAndClose}
+			/>
+			<div className="recovery-modal">
+				<button type="button" className="recovery-modal-close" onClick={resetAndClose}>
+					✕
+				</button>
+
+				<h2>Delete Your Account</h2>
+				<p>
+					This will permanently erase your account and all related data from the system. Confirm your
+					current password to continue.
+				</p>
+
+				{error && <div className="error-message">{error}</div>}
+
+				<form onSubmit={handleDelete} className="recovery-form">
+					<div className="form-group">
+						<label htmlFor="delete-account-password">Current Password</label>
+						<div className="password-field">
+							<input
+								type={showPassword ? "text" : "password"}
+								id="delete-account-password"
+								value={currentPassword}
+								onChange={(event: ChangeEvent<HTMLInputElement>) => setCurrentPassword(event.target.value)}
+								placeholder="current password here..."
+								autoComplete="current-password"
+								required
+							/>
+							<button
+								type="button"
+								className="password-visibility-toggle"
+								aria-label={showPassword ? "Hide current password" : "Show current password"}
+								aria-pressed={showPassword}
+								onClick={() => setShowPassword((currentValue) => !currentValue)}
+							>
+								{showPassword ? "Hide" : "Show"}
+							</button>
+						</div>
+					</div>
+
+					<div className="recovery-footer recovery-footer-inline">
+						<button type="button" className="ghost-btn" onClick={resetAndClose}>
+							Cancel
+						</button>
+						<button type="submit" className="danger-btn" disabled={loading}>
+							{loading ? "Deleting..." : "Delete definitely"}
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	);
+}
+
 export default function UserProfilePage() {
 	const router = useRouter();
 	const params = useParams<{ username?: string | string[] }>();
@@ -274,11 +379,15 @@ export default function UserProfilePage() {
 	const [usernameLoading, setUsernameLoading] = useState(false);
 	const [usernameFeedback, setUsernameFeedback] = useState<Feedback>(null);
 	const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 	const [passwordForm, setPasswordForm] = useState({
 		currentPassword: "",
 		password: "",
 		passwordConfirm: "",
 	});
+	const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+	const [showNewPassword, setShowNewPassword] = useState(false);
+	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 	const [passwordLoading, setPasswordLoading] = useState(false);
 	const [passwordFeedback, setPasswordFeedback] = useState<Feedback>(null);
 
@@ -410,6 +519,9 @@ export default function UserProfilePage() {
 			}
 
 			setPasswordForm({ currentPassword: "", password: "", passwordConfirm: "" });
+			setShowCurrentPassword(false);
+			setShowNewPassword(false);
+			setShowConfirmPassword(false);
 			setPasswordFeedback({ kind: "success", message: data.message || "Password changed successfully" });
 		} catch (passwordError) {
 			setPasswordFeedback({
@@ -422,6 +534,26 @@ export default function UserProfilePage() {
 		} finally {
 			setPasswordLoading(false);
 		}
+	};
+
+	const handleDeleteAccount = async (currentPassword: string) => {
+		const response = await fetch("/api/auth/profile/delete", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ currentPassword }),
+		});
+
+		const data = await response.json();
+
+		if (!response.ok) {
+			throw new Error(data.error || "Failed to delete account");
+		}
+	};
+
+	const handleDeleteSuccess = () => {
+		setIsDeleteModalOpen(false);
+		globalThis.dispatchEvent(new Event("auth-changed"));
+		router.replace("/");
 	};
 
 	if (loadingProfile) {
@@ -547,50 +679,83 @@ export default function UserProfilePage() {
 							<div className="user-password-grid">
 								<div className="form-group">
 									<label htmlFor="current-password">Confirm current password</label>
-									<input
-										type="password"
-										id="current-password"
-										value={passwordForm.currentPassword}
-										onChange={(event: ChangeEvent<HTMLInputElement>) =>
-											setPasswordForm((previousValue) => ({ ...previousValue, currentPassword: event.target.value }))
-										}
-										placeholder="current password here..."
-										autoComplete="current-password"
-										required
-									/>
+									<div className="password-field">
+										<input
+											type={showCurrentPassword ? "text" : "password"}
+											id="current-password"
+											value={passwordForm.currentPassword}
+											onChange={(event: ChangeEvent<HTMLInputElement>) =>
+												setPasswordForm((previousValue) => ({ ...previousValue, currentPassword: event.target.value }))
+											}
+											placeholder="current password here..."
+											autoComplete="current-password"
+											required
+										/>
+										<button
+											type="button"
+											className="password-visibility-toggle"
+											aria-label={showCurrentPassword ? "Hide current password" : "Show current password"}
+											aria-pressed={showCurrentPassword}
+											onClick={() => setShowCurrentPassword((currentValue) => !currentValue)}
+										>
+											{showCurrentPassword ? "Hide" : "Show"}
+										</button>
+									</div>
 								</div>
 
 								<div className="form-group">
 									<label htmlFor="new-password">New password</label>
-									<input
-										type="password"
-										id="new-password"
-										value={passwordForm.password}
-										onChange={(event: ChangeEvent<HTMLInputElement>) =>
-											setPasswordForm((previousValue) => ({ ...previousValue, password: event.target.value }))
-										}
-										placeholder="type your new password here..."
-										autoComplete="new-password"
-										required
-									/>
+									<div className="password-field">
+										<input
+											type={showNewPassword ? "text" : "password"}
+											id="new-password"
+											value={passwordForm.password}
+											onChange={(event: ChangeEvent<HTMLInputElement>) =>
+												setPasswordForm((previousValue) => ({ ...previousValue, password: event.target.value }))
+											}
+											placeholder="type your new password here..."
+											autoComplete="new-password"
+											required
+										/>
+										<button
+											type="button"
+											className="password-visibility-toggle"
+											aria-label={showNewPassword ? "Hide new password" : "Show new password"}
+											aria-pressed={showNewPassword}
+											onClick={() => setShowNewPassword((currentValue) => !currentValue)}
+										>
+											{showNewPassword ? "Hide" : "Show"}
+										</button>
+									</div>
 								</div>
 
 								<div className="form-group">
 									<label htmlFor="confirm-password">Confirm new password</label>
-									<input
-										type="password"
-										id="confirm-password"
-										value={passwordForm.passwordConfirm}
-										onChange={(event: ChangeEvent<HTMLInputElement>) =>
-											setPasswordForm((previousValue) => ({
-												...previousValue,
-												passwordConfirm: event.target.value,
-											}))
-										}
-										placeholder="confirm your new password here..."
-										autoComplete="new-password"
-										required
-									/>
+									<div className="password-field">
+										<input
+											type={showConfirmPassword ? "text" : "password"}
+											id="confirm-password"
+											value={passwordForm.passwordConfirm}
+											onChange={(event: ChangeEvent<HTMLInputElement>) =>
+												setPasswordForm((previousValue) => ({
+													...previousValue,
+													passwordConfirm: event.target.value,
+												}))
+											}
+											placeholder="confirm your new password here..."
+											autoComplete="new-password"
+											required
+										/>
+										<button
+											type="button"
+											className="password-visibility-toggle"
+											aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
+											aria-pressed={showConfirmPassword}
+											onClick={() => setShowConfirmPassword((currentValue) => !currentValue)}
+										>
+											{showConfirmPassword ? "Hide" : "Show"}
+										</button>
+									</div>
 								</div>
 							</div>
 
@@ -601,6 +766,21 @@ export default function UserProfilePage() {
 							</div>
 						</form>
 					</section>
+
+						<section className="user-card user-danger-card">
+							<div className="user-section-heading">
+								<h2 className="user-section-title">Delete account</h2>
+								<p className="user-section-description">
+									This permanently erases your account and signs you out of the system.
+								</p>
+							</div>
+
+							<div className="user-actions-row user-actions-row-end">
+								<button type="button" className="danger-btn" onClick={() => setIsDeleteModalOpen(true)}>
+									Delete account
+								</button>
+							</div>
+						</section>
 				</div>
 			</main>
 
@@ -609,6 +789,12 @@ export default function UserProfilePage() {
 				currentEmail={profile.email}
 				onClose={() => setIsEmailModalOpen(false)}
 				onSuccess={(email) => setProfile((previousValue) => (previousValue ? { ...previousValue, email } : previousValue))}
+			/>
+			<DeleteAccountModal
+				isOpen={isDeleteModalOpen}
+				onClose={() => setIsDeleteModalOpen(false)}
+				onConfirm={handleDeleteAccount}
+				onSuccess={handleDeleteSuccess}
 			/>
 		</>
 	);

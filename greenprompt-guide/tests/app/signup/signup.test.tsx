@@ -33,7 +33,7 @@ describe("Signup page and form", () => {
       vi.fn().mockResolvedValue({
         ok: true,
         json: async () => ({ message: "User created successfully" }),
-      }) as unknown as typeof fetch
+      })
     );
   });
 
@@ -66,6 +66,29 @@ describe("Signup page and form", () => {
     expect(screen.getByLabelText(/^email$/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/^password$/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/confirm password/i)).toBeInTheDocument();
+  });
+
+  it("toggles visibility for both password fields", async () => {
+    const user = userEvent.setup();
+    render(<SignupForm />);
+
+    const passwordInput = screen.getByLabelText(/^password$/i);
+    const confirmPasswordInput = screen.getByLabelText(/confirm password/i);
+
+    expect(passwordInput).toHaveAttribute("type", "password");
+    expect(confirmPasswordInput).toHaveAttribute("type", "password");
+
+    await user.click(screen.getByRole("button", { name: /show password/i }));
+    await user.click(screen.getByRole("button", { name: /show confirm password/i }));
+
+    expect(passwordInput).toHaveAttribute("type", "text");
+    expect(confirmPasswordInput).toHaveAttribute("type", "text");
+
+    await user.click(screen.getByRole("button", { name: /hide password/i }));
+    await user.click(screen.getByRole("button", { name: /hide confirm password/i }));
+
+    expect(passwordInput).toHaveAttribute("type", "password");
+    expect(confirmPasswordInput).toHaveAttribute("type", "password");
   });
 
   it("toggles the administrator auth code field", async () => {
@@ -106,7 +129,7 @@ describe("Signup page and form", () => {
       vi.fn().mockResolvedValue({
         ok: false,
         json: async () => ({ error: "Email already registered" }),
-      }) as unknown as typeof fetch
+      })
     );
 
     const user = userEvent.setup();

@@ -611,6 +611,80 @@ describe("UserProfilePage", () => {
     });
   });
 
+  describe("Delete Account", () => {
+    beforeEach(() => {
+      (globalThis.fetch as any).mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          user: {
+            username: "testuser",
+            email: "test@example.com",
+          },
+        }),
+      });
+    });
+
+    it("should render the delete account section", async () => {
+      render(<UserProfilePage />);
+
+      await waitFor(() => {
+        expect(screen.getByRole("heading", { name: /Delete account/i })).toBeInTheDocument();
+      });
+
+      expect(screen.getByRole("button", { name: /Delete account/i })).toBeInTheDocument();
+    });
+
+    it("should delete the account after confirming the current password", async () => {
+      (globalThis.fetch as any)
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => ({
+            message: "Account deleted successfully",
+          }),
+        });
+
+      const dispatchEvent = vi.spyOn(globalThis, "dispatchEvent");
+
+      render(<UserProfilePage />);
+
+      await waitFor(() => {
+        expect(screen.getByRole("button", { name: /Delete account/i })).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByRole("button", { name: /Delete account/i }));
+
+      await waitFor(() => {
+        expect(screen.getByText("Delete Your Account")).toBeInTheDocument();
+      });
+
+      const passwordInput = screen.getByLabelText("Current Password");
+      await userEvent.type(passwordInput, "oldpass123");
+
+      fireEvent.click(screen.getByRole("button", { name: /Delete definitely/i }));
+
+      await waitFor(() => {
+        expect(globalThis.fetch).toHaveBeenCalledWith(
+          "/api/auth/profile/delete",
+          expect.objectContaining({
+            method: "POST",
+          })
+        );
+      });
+
+      await waitFor(() => {
+        expect(dispatchEvent).toHaveBeenCalledWith(
+          expect.objectContaining({ type: "auth-changed" })
+        );
+      });
+
+      await waitFor(() => {
+        expect(mockReplace).toHaveBeenCalledWith("/");
+      });
+    });
+  });
+
   describe("Page Layout", () => {
     beforeEach(() => {
       (globalThis.fetch as any).mockResolvedValueOnce({
