@@ -30,10 +30,18 @@ describe("Signup page and form", () => {
     vi.clearAllMocks();
     vi.stubGlobal(
       "fetch",
-      vi.fn().mockResolvedValue({
-        ok: true,
-        json: async () => ({ message: "User created successfully" }),
-      })
+      vi.fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({ message: "Verification code sent to your email" }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            message: "User created successfully",
+            user: { username: "victor", email: "victor@example.com" },
+          }),
+        })
     );
   });
 
@@ -114,7 +122,22 @@ describe("Signup page and form", () => {
     await user.type(screen.getByLabelText(/^confirm password$/i), "password123");
     await user.click(screen.getByRole("button", { name: /create account/i }));
 
+    expect(await screen.findByRole("heading", { name: /verify your email/i })).toBeInTheDocument();
+
+    const verificationCodeInput = screen.getByLabelText(/^verification code$/i);
+
+    await user.type(verificationCodeInput, "abc123");
+    expect(verificationCodeInput).toHaveValue("ABC123");
+
+    await user.click(screen.getByRole("button", { name: /^verify email$/i }));
+
     await waitFor(() => expect(pushMock).toHaveBeenCalledWith("/catalog"));
+    expect(fetch).toHaveBeenCalledWith(
+      "/api/auth/signup/request-email-verification",
+      expect.objectContaining({
+        method: "POST",
+      })
+    );
     expect(fetch).toHaveBeenCalledWith(
       "/api/auth/signup",
       expect.objectContaining({

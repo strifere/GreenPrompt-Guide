@@ -2,16 +2,24 @@ import { NextRequest, NextResponse } from "next/server";
 import { hashPassword, isValidEmail, isValidPassword } from "@/lib/auth";
 import { createSessionCookie } from "@/lib/session";
 import { isUsernameAvailable, isEmailAvailable, createUser } from "@/domain/user-repository";
+import { emailVerificationStore } from "@/lib/email-verification";
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { username, email, password, passwordConfirm } = body;
+    const { username, email, password, passwordConfirm, verificationCode } = body;
 
     // Validation
-    if (!username || !email || !password || !passwordConfirm) {
+    if (!username || !email || !password || !passwordConfirm || !verificationCode) {
       return NextResponse.json(
         { error: "All fields are required" },
+        { status: 400 }
+      );
+    }
+
+    if (typeof verificationCode !== "string") {
+      return NextResponse.json(
+        { error: "Verification code is required" },
         { status: 400 }
       );
     }
@@ -37,7 +45,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if user already exists
     const usernameAvailable = await isUsernameAvailable(username);
 
     if (!usernameAvailable) {
@@ -53,6 +60,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: "Email already registered" },
         { status: 409 }
+      );
+    }
+
+    const verificationSucceeded = emailVerificationStore.claimCode(
+      email,
+      verificationCode.trim().toUpperCase()
+    );
+
+    if (!verificationSucceeded) {
+      return NextResponse.json(
+        { error: "The introduced code isn't correct. Please try again." },
+        { status: 401 }
       );
     }
 

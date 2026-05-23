@@ -64,6 +64,19 @@ class EmailService {
     });
   }
 
+  async sendSignupVerificationCode(email: string, code: string): Promise<boolean> {
+    const subject = "Verify Your GreenPrompt Guide Email";
+    const text = `Your email verification code is: ${code}\n\nThis code will expire in 15 minutes.\n\nIf you didn't request this, please ignore this email.`;
+    const html = `<p>Your email verification code is: <strong>${code}</strong></p><p>This code will expire in 15 minutes.</p><p>If you didn't request this, please ignore this email.</p>`;
+
+    return this.send({
+      to: email,
+      subject,
+      text,
+      html,
+    });
+  }
+
   async sendEmailChangeVerificationCode(email: string, code: string): Promise<boolean> {
     const subject = "Email Change Verification Code";
     const text = `Your email change verification code is: ${code}\n\nThis code will expire in 15 minutes.`;
