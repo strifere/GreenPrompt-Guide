@@ -33,16 +33,26 @@ describe("UserProfilePage", () => {
   });
 
   describe("Profile Loading", () => {
-    it("should show loading state initially", () => {
-      (globalThis.fetch as any).mockImplementationOnce(
-        () =>
-          new Promise((resolve) =>
-            setTimeout(() => resolve({ ok: true, json: async () => ({}) }), 1000)
-          )
-      );
+    it("should render the profile page immediately", async () => {
+      (globalThis.fetch as any).mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          user: {
+            username: "testuser",
+            email: "test@example.com",
+          },
+        }),
+      });
 
       render(<UserProfilePage />);
-      expect(screen.getByText("Loading your details")).toBeInTheDocument();
+
+      expect(screen.getByText("Your details")).toBeInTheDocument();
+      expect(screen.queryByText("Loading your details")).not.toBeInTheDocument();
+
+      await waitFor(() => {
+        expect(screen.getByText("testuser")).toBeInTheDocument();
+      });
     });
 
     it("should fetch profile on mount", async () => {
@@ -87,7 +97,7 @@ describe("UserProfilePage", () => {
       });
     });
 
-    it("should display error message on fetch failure", async () => {
+    it("should keep rendering the page when profile fetch fails", async () => {
       (globalThis.fetch as any).mockResolvedValueOnce({
         ok: false,
         status: 500,
@@ -97,33 +107,10 @@ describe("UserProfilePage", () => {
       render(<UserProfilePage />);
 
       await waitFor(() => {
-        expect(screen.getByText("Server error")).toBeInTheDocument();
-      });
-    });
-
-    it("should display generic error message on network error", async () => {
-      (globalThis.fetch as any).mockRejectedValueOnce(new Error("Network error"));
-
-      render(<UserProfilePage />);
-
-      await waitFor(() => {
-        expect(screen.getByText("Network error")).toBeInTheDocument();
-      });
-    });
-
-    it("should show 'Go to login' button on error", async () => {
-      (globalThis.fetch as any).mockResolvedValueOnce({
-        ok: false,
-        status: 404,
-        json: async () => ({ error: "User not found" }),
+        expect(screen.getByText("Your details")).toBeInTheDocument();
       });
 
-      render(<UserProfilePage />);
-
-      await waitFor(() => {
-        const loginLink = screen.getByText("Go to login");
-        expect(loginLink).toHaveAttribute("href", "/login");
-      });
+      expect(screen.queryByText("Server error")).not.toBeInTheDocument();
     });
   });
 
@@ -611,6 +598,80 @@ describe("UserProfilePage", () => {
     });
   });
 
+  describe("Delete Account", () => {
+    beforeEach(() => {
+      (globalThis.fetch as any).mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          user: {
+            username: "testuser",
+            email: "test@example.com",
+          },
+        }),
+      });
+    });
+
+    it("should render the delete account section", async () => {
+      render(<UserProfilePage />);
+
+      await waitFor(() => {
+        expect(screen.getByRole("heading", { name: /Delete account/i })).toBeInTheDocument();
+      });
+
+      expect(screen.getByRole("button", { name: /Delete account/i })).toBeInTheDocument();
+    });
+
+    it("should delete the account after confirming the current password", async () => {
+      (globalThis.fetch as any)
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => ({
+            message: "Account deleted successfully",
+          }),
+        });
+
+      const dispatchEvent = vi.spyOn(globalThis, "dispatchEvent");
+
+      render(<UserProfilePage />);
+
+      await waitFor(() => {
+        expect(screen.getByRole("button", { name: /Delete account/i })).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByRole("button", { name: /Delete account/i }));
+
+      await waitFor(() => {
+        expect(screen.getByText("Delete Your Account")).toBeInTheDocument();
+      });
+
+      const passwordInput = screen.getByLabelText("Current Password");
+      await userEvent.type(passwordInput, "oldpass123");
+
+      fireEvent.click(screen.getByRole("button", { name: /Delete definitely/i }));
+
+      await waitFor(() => {
+        expect(globalThis.fetch).toHaveBeenCalledWith(
+          "/api/auth/profile/delete",
+          expect.objectContaining({
+            method: "POST",
+          })
+        );
+      });
+
+      await waitFor(() => {
+        expect(dispatchEvent).toHaveBeenCalledWith(
+          expect.objectContaining({ type: "auth-changed" })
+        );
+      });
+
+      await waitFor(() => {
+        expect(mockReplace).toHaveBeenCalledWith("/");
+      });
+    });
+  });
+
   describe("Page Layout", () => {
     beforeEach(() => {
       (globalThis.fetch as any).mockResolvedValueOnce({
@@ -700,11 +761,11 @@ describe("UserProfilePage", () => {
       render(<UserProfilePage />);
 
       await waitFor(() => {
-        expect(screen.getByText("Network error")).toBeInTheDocument();
+        expect(screen.getByText("Your details")).toBeInTheDocument();
       });
     });
 
-    it("should display default error message when error object is null", async () => {
+    it("should keep rendering the page when error object is null", async () => {
       (globalThis.fetch as any).mockResolvedValueOnce({
         ok: false,
         status: 500,
@@ -714,7 +775,7 @@ describe("UserProfilePage", () => {
       render(<UserProfilePage />);
 
       await waitFor(() => {
-        expect(screen.getByText("Failed to load user details")).toBeInTheDocument();
+        expect(screen.getByText("Your details")).toBeInTheDocument();
       });
     });
   });

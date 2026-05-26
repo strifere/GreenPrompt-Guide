@@ -79,6 +79,7 @@ describe("Practice details requirements", () => {
     expect(screen.getByText(/energy use/i)).toBeInTheDocument();
     expect(screen.getByText(/temperature: 0.1 \(float\)/i)).toBeInTheDocument();
     expect(screen.getByText(/low-energy prompt engineering \(2025\)/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /back to catalog/i })).toHaveAttribute("href", "/catalog");
 
     // Verify links to related resources
     const fewShotLink = screen.getByRole("link", { name: /few-shot/i });
@@ -314,7 +315,7 @@ describe("Practice details requirements", () => {
       }),
     );
 
-    const backLink = screen.getByRole("link", { name: /back to practices/i });
+    const backLink = screen.getByRole("link", { name: /back to catalog/i });
     expect(backLink).toBeInTheDocument();
     expect(backLink).toHaveAttribute("href", "/catalog");
   });

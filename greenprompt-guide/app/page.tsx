@@ -9,8 +9,11 @@ export default function HomePage() {
       <div className="home-shell">
         <section className="home-hero" aria-labelledby="home-title">
           <h1 id="home-title" className="home-title">
-            <span className="home-title-brand home-title-brand-green">Green</span>
-            <span className="home-title-brand home-title-brand-blue">Prompt Guide</span>
+            <span className="home-title-wordmark">
+              <span className="home-title-brand home-title-brand-green">Green</span>
+              <span className="home-title-brand home-title-brand-blue">Prompt</span>
+            </span>{" "}
+            <span className="home-title-guide home-title-brand-blue">Guide</span>
           </h1>
 
           <p className="home-tagline">

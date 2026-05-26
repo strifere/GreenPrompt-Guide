@@ -1,112 +1,65 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { emailService } from "../../lib/email-service";
 
-const sendMock = vi.hoisted(() => vi.fn());
-const resendConstructorMock = vi.hoisted(() =>
-  vi.fn().mockImplementation(() => ({
-    emails: {
-      send: sendMock,
-    },
-  }))
-);
-
-vi.mock("resend", () => ({
-  Resend: resendConstructorMock,
-}));
-
-async function loadEmailService() {
-  vi.resetModules();
-  return import("@/lib/email-service");
-}
-
-describe("lib/email-service", () => {
-  const originalNodeEnv = process.env.NODE_ENV;
-  const originalApiKey = process.env.RESEND_API_KEY;
-  const originalFrom = process.env.RESEND_FROM_EMAIL;
+describe("EmailService", () => {
+  const ORIGINAL_NODE_ENV = process.env.NODE_ENV;
+  const ORIGINAL_EMAIL_FROM = process.env.EMAIL_FROM;
+  let originalTransporter: any;
 
   beforeEach(() => {
-    vi.clearAllMocks();
-    process.env.NODE_ENV = originalNodeEnv;
-    process.env.RESEND_API_KEY = originalApiKey;
-    process.env.RESEND_FROM_EMAIL = originalFrom;
-    sendMock.mockReset();
-    resendConstructorMock.mockReset();
-    resendConstructorMock.mockImplementation(() => ({
-      emails: {
-        send: sendMock,
-      },
-    }));
+    // preserve original transporter so we can restore it
+    originalTransporter = (emailService as any).transporter;
+    vi.restoreAllMocks();
+    // default environment
+    process.env.NODE_ENV = "development";
   });
 
-  it("short-circuits in development mode", async () => {
+  afterEach(() => {
+    process.env.NODE_ENV = ORIGINAL_NODE_ENV;
+    process.env.EMAIL_FROM = ORIGINAL_EMAIL_FROM;
+    (emailService as any).transporter = originalTransporter;
+  });
+
+  it("logs HTML and returns true in development mode when sending signup verification code", async () => {
     process.env.NODE_ENV = "development";
     const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-    const { emailService } = await loadEmailService();
 
-    await expect(
-      emailService.send({
-        to: "victor@example.com",
-        subject: "Hello",
-        text: "Test message",
-      })
-    ).resolves.toBe(true);
+    const result = await emailService.sendSignupVerificationCode("a@b.com", "CODE123");
 
-    expect(sendMock).not.toHaveBeenCalled();
-    expect(logSpy).toHaveBeenCalled();
+    expect(result).toBe(true);
+    // last HTML log includes the HTML body
+    expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("HTML: <p>Your email verification code is: <strong>CODE123</strong>"));
   });
 
-  it("returns false when the API key is missing", async () => {
+  it("uses default from address when EMAIL_FROM is not set", async () => {
     process.env.NODE_ENV = "production";
-    delete process.env.RESEND_API_KEY;
+    delete process.env.EMAIL_FROM;
+
+    let capturedFrom: string | undefined;
+    (emailService as any).transporter = {
+      sendMail: async (opts: any) => {
+        capturedFrom = opts.from;
+        return { messageId: "msg-1" };
+      },
+    };
+
+    const ok = await emailService.send({ to: "x@y.com", subject: "s", text: "t" });
+    expect(ok).toBe(true);
+    expect(capturedFrom).toBe("GreenPrompt Guide <greenprompt.guide@gmail.com>");
+  });
+
+  it("returns false and logs error when transporter.sendMail throws", async () => {
+    process.env.NODE_ENV = "production";
     const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-    const { emailService } = await loadEmailService();
 
-    await expect(
-      emailService.send({
-        to: "victor@example.com",
-        subject: "Hello",
-        text: "Test message",
-      })
-    ).resolves.toBe(false);
+    (emailService as any).transporter = {
+      sendMail: async () => {
+        throw new Error("send failed");
+      },
+    };
 
-    expect(errorSpy).toHaveBeenCalledWith("RESEND_API_KEY is missing. Email delivery is disabled.");
-  });
-
-  it("sends emails through Resend with the configured from address", async () => {
-    process.env.NODE_ENV = "production";
-    process.env.RESEND_API_KEY = "re_test_key";
-    process.env.RESEND_FROM_EMAIL = "GreenPrompt Guide <from@example.com>";
-    sendMock.mockResolvedValueOnce({ error: null });
-    const { emailService } = await loadEmailService();
-
-    await expect(
-      emailService.sendPasswordRecoveryCode("victor@example.com", "ABC123")
-    ).resolves.toBe(true);
-
-    expect(resendConstructorMock).toHaveBeenCalledWith("re_test_key");
-    expect(sendMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        from: "GreenPrompt Guide <from@example.com>",
-        to: "victor@example.com",
-        subject: "Password Recovery Code",
-      })
-    );
-  });
-
-  it("returns false when Resend reports an error", async () => {
-    process.env.NODE_ENV = "production";
-    process.env.RESEND_API_KEY = "re_test_key";
-    sendMock.mockResolvedValueOnce({ error: { message: "denied" } });
-    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-    const { emailService } = await loadEmailService();
-
-    await expect(
-      emailService.send({
-        to: "victor@example.com",
-        subject: "Hello",
-        text: "Test message",
-      })
-    ).resolves.toBe(false);
-
-    expect(errorSpy).toHaveBeenCalled();
+    const ok = await emailService.send({ to: "x@y.com", subject: "s", text: "t" });
+    expect(ok).toBe(false);
+    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining("Email send failed:"), expect.any(Error));
   });
 });

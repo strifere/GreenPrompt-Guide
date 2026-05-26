@@ -139,6 +139,8 @@ describe("Home Page", () => {
 
     const heroTitle = screen.getByRole("heading", { name: /Green/, level: 1 });
     expect(heroTitle).toHaveAttribute("id", "home-title");
+    // Ensure the title includes the space between 'Prompt' and 'Guide'
+    expect(heroTitle.textContent).toMatch(/GreenPrompt Guide/);
   });
 
   it("renders all required links with correct href values", () => {
@@ -199,8 +201,12 @@ describe("Home Page", () => {
     const greenSpan = Array.from(titleBrands).find((el) => el.textContent === "Green");
     expect(greenSpan).toHaveClass("home-title-brand-green");
 
-    const promptSpan = Array.from(titleBrands).find((el) => el.textContent === "Prompt Guide");
+    const promptSpan = Array.from(titleBrands).find((el) => el.textContent === "Prompt");
     expect(promptSpan).toHaveClass("home-title-brand-blue");
+
+    const guideSpan = heroTitle.querySelector(".home-title-guide");
+    expect(guideSpan).toHaveClass("home-title-brand-blue");
+    expect(guideSpan).toHaveTextContent("Guide");
   });
 
   it("renders tagline with emphasis on Green", () => {

@@ -138,10 +138,11 @@ export default async function PracticeDetailsPage({
     <main className="details-page">
       <div className="practice-details-shell">
         <header className="practice-details-header">
-          <Link href="/catalog" className="practice-back-link" aria-label="Back to practices">
-            <ArrowLeft aria-hidden size={30} strokeWidth={2.25} />
-          </Link>
           <div>
+            <Link href="/catalog" className="animated-link" aria-label="Back to catalog">
+              <ArrowLeft aria-hidden size={22} strokeWidth={2.25} />
+              <span>Back to catalog</span>
+            </Link>
             <h1>{practice.name}</h1>
           </div>
         </header>

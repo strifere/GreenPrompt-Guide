@@ -1,9 +1,9 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import ReferenceDetailsPage from "@/app/catalog/references/[referenceTitle]/page";
-import { getReferenceByTitle } from "@/domain/reference-repository";
 import { notFound } from "next/navigation";
+
+const getReferenceByTitleMock = vi.hoisted(() => vi.fn());
 
 
 vi.mock("next/link", () => ({
@@ -15,7 +15,7 @@ vi.mock("next/link", () => ({
 }));
 
 vi.mock("@/domain/reference-repository", () => ({
-  getReferenceByTitle: vi.fn(),
+  getReferenceByTitle: getReferenceByTitleMock,
 }));
 
 vi.mock("next/navigation", () => ({
@@ -23,6 +23,10 @@ vi.mock("next/navigation", () => ({
     throw new Error("NEXT_NOT_FOUND");
   }),
 }));
+
+async function loadReferenceDetailsPage() {
+  return import("../app/catalog/references/[referenceTitle]/page");
+}
 
 function buildReference() {
   return {
@@ -36,7 +40,7 @@ function buildReference() {
     year: 2025,
     studyType: "Empirical Study",
     domain: "Natural Language Processing",
-    venue: "ACL 2025",
+    venue: "ACL",
     link: "https://example.com/paper",
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -54,7 +58,8 @@ describe("Reference details requirements", () => {
   });
 
   it("renders full reference details with all metadata sections", async () => {
-    vi.mocked(getReferenceByTitle).mockResolvedValue(buildReference() as never);
+    const { default: ReferenceDetailsPage } = await loadReferenceDetailsPage();
+    getReferenceByTitleMock.mockResolvedValue(buildReference());
 
     render(
       await ReferenceDetailsPage({
@@ -62,16 +67,19 @@ describe("Reference details requirements", () => {
       }),
     );
 
-    expect(vi.mocked(getReferenceByTitle)).toHaveBeenCalledWith("Low-energy Prompt Engineering");
+    expect(getReferenceByTitleMock).toHaveBeenCalledWith("Low-energy Prompt Engineering");
     expect(screen.getByRole("heading", { name: /low-energy prompt engineering/i })).toBeInTheDocument();
     expect(screen.getByText(/smith, j\. & doe, a\./i)).toBeInTheDocument();
     expect(screen.getByText(/this paper explores energy-efficient prompt engineering techniques/i)).toBeInTheDocument();
     expect(screen.getByText(/energy consumption optimization in llm inference/i)).toBeInTheDocument();
     expect(screen.getByText(/available at https:\/\/github\.com\/example\/tool/i)).toBeInTheDocument();
+    expect(screen.getByText(/\[1\] J\. Smith, A\. Doe, "Low-energy Prompt Engineering," ACL, 2025\./i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /full reference link/i })).toHaveAttribute("href", "https://example.com/paper");
   });
 
   it("displays reference metadata including keywords, year, study type, domain, and venue", async () => {
-    vi.mocked(getReferenceByTitle).mockResolvedValue(buildReference() as never);
+    const { default: ReferenceDetailsPage } = await loadReferenceDetailsPage();
+    getReferenceByTitleMock.mockResolvedValue(buildReference());
 
     render(
       await ReferenceDetailsPage({
@@ -84,11 +92,16 @@ describe("Reference details requirements", () => {
     expect(screen.getByText("2025")).toBeInTheDocument();
     expect(screen.getByText(/empirical study/i)).toBeInTheDocument();
     expect(screen.getByText(/natural language processing/i)).toBeInTheDocument();
-    expect(screen.getByText(/acl 2025/i)).toBeInTheDocument();
+
+    const venueHeading = screen.getByRole("heading", { name: /venue/i, level: 2 });
+    const venueSection = venueHeading.closest("article");
+    expect(venueSection).not.toBeNull();
+    expect(within(venueSection as HTMLElement).getByText(/^ACL$/)).toBeInTheDocument();
   });
 
   it("displays related prompt techniques and models as links", async () => {
-    vi.mocked(getReferenceByTitle).mockResolvedValue(buildReference() as never);
+    const { default: ReferenceDetailsPage } = await loadReferenceDetailsPage();
+    getReferenceByTitleMock.mockResolvedValue(buildReference());
 
     render(
       await ReferenceDetailsPage({
@@ -106,7 +119,8 @@ describe("Reference details requirements", () => {
   });
 
   it("displays related datasets", async () => {
-    vi.mocked(getReferenceByTitle).mockResolvedValue(buildReference() as never);
+    const { default: ReferenceDetailsPage } = await loadReferenceDetailsPage();
+    getReferenceByTitleMock.mockResolvedValue(buildReference());
 
     render(
       await ReferenceDetailsPage({
@@ -120,8 +134,9 @@ describe("Reference details requirements", () => {
   });
 
   it("handles missing keywords by showing placeholder message", async () => {
+    const { default: ReferenceDetailsPage } = await loadReferenceDetailsPage();
     const refWithoutKeywords = { ...buildReference(), keywords: null };
-    vi.mocked(getReferenceByTitle).mockResolvedValue(refWithoutKeywords as never);
+    getReferenceByTitleMock.mockResolvedValue(refWithoutKeywords);
 
     render(
       await ReferenceDetailsPage({
@@ -133,6 +148,7 @@ describe("Reference details requirements", () => {
   });
 
   it("handles missing optional metadata fields gracefully", async () => {
+    const { default: ReferenceDetailsPage } = await loadReferenceDetailsPage();
     const refWithoutOptional = {
       ...buildReference(),
       year: null,
@@ -141,7 +157,7 @@ describe("Reference details requirements", () => {
       venue: null,
       toolAvailability: null,
     };
-    vi.mocked(getReferenceByTitle).mockResolvedValue(refWithoutOptional as never);
+    getReferenceByTitleMock.mockResolvedValue(refWithoutOptional);
 
     render(
       await ReferenceDetailsPage({
@@ -156,14 +172,51 @@ describe("Reference details requirements", () => {
     expect(screen.getByText(/no tool was developed in this study/i)).toBeInTheDocument();
   });
 
+  it("renders a citation without venue when venue is missing", async () => {
+    const { default: ReferenceDetailsPage } = await loadReferenceDetailsPage();
+    const refWithoutVenue = {
+      ...buildReference(),
+      venue: null,
+    };
+    getReferenceByTitleMock.mockResolvedValue(refWithoutVenue);
+
+    render(
+      await ReferenceDetailsPage({
+        params: Promise.resolve({ referenceTitle: "Low-energy Prompt Engineering" }),
+      }),
+    );
+
+    expect(screen.getByText(/\[1\] J\. Smith, A\. Doe, "Low-energy Prompt Engineering," 2025\./i)).toBeInTheDocument();
+  });
+
+  it("splits mixed author separators without relying on a regex split", async () => {
+    const { default: ReferenceDetailsPage } = await loadReferenceDetailsPage();
+    const refWithMixedSeparators = {
+      ...buildReference(),
+      authors: "Smith, J.; Doe, A. and Lee, C. & Zhang, Q.",
+    };
+    getReferenceByTitleMock.mockResolvedValue(refWithMixedSeparators);
+
+    render(
+      await ReferenceDetailsPage({
+        params: Promise.resolve({ referenceTitle: "Low-energy Prompt Engineering" }),
+      }),
+    );
+
+    expect(
+      screen.getByText(/\[1\] J\. Smith, A\. Doe, C\. Lee, Q\. Zhang, "Low-energy Prompt Engineering," ACL, 2025\./i),
+    ).toBeInTheDocument();
+  });
+
   it("handles empty related items gracefully", async () => {
+    const { default: ReferenceDetailsPage } = await loadReferenceDetailsPage();
     const refWithoutRelations = {
       ...buildReference(),
       promptTechniques: [],
       models: [],
       datasets: [],
     };
-    vi.mocked(getReferenceByTitle).mockResolvedValue(refWithoutRelations as never);
+    getReferenceByTitleMock.mockResolvedValue(refWithoutRelations);
 
     render(
       await ReferenceDetailsPage({
@@ -176,7 +229,8 @@ describe("Reference details requirements", () => {
   });
 
   it("handles missing reference by delegating to notFound", async () => {
-    vi.mocked(getReferenceByTitle).mockResolvedValue(null);
+    const { default: ReferenceDetailsPage } = await loadReferenceDetailsPage();
+    getReferenceByTitleMock.mockResolvedValue(null);
 
     await expect(
       ReferenceDetailsPage({
@@ -188,7 +242,8 @@ describe("Reference details requirements", () => {
   });
 
   it("decodes URL-encoded reference title", async () => {
-    vi.mocked(getReferenceByTitle).mockResolvedValue(buildReference() as never);
+    const { default: ReferenceDetailsPage } = await loadReferenceDetailsPage();
+    getReferenceByTitleMock.mockResolvedValue(buildReference());
 
     render(
       await ReferenceDetailsPage({
@@ -196,6 +251,6 @@ describe("Reference details requirements", () => {
       }),
     );
 
-    expect(vi.mocked(getReferenceByTitle)).toHaveBeenCalledWith("Low-energy Prompt Engineering");
+    expect(getReferenceByTitleMock).toHaveBeenCalledWith("Low-energy Prompt Engineering");
   });
 });

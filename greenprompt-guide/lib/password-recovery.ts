@@ -3,14 +3,8 @@
  * In production, this should be stored in a database or Redis
  */
 
-import { randomInt } from "node:crypto";
-
-interface RecoveryToken {
-  code: string;
-  email: string;
-  expiresAt: number;
-  attempts: number;
-}
+import { randomUUID } from "node:crypto";
+import { emailVerificationStore } from "./email-verification";
 
 interface ResetToken {
   email: string;
@@ -18,41 +12,21 @@ interface ResetToken {
 }
 
 class PasswordRecoveryStore {
-  private readonly tokens: Map<string, RecoveryToken> = new Map();
   private readonly resetTokens: Map<string, ResetToken> = new Map();
-  private readonly CODE_EXPIRY_MS = 15 * 60 * 1000; // 15 minutes
   private readonly RESET_TOKEN_EXPIRY_MS = 15 * 60 * 1000; // 15 minutes
-  private readonly MAX_ATTEMPTS = 5;
-
-  /**
-   * Generate a random recovery code
-   */
-  private generateCode(): string {
-    return Array.from({ length: 6 }, () => randomInt(36).toString(36)).join("").toUpperCase();
-  }
 
   /**
    * Create a new recovery token for an email
    */
   createToken(email: string): string {
-    const code = this.generateCode();
-    const now = Date.now();
-
-    this.tokens.set(code, {
-      code,
-      email,
-      expiresAt: now + this.CODE_EXPIRY_MS,
-      attempts: 0,
-    });
-
-    return code;
+    return emailVerificationStore.createCode(email);
   }
 
   /**
    * Create a one-time reset token after the recovery code has been verified
    */
   createResetToken(email: string): string {
-    const resetToken = crypto.randomUUID();
+    const resetToken = randomUUID();
 
     this.resetTokens.set(resetToken, {
       email,
@@ -66,31 +40,11 @@ class PasswordRecoveryStore {
    * Verify a recovery code and invalidate it immediately on success
    */
   verifyCode(code: string, email: string): string | null {
-    const token = this.tokens.get(code);
+    const codeClaimed = emailVerificationStore.claimCode(email, code);
 
-    if (!token) {
+    if (!codeClaimed) {
       return null;
     }
-
-    // Check if email matches
-    if (token.email !== email) {
-      return null;
-    }
-
-    // Check if expired
-    if (Date.now() > token.expiresAt) {
-      this.tokens.delete(code);
-      return null;
-    }
-
-    // Check attempts
-    token.attempts += 1;
-    if (token.attempts > this.MAX_ATTEMPTS) {
-      this.tokens.delete(code);
-      return null;
-    }
-
-    this.tokens.delete(code);
 
     return this.createResetToken(email);
   }
@@ -124,22 +78,7 @@ class PasswordRecoveryStore {
    * Check if a code is still valid (without consuming it)
    */
   isCodeValid(code: string, email: string): boolean {
-    const token = this.tokens.get(code);
-
-    if (!token) {
-      return false;
-    }
-
-    if (token.email !== email) {
-      return false;
-    }
-
-    if (Date.now() > token.expiresAt) {
-      this.tokens.delete(code);
-      return false;
-    }
-
-    return true;
+    return emailVerificationStore.isCodeValid(email, code);
   }
 
   /**
@@ -168,37 +107,23 @@ class PasswordRecoveryStore {
    * Check how much time is left before a code expires
    */
   getTimeUntilExpiry(code: string): number {
-    const token = this.tokens.get(code);
-
-    if (!token) {
-      return 0;
-    }
-
-    const timeLeft = token.expiresAt - Date.now();
-    return Math.max(0, timeLeft);
+    return emailVerificationStore.getTimeUntilExpiryByCode(code);
   }
 
   /**
    * Clean up expired tokens
    */
   cleanup(): void {
-    const now = Date.now();
-    const expiredCodes: string[] = [];
     const expiredResetTokens: string[] = [];
 
-    for (const [code, token] of this.tokens.entries()) {
-      if (now > token.expiresAt) {
-        expiredCodes.push(code);
-      }
-    }
+    emailVerificationStore.cleanup();
 
     for (const [resetToken, token] of this.resetTokens.entries()) {
-      if (now > token.expiresAt) {
+      if (Date.now() > token.expiresAt) {
         expiredResetTokens.push(resetToken);
       }
     }
 
-    expiredCodes.forEach((code) => this.tokens.delete(code));
     expiredResetTokens.forEach((resetToken) => this.resetTokens.delete(resetToken));
   }
 }
