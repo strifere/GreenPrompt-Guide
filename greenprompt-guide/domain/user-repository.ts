@@ -25,7 +25,7 @@ export async function getUserByUsername(
 }
 
 export async function getUserEmailByUsername(username: string): Promise<{ email: string } | null> {
-  return (await prisma.user.findUnique({ where: { username }, select: { email: true } })) as { email: string } | null;
+  return (await prisma.user.findUnique({ where: { username }, select: { email: true } }));
 }
 
 export async function getUserByUsernameWithPassword(
@@ -39,7 +39,7 @@ export async function getUserByUsernameWithPassword(
 
 export async function getUserByIdentifier(identifier: string): Promise<UserWithPassword | null> {
   // Use findFirst with OR for identifier lookups (matches original login implementation)
-  return (await prisma.user.findFirst({ where: { OR: [{ username: identifier }, { email: identifier }] } })) as UserWithPassword | null;
+  return (await prisma.user.findFirst({ where: { OR: [{ username: identifier }, { email: identifier }] } }));
 }
 
 export async function isUsernameAvailable(username: string): Promise<boolean> {
@@ -75,7 +75,7 @@ export async function createUser(input: CreateUserInput): Promise<UserPublic> {
         password: input.password,
       },
     });
-    return user as UserPublic;
+    return user;
   } catch (error) {
     if (hasErrorCode(error) && error.code === "P2002") {
       throw new Error("User already exists");
@@ -85,7 +85,7 @@ export async function createUser(input: CreateUserInput): Promise<UserPublic> {
 }
 
 export async function getUserByEmail(email: string): Promise<UserWithPassword | null> {
-  return (await prisma.user.findUnique({ where: { email } })) as UserWithPassword | null;
+  return (await prisma.user.findUnique({ where: { email } }));
 }
 
 // ============================================

@@ -574,6 +574,17 @@ a {
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
 }
 
+.collaboration-input-error {
+  border-color: color-mix(in srgb, var(--danger) 70%, transparent) !important;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--error) 25%, transparent);
+}
+
+.collaboration-field-error {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--error);
+}
+
 .collaboration-help-text {
   font-size: 0.92rem;
   color: var(--text-muted);
@@ -591,6 +602,113 @@ a {
   gap: 14px;
   flex-wrap: wrap;
   justify-content: flex-end;
+  align-items: center;
+}
+
+.collaboration-submit-error {
+  margin: 0 auto 0 0;
+}
+
+.collaboration-my-requests-page .collaboration-page-header {
+  align-items: flex-start;
+  flex-direction: column;
+}
+
+.collaboration-requests-panel {
+  width: 100%;
+}
+
+.collaboration-request-list {
+  display: grid;
+  gap: 14px;
+}
+
+.collaboration-request-card {
+  padding: 16px 18px;
+  border-radius: 20px;
+  gap: 14px;
+}
+
+.collaboration-request-card header {
+  display: grid;
+  gap: 10px;
+}
+
+.collaboration-request-heading-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.collaboration-request-card h2 {
+  margin: 0;
+  font-family: var(--font-display), "Trebuchet MS", sans-serif;
+  font-size: 1.2rem;
+  line-height: 1.15;
+}
+
+.collaboration-request-summary {
+  margin: 0;
+  color: var(--text-muted);
+  line-height: 1.55;
+}
+
+.collaboration-status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--home-green) 18%, transparent);
+  color: var(--text-main);
+  border: 1px solid color-mix(in srgb, var(--line) 35%, transparent);
+  font-size: 0.82rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.collaboration-request-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.collaboration-request-meta-grid > div {
+  display: grid;
+  gap: 4px;
+}
+
+.collaboration-request-meta-label {
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.collaboration-request-meta-value {
+  color: var(--text-main);
+  font-size: 0.95rem;
+  margin-left: 10px;
+}
+
+.collaboration-empty-state {
+  padding: 28px;
+  border-radius: 18px;
+  border: 1px dashed color-mix(in srgb, var(--line) 55%, transparent);
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
+}
+
+.collaboration-empty-state h2 {
+  margin: 0 0 6px;
+  font-family: var(--font-display), "Trebuchet MS", sans-serif;
+  font-size: 1.4rem;
+}
+
+.collaboration-empty-state p {
+  margin: 0;
+  color: var(--text-muted);
 }
 
 .collaboration-secondary-btn,
@@ -626,6 +744,244 @@ a {
 .collaboration-primary-btn:focus-visible {
   outline: 2px solid color-mix(in srgb, var(--accent) 70%, white);
   outline-offset: 2px;
+}
+
+.collaboration-request-pdf-section {
+  margin-top: 20px;
+  padding: 18px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  border: 1px solid color-mix(in srgb, var(--line) 30%, transparent);
+}
+.collaboration-request-pdf-section h2 {
+  margin: 0 0 12px;
+  font-family: var(--font-display), "Trebuchet MS", sans-serif;
+  font-size: clamp(1.3rem, 2.2vw, 1.65rem);
+  font-weight: 650;
+  color: var(--text-main);
+}
+
+.collaboration-details-shell {
+  display: grid;
+  gap: 24px;
+}
+
+.collaboration-request-overview {
+  display: grid;
+  gap: 24px;
+}
+
+.collaboration-request-meta-strip,
+.collaboration-request-fields-grid,
+.collaboration-messages-list {
+  display: grid;
+  gap: 14px;
+}
+
+.collaboration-request-meta-strip {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.collaboration-request-meta-strip > div {
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
+  border: 1px solid color-mix(in srgb, var(--line) 26%, transparent);
+}
+
+.collaboration-request-meta-strip-secondary {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.collaboration-request-fields-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.collaboration-detail-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 20px;
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
+  border: 1px solid color-mix(in srgb, var(--line) 26%, transparent);
+}
+
+.collaboration-detail-copy {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.collaboration-detail-label,
+.collaboration-messages-section h2 {
+  margin: 0;
+  font-family: var(--font-display), "Trebuchet MS", sans-serif;
+  font-size: 1.15rem;
+}
+
+.collaboration-detail-value {
+  margin: 10px 0 0;
+  color: var(--text-muted);
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.collaboration-inline-form {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.collaboration-inline-input textarea,
+.collaboration-inline-input input {
+  width: 100%;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--surface) 98%, transparent);
+  border: 1px solid color-mix(in srgb, var(--line) 30%, transparent);
+  padding: 12px 14px;
+}
+
+.collaboration-inline-actions,
+.collaboration-message-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.collaboration-messages-section {
+  display: grid;
+  gap: 18px;
+  padding: 22px;
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--surface) 95%, transparent);
+  border: 1px solid color-mix(in srgb, var(--line) 30%, transparent);
+}
+
+.collaboration-messages-section h2 {
+  font-size: clamp(1.45rem, 2.5vw, 1.85rem);
+}
+
+.collaboration-message-card {
+  display: grid;
+  gap: 12px;
+  padding: 18px 20px;
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--bg) 35%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--line) 24%, transparent);
+}
+
+.collaboration-message-card-own {
+  background: color-mix(in srgb, var(--surface-alt) 55%, var(--surface));
+}
+
+.collaboration-message-card-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.collaboration-message-meta,
+.collaboration-message-type,
+.collaboration-message-read,
+.collaboration-message-unread {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+}
+
+.collaboration-message-type {
+  color: var(--text-main);
+  font-weight: 700;
+}
+
+.collaboration-message-meta-group {
+  display: grid;
+  justify-items: end;
+  gap: 4px;
+}
+
+.collaboration-message-body {
+  margin: 0;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.collaboration-message-read-btn {
+  justify-self: flex-start;
+}
+
+.collaboration-message-box {
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--surface) 98%, transparent);
+  border: 1px solid color-mix(in srgb, var(--line) 26%, transparent);
+}
+
+.collaboration-message-box textarea {
+  width: 100%;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--surface) 98%, transparent);
+  border: 1px solid color-mix(in srgb, var(--line) 30%, transparent);
+  padding: 12px 14px;
+}
+
+.collaboration-pdf-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.collaboration-pdf-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: var(--home-green);
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.collaboration-pdf-link:hover,
+.collaboration-pdf-link:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 26px rgb(17 19 26 / 12%);
+}
+
+.collaboration-request-header-copy {
+  margin-bottom: 12px;
+}
+
+@media (max-width: 1180px) {
+  .collaboration-request-meta-strip,
+  .collaboration-request-meta-strip-secondary,
+  .collaboration-request-fields-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .collaboration-request-meta-strip,
+  .collaboration-request-meta-strip-secondary,
+  .collaboration-request-fields-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .collaboration-detail-row {
+    flex-direction: column;
+  }
+
+  .collaboration-message-meta-group {
+    justify-items: flex-start;
+  }
 }
 
 @media (max-width: 980px) {
@@ -668,6 +1024,15 @@ a {
 
   .collaboration-form-actions {
     justify-content: stretch;
+  }
+
+  .collaboration-request-heading-row,
+  .collaboration-page-header {
+    align-items: flex-start;
+  }
+
+  .collaboration-request-meta-grid {
+    grid-template-columns: 1fr;
   }
 
   .collaboration-secondary-btn,
@@ -1825,6 +2190,7 @@ a {
   font-size: clamp(2rem, 4.1vw, 2.6rem);
   line-height: 1.1;
   font-family: var(--font-display), "Trebuchet MS", sans-serif;
+  font-weight: 700;
 }
 
 .practice-details-header p {
