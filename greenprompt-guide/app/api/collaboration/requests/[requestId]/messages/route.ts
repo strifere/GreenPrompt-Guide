@@ -14,21 +14,15 @@ type RequestMessagesRouteContext = {
 	params: Promise<{ requestId: string }>;
 };
 
+type MessageIntent = "MORE_INFO_REQUEST";
+
 function parseRequestId(requestId: string) {
 	const parsedRequestId = Number.parseInt(requestId, 10);
 	return Number.isInteger(parsedRequestId) && parsedRequestId > 0 ? parsedRequestId : null;
 }
 
-function resolveMessageType(isAdmin: boolean, requestStatus: string) {
-	if (isAdmin) {
-		return "MORE_INFO_REQUEST";
-	}
-
-	if (requestStatus === "REQUESTED_MORE_INFO") {
-		return "RESPONSE";
-	}
-
-	return "NOTE";
+function readIntent(value: unknown): MessageIntent | null {
+	return value === "MORE_INFO_REQUEST" ? value : null;
 }
 
 export async function POST(request: Request, context: RequestMessagesRouteContext) {
@@ -64,13 +58,25 @@ export async function POST(request: Request, context: RequestMessagesRouteContex
 
 		const payload = await request.json();
 		const message = typeof payload.message === "string" ? payload.message.trim() : "";
+		const intent = readIntent(payload.intent);
 
 		if (!message) {
 			return NextResponse.json({ error: "Message is required" }, { status: 400 });
 		}
 
 		const isAdmin = currentUser.role === "ADMIN";
-		const messageType = resolveMessageType(isAdmin, collaborationRequest.status);
+		const isAdminMoreInfoRequest = isAdmin && intent === "MORE_INFO_REQUEST";
+		const isRequesterResponse = !isAdmin && collaborationRequest.status === "REQUESTED_MORE_INFO";
+		const messageType = isAdminMoreInfoRequest
+			? "MORE_INFO_REQUEST"
+			: isRequesterResponse
+				? "RESPONSE"
+				: "NOTE";
+		const nextStatus: CollaborationRequestStatus | null = isAdminMoreInfoRequest
+			? "REQUESTED_MORE_INFO"
+			: isRequesterResponse
+				? "PENDING"
+				: null;
 		const createdMessage = await createCollaborationRequestMessage({
 			requestId: parsedRequestId,
 			authorUsername: currentUser.username,
@@ -80,18 +86,22 @@ export async function POST(request: Request, context: RequestMessagesRouteContex
 			readAt: null,
 		});
 
-		const updatedRequest = await updateCollaborationRequestStatusById({
-			id: parsedRequestId,
-			...(isAdmin
-				? {
-					status: "REQUESTED_MORE_INFO" as CollaborationRequestStatus,
-					requestedMoreInfoAt: new Date(),
-					reviewerUsername: currentUser.username,
-				}
-				: {
-					status: "PENDING" as CollaborationRequestStatus,
-				}),
-		});
+		const updatedRequest = nextStatus
+			? await updateCollaborationRequestStatusById({
+					id: parsedRequestId,
+					status: nextStatus,
+					...(isAdminMoreInfoRequest
+						? {
+							requestedMoreInfoAt: new Date(),
+							reviewerUsername: currentUser.username,
+						}
+						: {}),
+				})
+			: await getCollaborationRequestDetailsById(parsedRequestId);
+
+		if (!updatedRequest) {
+			return NextResponse.json({ error: "Request not found" }, { status: 404 });
+		}
 
 		return NextResponse.json({ request: updatedRequest, message: createdMessage }, { status: 201 });
 	} catch (error) {

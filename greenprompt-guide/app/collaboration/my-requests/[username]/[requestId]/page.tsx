@@ -11,13 +11,6 @@ type RequestDetailsProps = {
   params: Promise<{ username: string; requestId: string }>;
 };
 
-function formatDate(value: Date) {
-  return new Intl.DateTimeFormat("en", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(value);
-}
-
 function formatStatus(status: string) {
   switch (status) {
     case "PENDING":
@@ -80,23 +73,23 @@ export default async function RequestDetailsPage({
               <span>Back to my requests</span>
             </Link>
           </div>
-          <span className="collaboration-status-pill">{formatStatus(request.status)}</span>
+          <span className={`collaboration-status-pill ${request.status.toLowerCase()}`}>{formatStatus(request.status)}</span>
         </header>
 
         <RequestDetailsClient
           currentUsername={currentUsername}
           currentUserRole={currentUser.role ?? "USER"}
           request={{
-            ...request,
-            createdAt: formatDate(request.createdAt),
-            updatedAt: formatDate(request.updatedAt),
-            requestedMoreInfoAt: request.requestedMoreInfoAt ? formatDate(request.requestedMoreInfoAt) : null,
-            reviewedAt: request.reviewedAt ? formatDate(request.reviewedAt) : null,
-            messages: request.messages.map((message) => ({
-              ...message,
-              createdAt: formatDate(message.createdAt),
-              readAt: message.readAt ? formatDate(message.readAt) : null,
-            })),
+              ...(() => {
+                const { reviewerNotes: _reviewerNotes, ...requestWithoutReviewerNotes } = request;
+                return {
+                  ...requestWithoutReviewerNotes,
+                  messages: requestWithoutReviewerNotes.messages.map((message) => {
+                    const { readAt: _readAt, ...messageWithoutReadFlag } = message;
+                    return messageWithoutReadFlag;
+                  }),
+                };
+              })(),
           }}
         />
 

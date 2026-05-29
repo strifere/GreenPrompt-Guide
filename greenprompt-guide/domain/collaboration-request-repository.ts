@@ -8,6 +8,7 @@ import { prisma } from "@/lib/prisma";
 
 const collaborationRequestListSelect = {
 	id: true,
+	requesterUsername: true,
 	practiceTitle: true,
 	practiceSummary: true,
 	status: true,
@@ -23,6 +24,7 @@ const collaborationRequestBaseSelect = {
 	practiceTitle: true,
 	practiceSummary: true,
 	practiceDescription: true,
+	referenceLink: true,
 	practiceExamples: true,
 	hyperparameters: true,
 	promptTechniques: true,
@@ -68,6 +70,7 @@ export type CreateCollaborationRequestInput = {
 	practiceTitle: string;
 	practiceSummary: string;
 	practiceDescription: string;
+	referenceLink: string;
 	practiceExamples: string | null;
 	hyperparameters: string | null;
 	promptTechniques: string | null;
@@ -84,6 +87,7 @@ export async function createCollaborationRequest(input: CreateCollaborationReque
 			practiceTitle: input.practiceTitle,
 			practiceSummary: input.practiceSummary,
 			practiceDescription: input.practiceDescription,
+			referenceLink: input.referenceLink,
 			practiceExamples: input.practiceExamples,
 			hyperparameters: input.hyperparameters,
 			promptTechniques: input.promptTechniques,
@@ -95,6 +99,7 @@ export async function createCollaborationRequest(input: CreateCollaborationReque
 		select: {
 			id: true,
 			practiceTitle: true,
+			referenceLink: true,
 			status: true,
 			supportingPdfName: true,
 			supportingPdfPath: true,
@@ -121,6 +126,7 @@ export type UpdateCollaborationRequestInput = {
 	practiceTitle?: string;
 	practiceSummary?: string;
 	practiceDescription?: string;
+	referenceLink?: string;
 	practiceExamples?: string | null;
 	hyperparameters?: string | null;
 	promptTechniques?: string | null;
@@ -143,6 +149,10 @@ export async function updateCollaborationRequestById(input: UpdateCollaborationR
 
 	if (input.practiceDescription !== undefined) {
 		data.practiceDescription = input.practiceDescription;
+	}
+
+	if (input.referenceLink !== undefined) {
+		data.referenceLink = input.referenceLink;
 	}
 
 	if (input.practiceExamples !== undefined) {
@@ -170,6 +180,8 @@ export type UpdateCollaborationRequestStatusInput = {
 	reviewerUsername?: string | null;
 	requestedMoreInfoAt?: Date | null;
 	reviewedAt?: Date | null;
+	rejectionReason?: string | null;
+	reviewerNotes?: string | null;
 };
 
 export async function updateCollaborationRequestStatusById(input: UpdateCollaborationRequestStatusInput) {
@@ -189,6 +201,14 @@ export async function updateCollaborationRequestStatusById(input: UpdateCollabor
 
 	if (input.reviewedAt !== undefined) {
 		data.reviewedAt = input.reviewedAt;
+	}
+
+	if (input.rejectionReason !== undefined) {
+		data.rejectionReason = input.rejectionReason;
+	}
+
+	if (input.reviewerNotes !== undefined) {
+		data.reviewerNotes = input.reviewerNotes;
 	}
 
 	return prisma.collaborationRequest.update({
@@ -271,6 +291,13 @@ export async function deleteCollaborationRequestById(id: number): Promise<void> 
 export async function listCollaborationRequestsByRequesterUsername(requesterUsername: string) {
 	return prisma.collaborationRequest.findMany({
 		where: { requesterUsername },
+		orderBy: [{ createdAt: "desc" }, { updatedAt: "desc" }],
+		select: collaborationRequestListSelect,
+	});
+}
+
+export async function listAllCollaborationRequests() {
+	return prisma.collaborationRequest.findMany({
 		orderBy: [{ createdAt: "desc" }, { updatedAt: "desc" }],
 		select: collaborationRequestListSelect,
 	});

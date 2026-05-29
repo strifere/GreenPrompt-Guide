@@ -1,7 +1,11 @@
 import { randomUUID } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import { NextRequest, NextResponse } from "next/server";
-import { createCollaborationRequest, deleteCollaborationRequestById } from "@/domain/collaboration-request-repository";
+import {
+	createCollaborationRequest,
+	deleteCollaborationRequestById,
+	listAllCollaborationRequests,
+} from "@/domain/collaboration-request-repository";
 import { getUserByUsername } from "@/domain/user-repository";
 import { getSession } from "@/lib/session";
 import { getCollaborationPdfPublicRoute, getCollaborationPdfStorageDir, getCollaborationPdfStoragePath } from "@/lib/collaboration-request-storage";
@@ -25,6 +29,32 @@ function readTextField(formData: FormData, key: string, required: boolean): stri
 	return trimmed;
 }
 
+export async function GET() {
+	try {
+		const currentUsername = await getSession();
+
+		if (!currentUsername) {
+			return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+		}
+
+		const currentUser = await getUserByUsername(currentUsername);
+
+		if (!currentUser) {
+			return NextResponse.json({ error: "User not found" }, { status: 404 });
+		}
+
+		if (currentUser.role !== "ADMIN") {
+			return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+		}
+
+		const requests = await listAllCollaborationRequests();
+		return NextResponse.json({ requests }, { status: 200 });
+	} catch (error) {
+		console.error("Collaboration request list error:", error);
+		return NextResponse.json({ error: "An error occurred while loading requests" }, { status: 500 });
+	}
+}
+
 export async function POST(request: NextRequest) {
 	let createdRequestId: number | null = null;
 
@@ -45,6 +75,7 @@ export async function POST(request: NextRequest) {
 		const practiceTitle = readTextField(formData, "practiceTitle", true);
 		const practiceSummary = readTextField(formData, "practiceSummary", true);
 		const practiceDescription = readTextField(formData, "practiceDescription", true);
+		const referenceLink = readTextField(formData, "referenceLink", true);
 		const practiceExamples = readTextField(formData, "practiceExamples", false) || null;
 		const hyperparameters = readTextField(formData, "hyperparameters", false) || null;
 		const promptTechniques = readTextField(formData, "promptTechniques", false) || null;
@@ -71,6 +102,7 @@ export async function POST(request: NextRequest) {
 			practiceTitle,
 			practiceSummary,
 			practiceDescription,
+			referenceLink,
 			practiceExamples,
 			hyperparameters,
 			promptTechniques,
@@ -96,6 +128,7 @@ export async function POST(request: NextRequest) {
 				request: {
 					id: createdRequest.id,
 					practiceTitle: createdRequest.practiceTitle,
+					referenceLink: createdRequest.referenceLink,
 					status: createdRequest.status,
 					pdfUrl: getCollaborationPdfPublicRoute(createdRequest.id),
 				},

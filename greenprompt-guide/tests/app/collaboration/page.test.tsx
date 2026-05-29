@@ -15,6 +15,8 @@ vi.mock("next/navigation", () => ({
 
 describe("CollaboratePage", () => {
   it("renders the collaboration layout with explainer and submission form", () => {
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockImplementation(async () => new Response(null, { status: 401 }));
+
     render(<CollaboratePage />);
 
     expect(screen.getByRole("heading", { name: /how collaboration works/i })).toBeInTheDocument();
@@ -24,9 +26,13 @@ describe("CollaboratePage", () => {
     expect(screen.getByLabelText(/short summary/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/full description/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/supporting pdf/i)).toBeInTheDocument();
+
+    fetchSpy.mockRestore();
   });
 
   it("exposes the expected submission controls", () => {
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockImplementation(async () => new Response(null, { status: 401 }));
+
     render(<CollaboratePage />);
 
     const pdfInput = screen.getByLabelText(/supporting pdf/i);
@@ -34,17 +40,23 @@ describe("CollaboratePage", () => {
     expect(pdfInput).toHaveAttribute("accept", "application/pdf");
 
     expect(screen.getByRole("button", { name: /submit for review/i })).toBeInTheDocument();
+
+    fetchSpy.mockRestore();
   });
 
   it("renders the collaboration page as a two-column workspace", () => {
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockImplementation(async () => new Response(null, { status: 401 }));
+
     render(<CollaboratePage />);
 
     expect(screen.getByLabelText(/collaboration instructions/i)).toBeInTheDocument();
     expect(screen.getByRole("region", { name: /propose a practice for review/i })).toBeInTheDocument();
+
+    fetchSpy.mockRestore();
   });
 
   it("shows a login warning before submitting when the user is not authenticated", async () => {
-    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(null, { status: 401 }));
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockImplementation(async () => new Response(null, { status: 401 }));
     const submitSpy = vi.spyOn(HTMLFormElement.prototype, "submit").mockImplementation(() => undefined);
 
     render(<CollaboratePage />);
@@ -63,7 +75,9 @@ describe("CollaboratePage", () => {
   });
 
   it("shows validation indicators and blocks submit when fields are invalid", async () => {
-    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(JSON.stringify({ user: "testuser" }), { status: 200 }));
+    const fetchSpy = vi
+      .spyOn(globalThis, "fetch")
+      .mockImplementation(async () => new Response(JSON.stringify({ user: "testuser", role: "USER" }), { status: 200 }));
 
     render(<CollaboratePage />);
 
@@ -145,7 +159,9 @@ describe("CollaboratePage", () => {
   });
 
   it("navigates to my requests when the user is authenticated", async () => {
-    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(JSON.stringify({ user: "testuser" }), { status: 200 }));
+    const fetchSpy = vi
+      .spyOn(globalThis, "fetch")
+      .mockImplementation(async () => new Response(JSON.stringify({ user: "testuser", role: "USER" }), { status: 200 }));
 
     render(<CollaboratePage />);
 
@@ -153,6 +169,38 @@ describe("CollaboratePage", () => {
 
     await waitFor(() => {
       expect(routerPushMock).toHaveBeenCalledWith("/collaboration/my-requests/testuser");
+    });
+
+    fetchSpy.mockRestore();
+  });
+
+  it("shows the List all requests button only for admin users", async () => {
+    const fetchSpy = vi
+      .spyOn(globalThis, "fetch")
+      .mockImplementation(async () => new Response(JSON.stringify({ user: "adminuser", role: "ADMIN" }), { status: 200 }));
+
+    render(<CollaboratePage />);
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /list all requests/i })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /list all requests/i }));
+
+    expect(routerPushMock).toHaveBeenCalledWith("/collaboration/requests");
+
+    fetchSpy.mockRestore();
+  });
+
+  it("does not show the List all requests button for non-admin users", async () => {
+    const fetchSpy = vi
+      .spyOn(globalThis, "fetch")
+      .mockImplementation(async () => new Response(JSON.stringify({ user: "testuser", role: "USER" }), { status: 200 }));
+
+    render(<CollaboratePage />);
+
+    await waitFor(() => {
+      expect(screen.queryByRole("button", { name: /list all requests/i })).not.toBeInTheDocument();
     });
 
     fetchSpy.mockRestore();

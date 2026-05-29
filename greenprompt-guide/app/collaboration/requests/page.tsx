@@ -1,12 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { listCollaborationRequestsByRequesterUsername } from "@/domain/collaboration-request-repository";
+import { listAllCollaborationRequests } from "@/domain/collaboration-request-repository";
+import { getUserByUsername } from "@/domain/user-repository";
 import { getSession } from "@/lib/session";
-
-type MyRequestsPageProps = {
-	params: Promise<{ username: string }>;
-};
 
 function formatDate(value: Date) {
 	return new Intl.DateTimeFormat("en", {
@@ -30,20 +27,24 @@ function formatStatus(status: string) {
 	}
 }
 
-export default async function MyRequestsPage({ params }: Readonly<MyRequestsPageProps>) {
-	const { username } = await params;
-	const requestedUsername = decodeURIComponent(username);
+export default async function AllRequestsPage() {
 	const currentUsername = await getSession();
 
 	if (!currentUsername) {
 		redirect("/login");
 	}
 
-	if (currentUsername !== requestedUsername) {
+	const currentUser = await getUserByUsername(currentUsername);
+
+	if (!currentUser) {
+		redirect("/login");
+	}
+
+	if (currentUser.role !== "ADMIN") {
 		redirect(`/collaboration/my-requests/${encodeURIComponent(currentUsername)}`);
 	}
 
-	const requests = await listCollaborationRequestsByRequesterUsername(requestedUsername);
+	const requests = await listAllCollaborationRequests();
 
 	return (
 		<main className="collaboration-page collaboration-my-requests-page">
@@ -53,15 +54,19 @@ export default async function MyRequestsPage({ params }: Readonly<MyRequestsPage
 						<ArrowLeft aria-hidden size={20} />
 						<span>Back to collaboration</span>
 					</Link>
-					<h1 className="collaboration-page-title">My requests</h1>
+					<h1 className="collaboration-page-title">All requests</h1>
 				</div>
 			</div>
 
-			<section className="collaboration-requests-panel" aria-label="Your collaboration requests">
+			<section className="collaboration-requests-panel" aria-label="All collaboration requests">
 				{requests.length > 0 ? (
 					<div className="collaboration-request-list">
 						{requests.map((request) => (
-							<Link key={request.id} href={`/collaboration/my-requests/${encodeURIComponent(currentUsername)}/${request.id}`} className="practice-card collaboration-request-card">
+							<Link
+								key={request.id}
+								href={`/collaboration/requests/${request.id}`}
+								className="practice-card collaboration-request-card"
+							>
 								<header>
 									<div className="collaboration-request-heading-row">
 										<h2>{request.practiceTitle}</h2>
@@ -71,6 +76,10 @@ export default async function MyRequestsPage({ params }: Readonly<MyRequestsPage
 								</header>
 
 								<div className="collaboration-request-meta-grid">
+									<div>
+										<span className="collaboration-request-meta-label">Requester</span>
+										<span className="collaboration-request-meta-value">{request.requesterUsername}</span>
+									</div>
 									<div>
 										<span className="collaboration-request-meta-label">Created</span>
 										<span className="collaboration-request-meta-value">{formatDate(request.createdAt)}</span>
@@ -86,7 +95,7 @@ export default async function MyRequestsPage({ params }: Readonly<MyRequestsPage
 				) : (
 					<div className="collaboration-empty-state">
 						<h2>No requests yet</h2>
-						<p>You have not submitted any collaboration requests yet.</p>
+						<p>There are no collaboration requests in the system yet.</p>
 					</div>
 				)}
 			</section>

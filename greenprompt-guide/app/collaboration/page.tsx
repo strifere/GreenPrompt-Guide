@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useRef, useState, type Dispatch, type RefObject, type SetStateAction } from "react";
+import { useEffect, useRef, useState, type Dispatch, type RefObject, type SetStateAction } from "react";
 
-type CollaborationFieldName = "practiceTitle" | "practiceSummary" | "practiceDescription" | "sourcePdf";
+type CollaborationFieldName = "practiceTitle" | "practiceSummary" | "practiceDescription" | "referenceLink" | "sourcePdf";
 
 type FieldErrors = Partial<Record<CollaborationFieldName, string>>;
 
@@ -15,6 +15,11 @@ type FormSubmitEvent = {
 type ModalState =
 	| { kind: "login" }
 	| { kind: "success"; username: string };
+
+type AuthSession = {
+	username: string;
+	role: string | null;
+};
 
 const FORM_VALIDATION_MESSAGE = "There are fields that are not correct; please check them before submitting.";
 
@@ -36,6 +41,10 @@ function validateFormData(formData: FormData): FieldErrors {
 
 	if (!readRequiredValue(formData, "practiceDescription")) {
 		errors.practiceDescription = "Full description is required.";
+	}
+
+	if (!readRequiredValue(formData, "referenceLink")) {
+		errors.referenceLink = "Reference link is required.";
 	}
 
 	const sourcePdf = formData.get("sourcePdf");
@@ -62,6 +71,14 @@ function mapApiErrorToFieldErrors(message: string): FieldErrors {
 		return { practiceDescription: "Full description is required." };
 	}
 
+	if (message.includes("referenceLink is required")) {
+		return { referenceLink: "Reference link is required." };
+	}
+
+	if (message.includes("Reference link cannot be empty")) {
+		return { referenceLink: "Reference link is required." };
+	}
+
 	if (message.includes("supporting PDF is required")) {
 		return { sourcePdf: "A supporting PDF is required." };
 	}
@@ -80,10 +97,10 @@ type CollaborationPageHelpers = {
 	setModalState: Dispatch<SetStateAction<ModalState | null>>;
 	setFormErrorMessage: Dispatch<SetStateAction<string | null>>;
 	setFieldErrors: Dispatch<SetStateAction<FieldErrors>>;
-	getAuthenticatedUsername: () => Promise<string | null>;
+	getAuthenticatedSession: () => Promise<AuthSession | null>;
 };
 
-async function getAuthenticatedUsername(): Promise<string | null> {
+async function getAuthenticatedSession(): Promise<AuthSession | null> {
 	const response = await fetch("/api/auth/check", {
 		method: "GET",
 		credentials: "include",
@@ -94,8 +111,16 @@ async function getAuthenticatedUsername(): Promise<string | null> {
 		return null;
 	}
 
-	const data = (await response.json().catch(() => null)) as { user?: string } | null;
-	return typeof data?.user === "string" && data.user.trim() ? data.user : null;
+	const data = (await response.json().catch(() => null)) as { user?: string; role?: string | null } | null;
+
+	if (typeof data?.user !== "string" || !data.user.trim()) {
+		return null;
+	}
+
+	return {
+		username: data.user,
+		role: typeof data.role === "string" || data.role === null ? data.role : null,
+	};
 }
 
 async function submitCollaborationRequest({
@@ -105,7 +130,7 @@ async function submitCollaborationRequest({
 	setModalState,
 	setFormErrorMessage,
 	setFieldErrors,
-	getAuthenticatedUsername,
+	getAuthenticatedSession,
 }: CollaborationPageHelpers) {
 	if (isCheckingAccess) {
 		return;
@@ -117,7 +142,8 @@ async function submitCollaborationRequest({
 		setFormErrorMessage(null);
 		setFieldErrors({});
 
-		const authenticatedUsername = await getAuthenticatedUsername();
+		const authenticatedSession = await getAuthenticatedSession();
+		const authenticatedUsername = authenticatedSession?.username ?? null;
 
 		if (!authenticatedUsername) {
 			setModalState({ kind: "login" });
@@ -177,14 +203,15 @@ async function submitCollaborationRequest({
 
 async function navigateToMyRequests({
 	setModalState,
-	getAuthenticatedUsername,
+	getAuthenticatedSession,
 	routerPush,
 }: {
 	setModalState: Dispatch<SetStateAction<ModalState | null>>;
-	getAuthenticatedUsername: () => Promise<string | null>;
+	getAuthenticatedSession: () => Promise<AuthSession | null>;
 	routerPush: (href: string) => void;
 }) {
-	const authenticatedUsername = await getAuthenticatedUsername();
+	const authenticatedSession = await getAuthenticatedSession();
+	const authenticatedUsername = authenticatedSession?.username ?? null;
 
 	if (!authenticatedUsername) {
 		setModalState({ kind: "login" });
@@ -274,7 +301,7 @@ function CollaborationIntroPanel() {
 					<div className="collaboration-copy-block-content">
 						<p>When requesting the addition of a new practice to the catalog, the following stages will take place:</p>
 						<h3>1. Submission</h3>
-						<p>The contributor fills out the submission form with the required information and attaches a supporting PDF. Once submitted, the request is instantiated for review.</p>
+						<p>The contributor fills out the submission form with the required information and attaches a supporting PDF, with a reference link. Once submitted, the request is instantiated for review.</p>
 						<h3>2. Review</h3>
 						<p>An admin user reviews the submission to ensure it meets our guidelines and quality standards. The admins may reach out to the contributor for additional information or clarification during this stage.</p>
 						<h3>3. Decision</h3>
@@ -297,6 +324,7 @@ function CollaborationIntroPanel() {
 							<li>- Any relevant hyperparameters, settings, or tuning notes (optional)</li>
 							<li>- Mention of any specific prompt techniques, patterns, or strategies used (optional)</li>
 							<li>- A supporting PDF that proves the practice source, such as a research paper or article</li>
+							<li>- A direct reference link to the paper or article that supports the practice</li>
 						</ul>
 					</div>
 				</details>
@@ -311,12 +339,14 @@ function CollaborationRequestForm({
 	fieldErrors,
 	formErrorMessage,
 	onSubmit,
+	isAdmin,
 }: Readonly<{
 	formRef: RefObject<HTMLFormElement | null>;
 	isCheckingAccess: boolean;
 	fieldErrors: FieldErrors;
 	formErrorMessage: string | null;
 	onSubmit: (event: FormSubmitEvent) => void;
+	isAdmin: boolean;
 }>) {
 	return (
 		<section className="collaboration-form-panel" aria-labelledby="collaboration-form-title">
@@ -370,12 +400,22 @@ function CollaborationRequestForm({
 						</div>
 					</div>
 
-					<div className="collaboration-form-actions">
-						{formErrorMessage ? <p className="error-message collaboration-submit-error">{formErrorMessage}</p> : null}
-						<button type="submit" className="collaboration-primary-btn" disabled={isCheckingAccess}>
-							{isCheckingAccess ? "Checking access..." : "Submit for review"}
-						</button>
+					<div className="collaboration-field collaboration-field--wide">
+						<label htmlFor="referenceLink">Reference link</label>
+						<input id="referenceLink" name="referenceLink" type="url" placeholder="https://example.com/paper" aria-invalid={fieldErrors.referenceLink ? "true" : "false"} className={fieldErrors.referenceLink ? "collaboration-input-error" : undefined} />
+						<p className="collaboration-help-text">Add a direct link to the paper or article that supports the practice.</p>
+						{fieldErrors.referenceLink ? <p className="collaboration-field-error">{fieldErrors.referenceLink}</p> : null}
 					</div>
+					{isAdmin ? (
+						null
+					) : (
+						<div className="collaboration-form-actions">
+							{formErrorMessage ? <p className="error-message collaboration-submit-error">{formErrorMessage}</p> : null}
+							<button type="submit" className="collaboration-primary-btn" disabled={isCheckingAccess}>
+								{isCheckingAccess ? "Checking access..." : "Submit for review"}
+							</button>
+						</div>
+					)}
 				</form>
 			</div>
 		</section>
@@ -391,6 +431,8 @@ function CollaborationPageContent({
 	setModalState,
 	handleSubmit,
 	handleMyRequestsClick,
+	handleListAllRequestsClick,
+	canListAllRequests,
 }: Readonly<{
 	formRef: RefObject<HTMLFormElement | null>;
 	isCheckingAccess: boolean;
@@ -400,15 +442,25 @@ function CollaborationPageContent({
 	setModalState: Dispatch<SetStateAction<ModalState | null>>;
 	handleSubmit: (event: FormSubmitEvent) => void;
 	handleMyRequestsClick: () => void;
+	handleListAllRequestsClick: () => void;
+	canListAllRequests: boolean;
 }>) {
 	return (
 		<main className="collaboration-page">
 			<CollaborationStatusOverlay modalState={modalState} onClose={() => setModalState(null)} />
 			<div className="collaboration-page-header">
 				<h1 className="collaboration-page-title">Collaboration</h1>
-				<button type="button" className="collaboration-requests-btn" onClick={handleMyRequestsClick}>
-					My requests
-				</button>
+				<div className="collaboration-form-actions">
+					{canListAllRequests ? (
+						<button type="button" className="hollow-btn" onClick={handleListAllRequestsClick}>
+							List all requests
+						</button>
+					) : (
+						<button type="button" className="hollow-btn" onClick={handleMyRequestsClick}>
+							My requests
+						</button>
+					)}
+				</div>
 			</div>
 			<div className="collaboration-shell">
 				<CollaborationIntroPanel />
@@ -418,6 +470,7 @@ function CollaborationPageContent({
 					fieldErrors={fieldErrors}
 					formErrorMessage={formErrorMessage}
 					onSubmit={handleSubmit}
+					isAdmin={canListAllRequests}
 				/>
 			</div>
 		</main>
@@ -431,6 +484,27 @@ export default function CollaboratePage() {
 	const [modalState, setModalState] = useState<ModalState | null>(null);
 	const [formErrorMessage, setFormErrorMessage] = useState<string | null>(null);
 	const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+	const [canListAllRequests, setCanListAllRequests] = useState(false);
+
+	useEffect(() => {
+		let isMounted = true;
+
+		const loadAccess = async () => {
+			const authenticatedSession = await getAuthenticatedSession();
+
+			if (!isMounted) {
+				return;
+			}
+
+			setCanListAllRequests(authenticatedSession?.role === "ADMIN");
+		};
+
+		void loadAccess();
+
+		return () => {
+			isMounted = false;
+		};
+	}, []);
 
 	const handleSubmit = (event: FormSubmitEvent) => {
 		event.preventDefault();
@@ -441,16 +515,20 @@ export default function CollaboratePage() {
 			setModalState,
 			setFormErrorMessage,
 			setFieldErrors,
-			getAuthenticatedUsername,
+			getAuthenticatedSession,
 		});
 	};
 
 	const handleMyRequestsClick = () => {
 		void navigateToMyRequests({
 			setModalState,
-			getAuthenticatedUsername,
+			getAuthenticatedSession,
 			routerPush: (href: string) => router.push(href),
 		});
+	};
+
+	const handleListAllRequestsClick = () => {
+		router.push("/collaboration/requests");
 	};
 
 	return (
@@ -463,6 +541,8 @@ export default function CollaboratePage() {
 			setModalState={setModalState}
 			handleSubmit={handleSubmit}
 			handleMyRequestsClick={handleMyRequestsClick}
+			handleListAllRequestsClick={handleListAllRequestsClick}
+			canListAllRequests={canListAllRequests}
 		/>
 	);
 }

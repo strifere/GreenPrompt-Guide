@@ -3,9 +3,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GET } from "@/app/api/auth/check/route";
 
 const getSessionMock = vi.hoisted(() => vi.fn());
+const getUserByUsernameMock = vi.hoisted(() => vi.fn());
 
 vi.mock("@/lib/session", () => ({
   getSession: getSessionMock,
+}));
+
+vi.mock("@/domain/user-repository", () => ({
+  getUserByUsername: getUserByUsernameMock,
 }));
 
 describe("GET /api/auth/check", () => {
@@ -15,11 +20,12 @@ describe("GET /api/auth/check", () => {
 
   it("returns the current session user", async () => {
     getSessionMock.mockResolvedValue("victor");
+    getUserByUsernameMock.mockResolvedValue({ username: "victor", email: "victor@example.com", role: "ADMIN" });
 
     const response = await GET(new NextRequest("http://localhost/api/auth/check"));
 
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ user: "victor" });
+    expect(await response.json()).toEqual({ user: "victor", role: "ADMIN" });
   });
 
   it("returns 401 when there is no session", async () => {
@@ -38,5 +44,15 @@ describe("GET /api/auth/check", () => {
 
     expect(response.status).toBe(500);
     expect(await response.json()).toEqual({ error: "An error occurred" });
+  });
+
+  it("returns 404 when the session user does not exist", async () => {
+    getSessionMock.mockResolvedValue("victor");
+    getUserByUsernameMock.mockResolvedValue(null);
+
+    const response = await GET(new NextRequest("http://localhost/api/auth/check"));
+
+    expect(response.status).toBe(404);
+    expect(await response.json()).toEqual({ error: "User not found" });
   });
 });
