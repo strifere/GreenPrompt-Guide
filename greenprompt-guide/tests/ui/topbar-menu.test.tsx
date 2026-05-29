@@ -102,7 +102,7 @@ describe("TopbarMenu", () => {
   describe("Authenticated State", () => {
     beforeEach(() => {
       (useAuth as any).mockReturnValue({
-        user: "testuser",
+        user: { username: "testuser", role: "USER" },
         loading: false,
       });
     });

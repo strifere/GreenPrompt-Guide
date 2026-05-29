@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 
 export type UserPublic = {
   username: string;
@@ -9,6 +10,19 @@ export type UserPublic = {
 export type UserWithPassword = UserPublic & {
   password: string;
 };
+
+const listUsersArgs = Prisma.validator<Prisma.UserFindManyArgs>()({
+  orderBy: [{ role: "asc" }, { username: "asc" }],
+  select: {
+    username: true,
+    email: true,
+    role: true,
+    createdAt: true,
+    updatedAt: true,
+  },
+});
+
+export type UserListItem = Prisma.UserGetPayload<typeof listUsersArgs>;
 
 // ============================================
 // USER LOOKUP
@@ -86,6 +100,10 @@ export async function createUser(input: CreateUserInput): Promise<UserPublic> {
 
 export async function getUserByEmail(email: string): Promise<UserWithPassword | null> {
   return (await prisma.user.findUnique({ where: { email } })) as UserWithPassword | null;
+}
+
+export async function listUsers(): Promise<UserListItem[]> {
+  return prisma.user.findMany(listUsersArgs);
 }
 
 // ============================================

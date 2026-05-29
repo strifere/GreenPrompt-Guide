@@ -1,13 +1,18 @@
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 
+export type AuthUser = {
+  username: string;
+  role: string;
+};
+
 /**
  * Hook to get the current user session
- * Returns the username if logged in, null otherwise
+ * Returns the current user if logged in, null otherwise
  */
 export function useAuth() {
   const pathname = usePathname();
-  const [user, setUser] = useState<string | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -22,7 +27,7 @@ export function useAuth() {
 
         if (response.ok) {
           const data = await response.json();
-          setUser(data.user);
+          setUser(data.user as AuthUser);
         } else {
           setUser(null);
         }

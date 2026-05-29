@@ -1,14 +1,24 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
+import { getUserByUsername } from "@/domain/user-repository";
 
 export async function GET() {
   try {
-    const user = await getSession();
+    const username = await getSession();
 
-    if (!user) {
+    if (!username) {
       return NextResponse.json(
         { error: "Not authenticated" },
         { status: 401 }
+      );
+    }
+
+    const user = await getUserByUsername(username);
+
+    if (!user) {
+      return NextResponse.json(
+        { error: "User not found" },
+        { status: 404 }
       );
     }
 

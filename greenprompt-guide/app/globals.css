@@ -1632,6 +1632,270 @@ a {
   display: none;
 }
 
+.admin-shell {
+  display: grid;
+  grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+  gap: 24px;
+  padding: 24px;
+  align-items: start;
+}
+
+.admin-sidebar {
+  position: sticky;
+  top: 24px;
+  display: grid;
+  gap: 20px;
+  padding: 24px;
+  border: 1px solid color-mix(in srgb, var(--line) 34%, transparent);
+  border-radius: 26px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--surface) 98%, transparent),
+    color-mix(in srgb, var(--surface-alt) 45%, transparent)
+  );
+  box-shadow: var(--shadow-soft);
+}
+
+.admin-sidebar-header {
+  display: grid;
+  gap: 10px;
+}
+
+.admin-sidebar-kicker,
+.admin-section-kicker {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.admin-sidebar-header h1,
+.admin-section-header h2 {
+  margin: 0;
+  font-family: var(--font-display), "Trebuchet MS", sans-serif;
+  font-weight: 700;
+  line-height: 1.08;
+}
+
+.admin-sidebar-header h1 {
+  font-size: 1.9rem;
+}
+
+.admin-sidebar-copy,
+.admin-section-copy,
+.admin-placeholder p,
+.admin-summary-card p,
+.admin-row-main p,
+.admin-row-meta,
+.admin-sidebar-link-copy {
+  color: var(--text-muted);
+}
+
+.admin-sidebar-nav {
+  display: grid;
+  gap: 12px;
+}
+
+.admin-sidebar-link {
+  display: grid;
+  gap: 4px;
+  padding: 14px 16px;
+  border: 1px solid color-mix(in srgb, var(--line) 20%, transparent);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--surface) 90%, transparent);
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.admin-sidebar-link:hover,
+.admin-sidebar-link:focus-visible {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--line) 65%, transparent);
+  box-shadow: var(--shadow-soft);
+}
+
+.admin-sidebar-link[data-active="true"] {
+  border-color: var(--line-strong);
+  background: color-mix(in srgb, var(--surface-alt) 72%, transparent);
+}
+
+.admin-sidebar-link-label {
+  font-family: var(--font-display), "Trebuchet MS", sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.admin-sidebar-link-copy {
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.admin-sidebar-footer {
+  display: grid;
+}
+
+.admin-sidebar-home-link {
+  justify-content: center;
+  width: 100%;
+}
+
+.admin-content {
+  min-width: 0;
+  padding-bottom: 24px;
+}
+
+.admin-page-section {
+  display: grid;
+  gap: 20px;
+}
+
+.admin-section-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.admin-section-header h2 {
+  font-size: 1.95rem;
+}
+
+.admin-section-copy {
+  max-width: 65ch;
+  margin: 10px 0 0;
+  line-height: 1.55;
+}
+
+.admin-header-action {
+  align-self: flex-start;
+}
+
+.admin-list,
+.admin-summary-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.admin-summary-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.admin-row-card,
+.admin-summary-card,
+.admin-placeholder {
+  padding: 20px;
+  border: 1px solid color-mix(in srgb, var(--line) 26%, transparent);
+  border-radius: 22px;
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+}
+
+.admin-row-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.admin-row-main {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.admin-row-titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.admin-row-titlebar h3,
+.admin-summary-card h3,
+.admin-placeholder h3 {
+  margin: 0;
+  font-family: var(--font-display), "Trebuchet MS", sans-serif;
+}
+
+.admin-row-titlebar h3 {
+  font-size: 1.2rem;
+}
+
+.admin-row-main p {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.admin-row-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  font-size: 0.92rem;
+}
+
+.admin-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.admin-action-button {
+  min-width: 96px;
+  justify-content: center;
+}
+
+.admin-danger-action {
+  border-color: color-mix(in srgb, var(--danger) 55%, transparent);
+  color: var(--danger);
+}
+
+.admin-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface-alt) 82%, transparent);
+  color: var(--text-main);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.admin-badge-muted {
+  background: color-mix(in srgb, var(--line) 14%, transparent);
+  color: var(--text-muted);
+}
+
+.admin-summary-card {
+  display: grid;
+  gap: 12px;
+}
+
+.admin-summary-card p {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.admin-summary-card ul {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--text-muted);
+  line-height: 1.55;
+}
+
+.admin-placeholder {
+  display: grid;
+  gap: 8px;
+}
+
 @media (max-width: 1000px) {
   .topbar {
     grid-template-columns: 1fr auto auto;
@@ -1867,6 +2131,28 @@ a {
 
   .home-page {
     padding: 42px 20px 56px;
+  }
+
+  .admin-shell {
+    grid-template-columns: 1fr;
+    padding: 18px;
+  }
+
+  .admin-sidebar {
+    position: static;
+  }
+
+  .admin-section-header,
+  .admin-row-card {
+    flex-direction: column;
+  }
+
+  .admin-row-actions {
+    justify-content: flex-start;
+  }
+
+  .admin-summary-grid {
+    grid-template-columns: 1fr;
   }
 
   .home-shell {
