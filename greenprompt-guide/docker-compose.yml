@@ -37,9 +37,13 @@ services:
       EMAIL_PASS: ${EMAIL_PASS:-your_google_app_password}
       EMAIL_FROM: ${EMAIL_FROM:-GreenPrompt Guide <greenprompt.guide@gmail.com>}
       COOKIE_SECURE: ${COOKIE_SECURE:-true}
+      COLLABORATION_PDF_STORAGE_DIR: ${COLLABORATION_PDF_STORAGE_DIR:-/data/uploads/collaboration-requests}
     ports:
       - "3000:3000"
       - "5555:5555" # Expose Prisma Studio port for local access
+    volumes:
+      - ./storage/collaboration-requests:/data/uploads/collaboration-requests
+    command: ["npm", "run", "start"]
 
   prisma-studio:
     profiles: ["tools"]

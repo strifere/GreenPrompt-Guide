@@ -49,6 +49,19 @@ enum UserRole {
   ADMIN
 }
 
+enum CollaborationRequestStatus {
+  PENDING
+  REQUESTED_MORE_INFO
+  DENIED
+  APPROVED
+}
+
+enum CollaborationRequestMessageType {
+  MORE_INFO_REQUEST
+  RESPONSE
+  NOTE
+}
+
 // ============= MAIN ENTITIES =============
 
 model User {
@@ -59,6 +72,10 @@ model User {
   banned    Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  submittedCollaborationRequests CollaborationRequest[]        @relation("CollaborationRequestSubmitter")
+  reviewedCollaborationRequests  CollaborationRequest[]        @relation("CollaborationRequestReviewer")
+  collaborationRequestMessages   CollaborationRequestMessage[] @relation("CollaborationRequestMessageAuthor")
 
   @@map("users")
 }
@@ -94,6 +111,58 @@ model Practice {
   metrics          Metric[]
 
   @@map("practices")
+}
+
+model CollaborationRequest {
+  id                     Int                        @id @default(autoincrement())
+  requesterUsername      String
+  reviewerUsername       String?
+  status                 CollaborationRequestStatus @default(PENDING)
+  practiceTitle          String
+  practiceSummary        String
+  practiceDescription    String
+  referenceLink          String
+  practiceExamples       String?
+  hyperparameters        String?
+  promptTechniques       String?
+  supportingPdfName      String
+  supportingPdfPath      String
+  supportingPdfMimeType  String
+  supportingPdfSizeBytes Int
+  rejectionReason        String?
+  reviewerNotes          String?
+  requestedMoreInfoAt    DateTime?
+  reviewedAt             DateTime?
+  createdAt              DateTime                   @default(now())
+  updatedAt              DateTime                   @updatedAt
+
+  requester User  @relation("CollaborationRequestSubmitter", fields: [requesterUsername], references: [username], onDelete: Cascade)
+  reviewer  User? @relation("CollaborationRequestReviewer", fields: [reviewerUsername], references: [username], onDelete: SetNull)
+
+  messages CollaborationRequestMessage[]
+
+  @@index([requesterUsername])
+  @@index([status])
+  @@map("collaboration_requests")
+}
+
+model CollaborationRequestMessage {
+  id             Int                             @id @default(autoincrement())
+  requestId      Int
+  authorUsername String
+  authorRole     UserRole
+  type           CollaborationRequestMessageType @default(NOTE)
+  message        String
+  readAt         DateTime?
+  createdAt      DateTime                        @default(now())
+
+  request CollaborationRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  author  User                 @relation("CollaborationRequestMessageAuthor", fields: [authorUsername], references: [username], onDelete: Cascade)
+
+  @@index([requestId])
+  @@index([authorUsername])
+  @@index([requestId, readAt])
+  @@map("collaboration_request_messages")
 }
 
 model PracticeExample {

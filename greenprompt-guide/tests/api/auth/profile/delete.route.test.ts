@@ -6,7 +6,7 @@ const clearSessionMock = vi.hoisted(() => vi.fn());
 const verifyPasswordMock = vi.hoisted(() => vi.fn());
 const repoMock = vi.hoisted(() => ({
 	getUserByUsernameWithPassword: vi.fn(),
-	deleteUser: vi.fn(),
+	deleteUserByUsername: vi.fn(),
 }));
 
 vi.mock("@/lib/session", () => ({
@@ -56,7 +56,7 @@ describe("POST /api/auth/profile/delete", () => {
 		expect(verifyPasswordMock).toHaveBeenCalledWith("wrong-password", "hashed-current");
 		expect(response.status).toBe(401);
 		expect(await response.json()).toEqual({ error: "Current password is incorrect" });
-		expect(repoMock.deleteUser).not.toHaveBeenCalled();
+		expect(repoMock.deleteUserByUsername).not.toHaveBeenCalled();
 	});
 
 	it("deletes the account and clears the session after validating the password", async () => {
@@ -68,14 +68,14 @@ describe("POST /api/auth/profile/delete", () => {
 			password: "hashed-current",
 		});
 		verifyPasswordMock.mockResolvedValueOnce(true);
-		repoMock.deleteUser.mockResolvedValueOnce(undefined);
+		repoMock.deleteUserByUsername.mockResolvedValueOnce(undefined);
 		clearSessionMock.mockResolvedValueOnce(undefined);
 
 		const response = await POST(createJsonRequest("/api/auth/profile/delete", {
 			currentPassword: "oldpass123",
 		}));
 
-		expect(repoMock.deleteUser).toHaveBeenCalledWith("victor");
+		expect(repoMock.deleteUserByUsername).toHaveBeenCalledWith("victor");
 		expect(clearSessionMock).toHaveBeenCalled();
 		expect(response.status).toBe(200);
 		expect(await response.json()).toEqual({ message: "Account deleted successfully" });

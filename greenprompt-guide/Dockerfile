@@ -24,14 +24,14 @@ ARG DATABASE_URL=postgresql://postgres:postgres@db:5432/sample_database?schema=p
 ENV DATABASE_URL=${DATABASE_URL}
 
 RUN npm run prisma:generate && npm run build \
-    && chown -R nonroot:nonroot /app
+    && mkdir -p /data/uploads/collaboration-requests \
+    && chown -R nonroot:nonroot /app /data
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV COLLABORATION_PDF_STORAGE_DIR=/data/uploads/collaboration-requests
 
 USER nonroot
 
 EXPOSE 3000
 EXPOSE 5555
-
-CMD ["npm", "run", "start"]

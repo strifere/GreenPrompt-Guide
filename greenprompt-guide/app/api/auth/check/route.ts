@@ -32,7 +32,10 @@ export async function GET() {
     }
 
     return NextResponse.json(
-      { user },
+      {
+        user: user.username,
+        role: user.role,
+      },
       { status: 200 }
     );
   } catch (error) {

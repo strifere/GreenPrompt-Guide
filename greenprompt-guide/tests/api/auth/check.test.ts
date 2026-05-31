@@ -32,11 +32,8 @@ describe("GET /api/auth/check", () => {
 
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({
-      user: {
-        username: "victor",
-        email: "victor@example.com",
-        role: "ADMIN",
-      },
+      user: "victor",
+      role: "ADMIN",
     });
   });
 
@@ -82,5 +79,15 @@ describe("GET /api/auth/check", () => {
 
     expect(response.status).toBe(500);
     expect(await response.json()).toEqual({ error: "An error occurred" });
+  });
+
+  it("returns 404 when the session user does not exist", async () => {
+    getSessionMock.mockResolvedValue("victor");
+    getUserByUsernameMock.mockResolvedValue(null);
+
+    const response = await GET(new NextRequest("http://localhost/api/auth/check"));
+
+    expect(response.status).toBe(404);
+    expect(await response.json()).toEqual({ error: "User not found" });
   });
 });
