@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { listPractices } from "@/domain/practice-repository";
 import styles from "../admin.module.css";
+import { AdminPracticeDeleteAction } from "../admin-practice-delete-action";
 
 export default async function AdminPracticesPage() {
   const practices = await listPractices();
@@ -48,9 +49,7 @@ export default async function AdminPracticesPage() {
                 <button type="button" className={`ghost-btn ${styles.actionButton}`}>
                   Modify
                 </button>
-                <button type="button" className={`ghost-btn ${styles.actionButton} ${styles.dangerAction}`}>
-                  Delete
-                </button>
+                <AdminPracticeDeleteAction practiceName={practice.name} />
               </div>
             </article>
           ))}

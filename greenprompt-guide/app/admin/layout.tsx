@@ -34,11 +34,6 @@ export default async function AdminLayout({
 					</p>
 				</div>
 				<AdminSidebar />
-				<div className={styles.sidebarFooter}>
-					<Link href="/" className={`ghost-btn ${styles.homeLink}`}>
-						Return home
-					</Link>
-				</div>
 			</aside>
 			<div className={styles.content}>{children}</div>
 		</div>

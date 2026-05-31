@@ -3,9 +3,14 @@ import { describe, expect, it, vi } from "vitest";
 import AdminPracticesPage from "@/app/admin/practices/page";
 
 const listPracticesMock = vi.hoisted(() => vi.fn());
+const refreshMock = vi.hoisted(() => vi.fn());
 
 vi.mock("@/domain/practice-repository", () => ({
   listPractices: listPracticesMock,
+}));
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ refresh: refreshMock }),
 }));
 
 describe("Admin practices page", () => {

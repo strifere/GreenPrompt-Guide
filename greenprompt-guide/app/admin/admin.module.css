@@ -242,6 +242,52 @@
   line-height: 1.55;
 }
 
+.dialogTextarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 12px 14px;
+  border: 2px solid color-mix(in srgb, var(--line) 45%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
+  color: var(--text-main);
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.dialogTextarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+.dialogActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.dialogCancelButton {
+  border-color: color-mix(in srgb, var(--line) 38%, transparent);
+}
+
+.dialogDangerButton {
+  min-width: 140px;
+}
+
+.dialogHint {
+  margin: 0 0 14px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.dialogError {
+  margin-bottom: 16px;
+}
+
 @media (max-width: 1100px) {
   .adminShell {
     grid-template-columns: 1fr;

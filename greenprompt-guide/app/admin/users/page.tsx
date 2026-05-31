@@ -1,5 +1,6 @@
 import { listUsers } from "@/domain/user-repository";
 import styles from "../admin.module.css";
+import { AdminUserActions } from "../admin-user-actions";
 
 function roleLabel(role: string | null) {
   if (role === "ADMIN") {
@@ -42,6 +43,9 @@ export default async function AdminUsersPage() {
                     <span className={styles.badge}>{roleLabel(user.role)}</span>
                   </div>
                   <p>{user.email}</p>
+                  <div className={styles.meta} aria-label="User status">
+                    <span>{user.banned ? "Banned" : "Active"}</span>
+                  </div>
                   <div className={styles.meta} aria-label="User metadata">
                     <span>Created {new Date(user.createdAt).toLocaleDateString()}</span>
                     <span>Updated {new Date(user.updatedAt).toLocaleDateString()}</span>
@@ -53,14 +57,7 @@ export default async function AdminUsersPage() {
                     <span className={`${styles.badge} ${styles.badgeMuted}`}>Protected admin account</span>
                   </div>
                 ) : (
-                  <div className={styles.rowActions}>
-                    <button type="button" className={`ghost-btn ${styles.actionButton}`}>
-                      Ban
-                    </button>
-                    <button type="button" className={`ghost-btn ${styles.actionButton} ${styles.dangerAction}`}>
-                      Delete
-                    </button>
-                  </div>
+                  <AdminUserActions username={user.username} email={user.email} banned={Boolean(user.banned)} />
                 )}
               </article>
             );
