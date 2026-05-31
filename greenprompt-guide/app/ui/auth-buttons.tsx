@@ -81,14 +81,21 @@ export function AuthButtons() {
           onClick={() => setOpen((currentValue) => !currentValue)}
         >
           <User aria-hidden size={18} />
-          <span className="topbar-user-name">{user}</span>
+          <span className="topbar-user-name">{user.username}</span>
         </button>
 
         {open ? (
           <div ref={menuRef} className="topbar-user-panel" role="menu">
-            <Link href={`/user/${encodeURIComponent(user)}`} className="topbar-user-item" onClick={() => setOpen(false)}>
+            <Link href={`/user/${encodeURIComponent(user.username)}`} className="topbar-user-item" onClick={() => setOpen(false)}>
               My profile
             </Link>
+
+            {user.role === "ADMIN" ? (
+              <Link href="/admin" className="topbar-user-item" onClick={() => setOpen(false)}>
+                Admin interface
+              </Link>
+            ) : null}
+
             <button
               type="button"
               className="topbar-user-item"

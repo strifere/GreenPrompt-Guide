@@ -27,6 +27,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (user.banned) {
+      return NextResponse.json(
+        { error: "This account is currently banned and cannot be used" },
+        { status: 403 }
+      );
+    }
+
     // Verify password
     const isPasswordValid = await verifyPassword(password, user.password);
 

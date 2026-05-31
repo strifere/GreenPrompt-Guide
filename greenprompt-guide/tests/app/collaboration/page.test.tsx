@@ -136,6 +136,7 @@ describe("CollaboratePage", () => {
     fireEvent.change(screen.getByLabelText(/practice title/i), { target: { value: "Example practice" } });
     fireEvent.change(screen.getByLabelText(/short summary/i), { target: { value: "Short summary" } });
     fireEvent.change(screen.getByLabelText(/full description/i), { target: { value: "Full description" } });
+    fireEvent.change(screen.getByLabelText(/reference link/i), { target: { value: "https://example.com/paper" } });
 
     const fileInput = screen.getByLabelText(/supporting pdf/i) as HTMLInputElement;
     const file = new File(["pdf"], "source.pdf", { type: "application/pdf" });

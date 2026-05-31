@@ -1,0 +1,313 @@
+.adminShell {
+  width: min(100%, 1480px);
+  margin: 0 auto;
+  padding: 24px;
+  display: grid;
+  grid-template-columns: minmax(280px, 320px) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.sidebar {
+  position: sticky;
+  top: 24px;
+  display: grid;
+  gap: 20px;
+  padding: 24px;
+  border: 1px solid color-mix(in srgb, var(--line) 34%, transparent);
+  border-radius: 26px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface) 98%, transparent), color-mix(in srgb, var(--surface-alt) 45%, transparent));
+  box-shadow: var(--shadow-soft);
+}
+
+.sidebarHeader {
+  display: grid;
+  gap: 10px;
+}
+
+.kicker {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.sidebarTitle,
+.sectionTitle,
+.cardTitle,
+.placeholderTitle {
+  margin: 0;
+  font-family: var(--font-display), "Trebuchet MS", sans-serif;
+  font-weight: 700;
+  line-height: 1.08;
+}
+
+.sidebarTitle {
+  font-size: 1.9rem;
+}
+
+.muted,
+.sectionCopy,
+.placeholderCopy,
+.cardCopy,
+.meta,
+.linkCopy {
+  color: var(--text-muted);
+}
+
+.nav {
+  display: grid;
+  gap: 12px;
+}
+
+.navLink {
+  display: grid;
+  gap: 4px;
+  padding: 14px 16px;
+  border: 1px solid color-mix(in srgb, var(--line) 20%, transparent);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--surface) 90%, transparent);
+  transition: transform 160ms ease, border-color 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
+}
+
+.navLink:hover,
+.navLink:focus-visible {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--line) 65%, transparent);
+  box-shadow: var(--shadow-soft);
+}
+
+.navLink[data-active="true"] {
+  border-color: var(--line-strong);
+  background: color-mix(in srgb, var(--surface-alt) 72%, transparent);
+}
+
+.navLabel {
+  font-family: var(--font-display), "Trebuchet MS", sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.linkCopy {
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.sidebarFooter {
+  display: grid;
+}
+
+.homeLink {
+  justify-content: center;
+  width: 100%;
+}
+
+.content {
+  min-width: 0;
+  padding-bottom: 24px;
+}
+
+.pageSection {
+  display: grid;
+  gap: 20px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.sectionTitle {
+  font-size: 1.95rem;
+}
+
+.sectionCopy {
+  max-width: 65ch;
+  margin: 10px 0 0;
+  line-height: 1.55;
+}
+
+.headerAction {
+  align-self: flex-start;
+}
+
+.list,
+.summaryGrid {
+  display: grid;
+  gap: 16px;
+}
+
+.summaryGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.rowCard,
+.summaryCard,
+.placeholder {
+  padding: 20px;
+  border: 1px solid color-mix(in srgb, var(--line) 26%, transparent);
+  border-radius: 22px;
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+}
+
+.rowCard {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.rowMain {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.titleBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cardTitle,
+.placeholderTitle {
+  font-size: 1.2rem;
+}
+
+.rowMain p,
+.summaryCard p,
+.placeholder p {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  font-size: 0.92rem;
+}
+
+.rowActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.actionButton {
+  min-width: 96px;
+  justify-content: center;
+}
+
+.dangerAction {
+  border-color: color-mix(in srgb, var(--danger) 55%, transparent);
+  color: var(--danger);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface-alt) 82%, transparent);
+  color: var(--text-main);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.badgeMuted {
+  background: color-mix(in srgb, var(--line) 14%, transparent);
+  color: var(--text-muted);
+}
+
+.summaryCard {
+  display: grid;
+  gap: 12px;
+}
+
+.summaryCard ul {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--text-muted);
+  line-height: 1.55;
+}
+
+.dialogTextarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 12px 14px;
+  border: 2px solid color-mix(in srgb, var(--line) 45%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
+  color: var(--text-main);
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.dialogTextarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+.dialogActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.dialogCancelButton {
+  border-color: color-mix(in srgb, var(--line) 38%, transparent);
+}
+
+.dialogDangerButton {
+  min-width: 140px;
+}
+
+.dialogHint {
+  margin: 0 0 14px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.dialogError {
+  margin-bottom: 16px;
+}
+
+@media (max-width: 1100px) {
+  .adminShell {
+    grid-template-columns: 1fr;
+    padding: 18px;
+  }
+
+  .sidebar {
+    position: static;
+  }
+
+  .sectionHeader,
+  .rowCard {
+    flex-direction: column;
+  }
+
+  .rowActions {
+    justify-content: flex-start;
+  }
+
+  .summaryGrid {
+    grid-template-columns: 1fr;
+  }
+}

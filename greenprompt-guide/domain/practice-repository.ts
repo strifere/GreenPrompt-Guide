@@ -68,6 +68,10 @@ export async function getPracticeByName(
   });
 }
 
+export async function deletePractice(practiceName: string): Promise<void> {
+  await prisma.practice.delete({ where: { name: practiceName } });
+}
+
 export async function listSidebarData(): Promise<SidebarData> {
   const [categories, models, promptTechniques, hyperparameters, datasets] =
     await prisma.$transaction([

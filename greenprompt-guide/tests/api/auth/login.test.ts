@@ -92,6 +92,28 @@ describe("POST /api/auth/login", () => {
     });
   });
 
+  it("rejects banned accounts before password verification", async () => {
+    getUserByIdentifierMock.mockResolvedValueOnce({
+      username: "victor",
+      email: "victor@example.com",
+      password: "hashed-password",
+      role: "user",
+      banned: true,
+    });
+
+    const response = await POST(createJsonRequest("/api/auth/login", {
+      identifier: "victor",
+      password: "password123",
+    }));
+
+    expect(verifyPasswordMock).not.toHaveBeenCalled();
+    expect(createSessionCookieMock).not.toHaveBeenCalled();
+    expect(response.status).toBe(403);
+    expect(await response.json()).toEqual({
+      error: "This account is currently banned and cannot be used",
+    });
+  });
+
   it("returns 500 when the handler throws", async () => {
     getUserByIdentifierMock.mockRejectedValueOnce(new Error("db down"));
 

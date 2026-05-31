@@ -89,6 +89,45 @@ class EmailService {
       html,
     });
   }
+
+  async sendUserDeletionNotice(email: string, reason: string): Promise<boolean> {
+    const subject = "Your GreenPrompt Guide account has been deleted";
+    const text = `Your account has been deleted by an administrator.\n\nReason: ${reason}`;
+    const html = `<p>Your account has been deleted by an administrator.</p><p><strong>Reason:</strong> ${reason}</p>`;
+
+    return this.send({
+      to: email,
+      subject,
+      text,
+      html,
+    });
+  }
+
+  async sendUserBanNotice(email: string, reason: string): Promise<boolean> {
+    const subject = "Your GreenPrompt Guide account has been banned";
+    const text = `Your account has been banned by an administrator.\n\nReason: ${reason}`;
+    const html = `<p>Your account has been banned by an administrator.</p><p><strong>Reason:</strong> ${reason}</p>`;
+
+    return this.send({
+      to: email,
+      subject,
+      text,
+      html,
+    });
+  }
+
+  async sendUserUnbanNotice(email: string): Promise<boolean> {
+    const subject = "Your GreenPrompt Guide account has been restored";
+    const text = "Your account has been unbanned by an administrator and your access has been restored.";
+    const html = `<p>Your account has been unbanned by an administrator and your access has been restored.</p>`;
+
+    return this.send({
+      to: email,
+      subject,
+      text,
+      html,
+    });
+  }
 }
 
 export const emailService = new EmailService();

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
+import { clearSession, getSession } from "@/lib/session";
 import { getUserByUsername } from "@/domain/user-repository";
-import { getSession } from "@/lib/session";
 
 export async function GET() {
   try {
@@ -19,6 +19,15 @@ export async function GET() {
       return NextResponse.json(
         { error: "User not found" },
         { status: 404 }
+      );
+    }
+
+    if (user.banned) {
+      await clearSession();
+
+      return NextResponse.json(
+        { error: "This account is currently banned and cannot be used" },
+        { status: 403 }
       );
     }
 
