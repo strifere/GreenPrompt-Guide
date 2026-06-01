@@ -188,7 +188,7 @@ describe("CollaboratePage", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /list all requests/i }));
 
-    expect(routerPushMock).toHaveBeenCalledWith("/collaboration/requests");
+    expect(routerPushMock).toHaveBeenCalledWith("/admin/requests");
 
     fetchSpy.mockRestore();
   });

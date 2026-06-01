@@ -49,7 +49,7 @@ export async function POST(_request: Request, context: ReadMessageRouteContext) 
 			return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 		}
 
-		const message = collaborationRequest.messages.find((entry) => entry.id === parsedMessageId);
+		const message = collaborationRequest.messages.find((entry: { id: number; }) => entry.id === parsedMessageId);
 
 		if (message?.requestId !== parsedRequestId) {
 			return NextResponse.json({ error: "Message not found" }, { status: 404 });
