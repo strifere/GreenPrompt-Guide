@@ -2,6 +2,7 @@ import Link from "next/link";
 import { listPractices } from "@/domain/practice-repository";
 import styles from "../admin.module.css";
 import { AdminPracticeDeleteAction } from "../admin-practice-delete-action";
+import { catalogPracticeHref } from "@/app/catalog/catalog-paths";
 
 export default async function AdminPracticesPage() {
   const practices = await listPractices();
@@ -30,10 +31,9 @@ export default async function AdminPracticesPage() {
         <div className={styles.list}>
           {practices.map((practice) => (
             <article key={practice.name} className={styles.rowCard}>
-              <div className={styles.rowMain}>
+              <Link href={catalogPracticeHref(practice.name)} className={styles.rowMain}>
                 <div className={styles.titleBar}>
                   <h3 className={styles.cardTitle}>{practice.name}</h3>
-                  <span className={styles.badge}>{practice.tactic}</span>
                 </div>
                 <p>{practice.description}</p>
                 <div className={styles.meta} aria-label="Practice stats">
@@ -43,7 +43,7 @@ export default async function AdminPracticesPage() {
                   <span>{practice.prompts.length} prompt techniques</span>
                   <span>{practice.papers.length} references</span>
                 </div>
-              </div>
+              </Link>
 
               <div className={styles.rowActions}>
                 <button type="button" className={`ghost-btn ${styles.actionButton}`}>

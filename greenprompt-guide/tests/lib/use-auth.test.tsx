@@ -8,10 +8,10 @@ vi.mock("next/navigation", () => ({
   usePathname: usePathnameMock,
 }));
 
-function createResponse(user: { username: string; role: string }, ok = true) {
+function createResponse(user: string, role: string, ok = true) {
   return {
     ok,
-    json: async () => ({ user }),
+    json: async () => ({ user, role }),
   } as Response;
 }
 
@@ -26,7 +26,7 @@ describe("useAuth", () => {
   });
 
   it("fetches the current user session", async () => {
-    fetchMock.mockResolvedValueOnce(createResponse({ username: "victor", role: "ADMIN" }));
+    fetchMock.mockResolvedValueOnce(createResponse("victor", "ADMIN"));
 
     const { result } = renderHook(() => useAuth());
 
@@ -42,8 +42,8 @@ describe("useAuth", () => {
 
   it("refreshes when the auth-changed event fires", async () => {
     fetchMock
-      .mockResolvedValueOnce(createResponse({ username: "victor", role: "USER" }))
-      .mockResolvedValueOnce(createResponse({ username: "ana", role: "ADMIN" }));
+      .mockResolvedValueOnce(createResponse("victor", "USER"))
+      .mockResolvedValueOnce(createResponse("ana", "ADMIN"));
 
     const { result } = renderHook(() => useAuth());
 

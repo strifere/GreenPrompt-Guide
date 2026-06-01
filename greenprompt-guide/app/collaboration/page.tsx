@@ -528,7 +528,7 @@ export default function CollaboratePage() {
 	};
 
 	const handleListAllRequestsClick = () => {
-		router.push("/collaboration/requests");
+		router.push("/admin/requests");
 	};
 
 	return (

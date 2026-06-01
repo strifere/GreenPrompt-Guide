@@ -24,8 +24,8 @@ describe("ThemeToggle", () => {
   });
 
   it("renders theme select dropdown with three options", () => {
-    vi.spyOn(window, "matchMedia").mockReturnValue(mockMediaQuery as MediaQueryList);
-    vi.spyOn(window.localStorage, "getItem").mockReturnValue(null);
+    vi.spyOn(globalThis.window, "matchMedia").mockReturnValue(mockMediaQuery as MediaQueryList);
+    vi.spyOn(globalThis.window.localStorage, "getItem").mockReturnValue(null);
 
     render(<ThemeToggle />);
 
@@ -40,8 +40,8 @@ describe("ThemeToggle", () => {
   });
 
   it("defaults to system preference when no stored preference exists", () => {
-    vi.spyOn(window, "matchMedia").mockReturnValue(mockMediaQuery as MediaQueryList);
-    vi.spyOn(window.localStorage, "getItem").mockReturnValue(null);
+    vi.spyOn(globalThis.window, "matchMedia").mockReturnValue(mockMediaQuery as MediaQueryList);
+    vi.spyOn(globalThis.window.localStorage, "getItem").mockReturnValue(null);
 
     render(<ThemeToggle />);
 
@@ -50,7 +50,7 @@ describe("ThemeToggle", () => {
   });
 
   it("reads stored preference from localStorage if available", () => {
-    vi.spyOn(window, "matchMedia").mockReturnValue(mockMediaQuery as MediaQueryList);
+    vi.spyOn(globalThis.window, "matchMedia").mockReturnValue(mockMediaQuery as MediaQueryList);
     // Set localStorage directly instead of mocking
     localStorage.setItem("theme-preference", "dark");
 
@@ -62,8 +62,8 @@ describe("ThemeToggle", () => {
 
   it("allows user to change theme preference", async () => {
     const user = userEvent.setup();
-    vi.spyOn(window, "matchMedia").mockReturnValue(mockMediaQuery as MediaQueryList);
-    vi.spyOn(window.localStorage, "getItem").mockReturnValue(null);
+    vi.spyOn(globalThis.window, "matchMedia").mockReturnValue(mockMediaQuery as MediaQueryList);
+    vi.spyOn(globalThis.window.localStorage, "getItem").mockReturnValue(null);
 
     render(<ThemeToggle />);
 
@@ -76,8 +76,8 @@ describe("ThemeToggle", () => {
 
   it("persists theme preference to localStorage when changed", async () => {
     const user = userEvent.setup();
-    vi.spyOn(window, "matchMedia").mockReturnValue(mockMediaQuery as MediaQueryList);
-    vi.spyOn(window.localStorage, "getItem").mockReturnValue(null);
+    vi.spyOn(globalThis.window, "matchMedia").mockReturnValue(mockMediaQuery as MediaQueryList);
+    vi.spyOn(globalThis.window.localStorage, "getItem").mockReturnValue(null);
 
     render(<ThemeToggle />);
 
@@ -89,8 +89,8 @@ describe("ThemeToggle", () => {
 
   it("sets document cookie when preference changes", async () => {
     const user = userEvent.setup();
-    vi.spyOn(window, "matchMedia").mockReturnValue(mockMediaQuery as MediaQueryList);
-    vi.spyOn(window.localStorage, "getItem").mockReturnValue(null);
+    vi.spyOn(globalThis.window, "matchMedia").mockReturnValue(mockMediaQuery as MediaQueryList);
+    vi.spyOn(globalThis.window.localStorage, "getItem").mockReturnValue(null);
 
     render(<ThemeToggle />);
 
@@ -102,7 +102,7 @@ describe("ThemeToggle", () => {
 
   it("displays correct label based on preference", () => {
     localStorage.setItem("theme-preference", "light");
-    vi.spyOn(window.localStorage, "getItem").mockReturnValue("light");
+    vi.spyOn(globalThis.window.localStorage, "getItem").mockReturnValue("light");
 
     render(<ThemeToggle />);
 
@@ -111,7 +111,7 @@ describe("ThemeToggle", () => {
   });
 
   it("ignores invalid stored preferences and defaults to dark", () => {
-    vi.spyOn(window, "matchMedia").mockReturnValue(mockMediaQuery as MediaQueryList);
+    vi.spyOn(globalThis.window, "matchMedia").mockReturnValue(mockMediaQuery as MediaQueryList);
     localStorage.setItem("theme-preference", "invalid");
 
     render(<ThemeToggle />);
@@ -122,11 +122,11 @@ describe("ThemeToggle", () => {
 
   it("handles localStorage errors gracefully", async () => {
     const user = userEvent.setup();
-    vi.spyOn(window, "matchMedia").mockReturnValue(mockMediaQuery as MediaQueryList);
-    vi.spyOn(window.localStorage, "getItem").mockImplementation(() => {
+    vi.spyOn(globalThis.window, "matchMedia").mockReturnValue(mockMediaQuery as MediaQueryList);
+    vi.spyOn(globalThis.window.localStorage, "getItem").mockImplementation(() => {
       throw new Error("Storage full");
     });
-    vi.spyOn(window.localStorage, "setItem").mockImplementation(() => {
+    vi.spyOn(globalThis.window.localStorage, "setItem").mockImplementation(() => {
       throw new Error("Storage full");
     });
 
@@ -141,8 +141,8 @@ describe("ThemeToggle", () => {
 
   it("applies theme to document when preference changes", async () => {
     const user = userEvent.setup();
-    vi.spyOn(window, "matchMedia").mockReturnValue(mockMediaQuery as MediaQueryList);
-    vi.spyOn(window.localStorage, "getItem").mockReturnValue(null);
+    vi.spyOn(globalThis.window, "matchMedia").mockReturnValue(mockMediaQuery as MediaQueryList);
+    vi.spyOn(globalThis.window.localStorage, "getItem").mockReturnValue(null);
 
     render(<ThemeToggle />);
 
@@ -154,9 +154,9 @@ describe("ThemeToggle", () => {
 
   it("sets colorScheme on document element", async () => {
     const user = userEvent.setup();
-    vi.spyOn(window, "matchMedia").mockReturnValue(mockMediaQuery as MediaQueryList);
-    vi.spyOn(window.localStorage, "getItem").mockReturnValue(null);
-    vi.spyOn(window.localStorage, "setItem");
+    vi.spyOn(globalThis.window, "matchMedia").mockReturnValue(mockMediaQuery as MediaQueryList);
+    vi.spyOn(globalThis.window.localStorage, "getItem").mockReturnValue(null);
+    vi.spyOn(globalThis.window.localStorage, "setItem");
     render(<ThemeToggle />);
 
     const select = screen.getByRole("combobox");

@@ -8,22 +8,18 @@ const adminSections = [
   {
     href: "/admin/practices",
     label: "Practices",
-    description: "List, update, and remove practices.",
   },
   {
     href: "/admin/requests",
     label: "Requests",
-    description: "Collaboration requests placeholder.",
   },
   {
     href: "/admin/users",
     label: "Users",
-    description: "Inspect roles and moderation actions.",
   },
   {
     href: "/admin/settings",
     label: "Settings",
-    description: "Platform-wide configuration and status.",
   },
 ] as const;
 
@@ -45,7 +41,6 @@ export function AdminSidebar() {
             data-active={isActive}
           >
             <span className={styles.navLabel}>{section.label}</span>
-            <span className={styles.linkCopy}>{section.description}</span>
           </Link>
         );
       })}

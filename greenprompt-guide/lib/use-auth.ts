@@ -6,6 +6,11 @@ export type AuthUser = {
   role: string;
 };
 
+type AuthCheckResponse = {
+  user?: string | AuthUser;
+  role?: string | null;
+};
+
 /**
  * Hook to get the current user session
  * Returns the current user if logged in, null otherwise
@@ -14,6 +19,29 @@ export function useAuth() {
   const pathname = usePathname();
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
+
+  function normalizeUser(responseData: AuthCheckResponse): AuthUser | null {
+    if (typeof responseData.user === "string") {
+      if (typeof responseData.role !== "string") {
+        return null;
+      }
+
+      return {
+        username: responseData.user,
+        role: responseData.role,
+      };
+    }
+
+    if (
+      responseData.user &&
+      typeof responseData.user.username === "string" &&
+      typeof responseData.user.role === "string"
+    ) {
+      return responseData.user;
+    }
+
+    return null;
+  }
 
   useEffect(() => {
     // Get user from session (from cookie)
@@ -26,8 +54,8 @@ export function useAuth() {
         });
 
         if (response.ok) {
-          const data = await response.json();
-          setUser(data.user as AuthUser);
+          const data = (await response.json()) as AuthCheckResponse;
+          setUser(normalizeUser(data));
         } else {
           setUser(null);
         }
