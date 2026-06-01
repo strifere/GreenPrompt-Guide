@@ -43,6 +43,11 @@ const collaborationRequestBaseSelect = {
 
 const collaborationRequestDetailSelect = {
 	...collaborationRequestBaseSelect,
+	createdPractice: {
+		select: {
+			name: true,
+		},
+	},
 	messages: {
 		orderBy: { createdAt: "asc" },
 		select: {

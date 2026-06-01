@@ -93,22 +93,24 @@ model Category {
 }
 
 model Practice {
-  name        String     @id
-  description String
-  greenScore  Int        @default(50)
-  tactic      TacticType @default(GREEN_PRACTICE)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  verifiedAt  DateTime?
+  name                 String     @id
+  description          String
+  greenScore           Int        @default(50)
+  tactic               TacticType @default(GREEN_PRACTICE)
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
+  verifiedAt           DateTime?
+  createdFromRequestId Int?       @unique
 
   // Relationships
-  categories       PracticeCategory[]
-  models           PracticeModel[]
-  papers           PaperPractice[]
-  prompts          PracticePromptTechnique[]
-  practiceExamples PracticeExample[]
-  hyperparameters  Hyperparameter[]
-  metrics          Metric[]
+  categories         PracticeCategory[]
+  models             PracticeModel[]
+  papers             PaperPractice[]
+  prompts            PracticePromptTechnique[]
+  practiceExamples   PracticeExample[]
+  hyperparameters    Hyperparameter[]
+  metrics            Metric[]
+  createdFromRequest CollaborationRequest?     @relation(fields: [createdFromRequestId], references: [id], onDelete: SetNull)
 
   @@map("practices")
 }
@@ -136,8 +138,9 @@ model CollaborationRequest {
   createdAt              DateTime                   @default(now())
   updatedAt              DateTime                   @updatedAt
 
-  requester User  @relation("CollaborationRequestSubmitter", fields: [requesterUsername], references: [username], onDelete: Cascade)
-  reviewer  User? @relation("CollaborationRequestReviewer", fields: [reviewerUsername], references: [username], onDelete: SetNull)
+  requester       User      @relation("CollaborationRequestSubmitter", fields: [requesterUsername], references: [username], onDelete: Cascade)
+  reviewer        User?     @relation("CollaborationRequestReviewer", fields: [reviewerUsername], references: [username], onDelete: SetNull)
+  createdPractice Practice?
 
   messages CollaborationRequestMessage[]
 

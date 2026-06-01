@@ -778,14 +778,20 @@ a {
   border: 1px solid color-mix(in srgb, var(--danger) 35%, transparent);
 }
 
-.collaboration-request-pdf-section {
+.collaboration-important-section {
   margin-top: 20px;
   padding: 18px;
   border-radius: 16px;
   background: color-mix(in srgb, var(--surface) 94%, transparent);
   border: 1px solid color-mix(in srgb, var(--line) 30%, transparent);
 }
-.collaboration-request-pdf-section h2 {
+
+.collaboration-important-section.created-practice {
+  background: color-mix(in srgb, var(--home-green) 10%, transparent);
+  border-color: color-mix(in srgb, var(--home-green) 35%, transparent);
+}
+
+.collaboration-important-section h2 {
   margin: 0 0 12px;
   font-family: var(--font-display), "Trebuchet MS", sans-serif;
   font-size: clamp(1rem, 1.7vw, 1.1rem);

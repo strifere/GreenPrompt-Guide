@@ -289,6 +289,149 @@
   margin-bottom: 16px;
 }
 
+.creationForm {
+  display: grid;
+  gap: 18px;
+}
+
+.creationIntroCard,
+.creationSection,
+.creationExampleCard {
+  padding: 20px;
+  border: 1px solid color-mix(in srgb, var(--line) 26%, transparent);
+  border-radius: 22px;
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+}
+
+.creationIntroCard {
+  display: grid;
+  gap: 10px;
+}
+
+.creationIntroKicker,
+.creationSourceLabel {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.creationIntroTitle,
+.creationSectionTitle,
+.creationExampleTitle {
+  margin: 0;
+  font-family: var(--font-display), "Trebuchet MS", sans-serif;
+  font-weight: 700;
+  line-height: 1.08;
+}
+
+.creationIntroTitle {
+  font-size: 1.5rem;
+}
+
+.creationIntroCopy,
+.creationHint,
+.creationSourceBox p {
+  margin: 0;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.creationSourceBox {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--surface-alt) 52%, transparent);
+}
+
+.creationSection {
+  display: grid;
+  gap: 16px;
+}
+
+.creationSectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.creationSectionTitle {
+  font-size: 1.2rem;
+}
+
+.creationSplitGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.creationTextarea,
+.creationSelect {
+  width: 100%;
+  padding: 10px 14px;
+  border: 2px solid color-mix(in srgb, var(--line) 45%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
+  color: var(--text-main);
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1.5;
+  transition: border-color 200ms ease, box-shadow 200ms ease;
+}
+
+.creationTextarea {
+  resize: vertical;
+}
+
+.creationTextarea:focus,
+.creationSelect:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+.creationCategoryToggle {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.creationRadioCard {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px solid color-mix(in srgb, var(--line) 28%, transparent);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--surface-alt) 44%, transparent);
+  font-weight: 600;
+}
+
+.creationExampleList {
+  display: grid;
+  gap: 14px;
+}
+
+.creationExampleCard {
+  display: grid;
+  gap: 14px;
+}
+
+.creationExampleTitle {
+  font-size: 1.05rem;
+}
+
+.creationActions {
+  display: flex;
+  justify-content: flex-end;
+}
+
 @media (max-width: 1100px) {
   .adminShell {
     grid-template-columns: 1fr;
@@ -309,6 +452,11 @@
   }
 
   .summaryGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .creationSplitGrid,
+  .creationCategoryToggle {
     grid-template-columns: 1fr;
   }
 }

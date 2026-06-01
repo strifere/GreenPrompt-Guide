@@ -1,9 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type ChangeEvent, type ReactNode, type SyntheticEvent } from "react";
 import { Download, Pencil, Send } from "lucide-react";
 import { AdminRequestDeleteAction } from "@/app/admin/admin-request-actions";
+import { catalogPracticeHref } from "@/app/catalog/catalog-paths";
 
 type MessageData = {
 	id: number;
@@ -40,6 +42,9 @@ type RequestData = {
 	createdAt: string | Date;
 	updatedAt: string | Date;
 	messages: MessageData[];
+	createdPractice: {
+		name: string;
+	} | null;
 };
 
 type Message = {
@@ -77,6 +82,10 @@ type Request = {
 	createdAt: string;
 	updatedAt: string;
 	messages: Message[];
+	createdPractice: {
+		name: string;
+		href: string;
+	} | null;
 };
 
 type RequestDetailsClientProps = {
@@ -130,6 +139,10 @@ function formatRequest(request: RequestData): Request {
 		requestedMoreInfoAt: formatDisplayDate(request.requestedMoreInfoAt),
 		reviewedAt: formatDisplayDate(request.reviewedAt),
 		messages: request.messages.map(formatMessage),
+		createdPractice: request.createdPractice ? {
+			...request.createdPractice,
+			href: catalogPracticeHref(request.createdPractice.name)
+		} : null,
 	};
 }
 
@@ -415,7 +428,7 @@ export default function RequestDetailsClient({ request: initialRequest, currentU
 
 	const hasRejectionReason = Boolean(request.status === "DENIED" && request.rejectionReason?.trim());
 	const canRequestMoreInfo = request.status === "PENDING";
-	const canShowReopen = request.status === "DENIED" || request.status === "APPROVED";
+	const canShowReopen = request.status === "DENIED";
 
 	return (
 		<section className="collaboration-request-overview">
@@ -425,6 +438,15 @@ export default function RequestDetailsClient({ request: initialRequest, currentU
 					<span className="collaboration-request-meta-value">{request.rejectionReason?.trim()}</span>
 				</div>
 			)}
+
+			{request.createdPractice ? (
+			<div className="collaboration-important-section created-practice">
+				<h2>Created practice</h2>
+				<Link href={catalogPracticeHref(request.createdPractice.name)} className="collaboration-detail-link">
+					{request.createdPractice.name}
+				</Link>
+			</div>
+			) : null}
 
 			<div className="collaboration-request-header-card">
 				<div className="collaboration-request-header-copy">
@@ -445,7 +467,7 @@ export default function RequestDetailsClient({ request: initialRequest, currentU
 				<EditableField label="Prompt techniques" value={request.promptTechniques} placeholder="Not provided" multiline canEdit={canEditFields} onSave={(nextValue) => handleFieldSave("promptTechniques", nextValue)} />
 			</div>
 
-			<div className="collaboration-request-pdf-section">
+			<div className="collaboration-important-section">
 				<h2>Supporting PDF</h2>
 				<div className="collaboration-pdf-row">
 					<div>
@@ -521,7 +543,7 @@ export default function RequestDetailsClient({ request: initialRequest, currentU
 			</section>
 
 			{isAdmin ? (
-				<div className="collaboration-request-pdf-section">
+				<div className="collaboration-important-section">
 					<h2>Admin actions</h2>
 					<div className="collaboration-admin-actions">
 						<div className="collaboration-admin-actions-primary">
@@ -531,7 +553,7 @@ export default function RequestDetailsClient({ request: initialRequest, currentU
 								</button>
 							) : (
 								<>
-									<button type="button" className="green-btn" disabled={adminLoading} onClick={() => void submitAdminStatusUpdate("APPROVED")}>
+									<button type="button" className="green-btn" disabled={adminLoading} onClick={() => router.push(`/admin/practices/new/${request.id}`)}>
 										Approve request
 									</button>
 									<button type="button" className="danger-btn" disabled={adminLoading} onClick={() => setAdminAction("deny")}>

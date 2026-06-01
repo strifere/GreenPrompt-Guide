@@ -19,7 +19,12 @@ export default function NewPracticePage() {
 
       <div className={styles.placeholder}>
         <h3 className={styles.placeholderTitle}>Creation form pending</h3>
-        <p>This page is reserved for the future practice creation workflow.</p>
+        <p>Approve a collaboration request to open the request-driven practice creation flow.</p>
+        <p>
+          <Link href="/admin/requests" className="animated-link">
+            Review collaboration requests
+          </Link>
+        </p>
       </div>
     </section>
   );
