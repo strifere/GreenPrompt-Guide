@@ -165,7 +165,7 @@
 .rowMain {
   display: grid;
   gap: 12px;
-  min-width: 0;
+  width: 100%;
 }
 
 .titleBar {
@@ -207,8 +207,9 @@
 }
 
 .dangerAction {
-  border-color: color-mix(in srgb, var(--danger) 55%, transparent);
-  color: var(--danger);
+  border-color: var(--danger);
+  background: var(--danger);
+  color: #fff;
 }
 
 .badge {

@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, type ChangeEvent, type ReactNode, type SyntheticEvent } from "react";
 import { Download, Pencil, Send } from "lucide-react";
+import { AdminRequestDeleteAction } from "@/app/admin/admin-request-actions";
 
 type MessageData = {
 	id: number;
@@ -522,26 +523,29 @@ export default function RequestDetailsClient({ request: initialRequest, currentU
 			{isAdmin ? (
 				<div className="collaboration-request-pdf-section">
 					<h2>Admin actions</h2>
-					<div className="collaboration-inline-actions">
-						{canShowReopen ? (
-							<button type="button" className="solid-btn" disabled={adminLoading} onClick={() => void submitAdminStatusUpdate("PENDING")}>
-								Reopen request
-							</button>
-						) : (
-							<>
-								<button type="button" className="green-btn" disabled={adminLoading} onClick={() => void submitAdminStatusUpdate("APPROVED")}>
-									Approve request
+					<div className="collaboration-admin-actions">
+						<div className="collaboration-admin-actions-primary">
+							{canShowReopen ? (
+								<button type="button" className="solid-btn" disabled={adminLoading} onClick={() => void submitAdminStatusUpdate("PENDING")}>
+									Reopen request
 								</button>
-								<button type="button" className="danger-btn" disabled={adminLoading} onClick={() => setAdminAction("deny")}>
-									Deny request
-								</button>
-								{canRequestMoreInfo ? (
-									<button type="button" className="ghost-btn" disabled={adminLoading} onClick={() => setAdminAction("more-info")}>
-										Request more info
+							) : (
+								<>
+									<button type="button" className="green-btn" disabled={adminLoading} onClick={() => void submitAdminStatusUpdate("APPROVED")}>
+										Approve request
 									</button>
-								) : null}
-							</>
-						)}
+									<button type="button" className="danger-btn" disabled={adminLoading} onClick={() => setAdminAction("deny")}>
+										Deny request
+									</button>
+									{canRequestMoreInfo ? (
+										<button type="button" className="ghost-btn" disabled={adminLoading} onClick={() => setAdminAction("more-info")}>
+											Request more info
+										</button>
+									) : null}
+								</>
+							)}
+						</div>
+						<AdminRequestDeleteAction requestId={request.id} />
 					</div>
 					{adminError ? <div className="error-message">{adminError}</div> : null}
 

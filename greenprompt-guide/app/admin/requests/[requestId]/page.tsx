@@ -6,6 +6,9 @@ import { getSession } from "@/lib/session";
 import RequestDetailsClient from "@/app/collaboration/my-requests/[username]/[requestId]/request-details-client";
 import styles from "../../admin.module.css";
 
+type AdminRequestDetails = Awaited<ReturnType<typeof getCollaborationRequestDetailsById>>;
+type AdminRequestMessage = NonNullable<AdminRequestDetails>["messages"][number];
+
 type RequestDetailsProps = {
   params: Promise<{ requestId: string }>;
 };
@@ -74,7 +77,7 @@ export default async function AdminRequestDetailsPage({ params }: Readonly<Reque
             updatedAt: formatDate(request.updatedAt),
             requestedMoreInfoAt: request.requestedMoreInfoAt ? formatDate(request.requestedMoreInfoAt) : null,
             reviewedAt: request.reviewedAt ? formatDate(request.reviewedAt) : null,
-            messages: request.messages.map((message) => ({
+            messages: request.messages.map((message: AdminRequestMessage) => ({
               ...message,
               createdAt: formatDate(message.createdAt),
               readAt: message.readAt ? formatDate(message.readAt) : null,

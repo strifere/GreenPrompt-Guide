@@ -902,6 +902,21 @@ a {
   justify-content: flex-end;
 }
 
+.collaboration-admin-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.collaboration-admin-actions-primary {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
 .collaboration-messages-section {
   display: grid;
   gap: 18px;
@@ -2123,7 +2138,6 @@ a {
 .practice-card p {
   color: var(--text-muted);
   margin: 10px 0;
-  max-width: 90ch;
 }
 
 .practice-card small {

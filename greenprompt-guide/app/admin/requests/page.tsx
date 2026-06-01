@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { listAllCollaborationRequests } from "@/domain/collaboration-request-repository";
+import { AdminRequestDeleteAction } from "../admin-request-actions";
 import styles from "../admin.module.css";
 
 type RequestListItem = Awaited<ReturnType<typeof listAllCollaborationRequests>>[number];
@@ -40,38 +41,40 @@ export default async function AdminRequestsPage() {
 
       <section className="collaboration-requests-panel" aria-label="All collaboration requests">
         {requests.length > 0 ? (
-          <div className="collaboration-request-list">
+          <div className={styles.list}>
             {requests.map((request: RequestListItem) => (
-              <Link
+              <article
                 key={request.id}
-                href={`/admin/requests/${request.id}`}
-                className="practice-card collaboration-request-card"
+                className={styles.rowCard}
               >
-                <header>
-                  <div className="collaboration-request-heading-row">
-                    <h2>{request.practiceTitle}</h2>
+                <Link href={`/admin/requests/${request.id}`} className={styles.rowMain}>
+                  <div className={styles.titleBar}>
+                    <h3 className={styles.cardTitle}>{request.practiceTitle}</h3>
                     <span className={`collaboration-status-pill ${request.status.toLowerCase()}`}>
                       {formatStatus(request.status)}
                     </span>
                   </div>
-                  <p className="collaboration-request-summary">{request.practiceSummary}</p>
-                </header>
+                  <p>{request.practiceSummary}</p>
+                  <div className={styles.meta} aria-label="Practice stats">
+                      <div>
+                      <span className="collaboration-request-meta-label">Requester</span>
+                      <span className="collaboration-request-meta-value">{request.requesterUsername}</span>
+                    </div>
+                    <div>
+                      <span className="collaboration-request-meta-label">Created</span>
+                      <span className="collaboration-request-meta-value">{formatDate(request.createdAt)}</span>
+                    </div>
+                    <div>
+                      <span className="collaboration-request-meta-label">Modified</span>
+                      <span className="collaboration-request-meta-value">{formatDate(request.updatedAt)}</span>
+                    </div>
+                  </div>
+                </Link>
 
-                <div className="collaboration-request-meta-grid">
-                  <div>
-                    <span className="collaboration-request-meta-label">Requester</span>
-                    <span className="collaboration-request-meta-value">{request.requesterUsername}</span>
-                  </div>
-                  <div>
-                    <span className="collaboration-request-meta-label">Created</span>
-                    <span className="collaboration-request-meta-value">{formatDate(request.createdAt)}</span>
-                  </div>
-                  <div>
-                    <span className="collaboration-request-meta-label">Modified</span>
-                    <span className="collaboration-request-meta-value">{formatDate(request.updatedAt)}</span>
-                  </div>
+                <div className={styles.rowActions}>
+                  <AdminRequestDeleteAction requestId={request.id} />
                 </div>
-              </Link>
+              </article>
             ))}
           </div>
         ) : (
