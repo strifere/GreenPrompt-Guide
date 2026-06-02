@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getModelByName } from "@/domain/model-repository";
 import { catalogPracticeHref, catalogReferenceHref } from "../../catalog-paths";
+import { getSession } from "@/lib/session";
+import { getUserByUsername } from "@/domain/user-repository";
 
 type ModelDetailsProps = {
   params: Promise<{ modelName: string }>;
@@ -12,11 +14,17 @@ export default async function ModelDetailsPage({
 }: Readonly<ModelDetailsProps>) {
   const { modelName } = await params;
   const modelNameDecoded = decodeURIComponent(modelName);
-  const model = await getModelByName(modelNameDecoded);
+  const [model, username] = await Promise.all([
+    getModelByName(modelNameDecoded),
+    getSession(),
+  ]);
 
   if (!model) {
     notFound();
   }
+
+  const currentUser = username ? await getUserByUsername(username) : null;
+  const canEditModel = currentUser?.role === "ADMIN";
 
   const relatedPractices = model.practices.map((entry) => entry.practice);
   const relatedReferences = model.references.map((entry) => entry.reference);
@@ -31,6 +39,11 @@ export default async function ModelDetailsPage({
               <p>{model.description}</p>
             )}
           </div>
+          {canEditModel ? (
+            <Link href={`/admin/models/edit/${encodeURIComponent(model.name)}`} className="green-btn">
+              Edit model
+            </Link>
+          ) : null}
         </header>
 
         <section className="practice-facts-grid" aria-label="Model metadata">

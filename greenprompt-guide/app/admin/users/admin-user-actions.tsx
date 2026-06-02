@@ -99,7 +99,7 @@ function AdminUserModerationDialog({
             />
           </div>
         ) : (
-          <p className={styles.dialogHint}>The user's activity will be restored.</p>
+          <p className={styles.dialogHint}>The user&apos;s activity will be restored.</p>
         )}
 
         <div className={styles.dialogActions}>

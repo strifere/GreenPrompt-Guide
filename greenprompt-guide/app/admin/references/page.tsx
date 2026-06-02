@@ -2,6 +2,7 @@ import Link from "next/link";
 import styles from "../admin.module.css";
 import { listReferences } from "@/domain/reference-repository";
 import { catalogReferenceHref } from "@/app/catalog/catalog-paths";
+import { AdminReferenceDeleteAction } from "./admin-reference-delete-action";
 
 export default async function AdminReferencesPage() {
   const references = await listReferences();
@@ -33,9 +34,11 @@ export default async function AdminReferencesPage() {
               <Link href={catalogReferenceHref(reference.title)} className={styles.rowMain}>
                 <div className={styles.titleBar}>
                   <h3 className={styles.cardTitle}>{reference.title}</h3>
+                  <span className={styles.badge}>{reference.year}</span>
                 </div>
-                <p>{reference.abstract}</p>
+                <p>{reference.abstract ?? "No abstract available."}</p>
                 <div className={styles.meta} aria-label="Reference stats">
+                  <span>{reference.authors}</span>
                   <span>{reference.practices.length} {reference.practices.length === 1 ? "extracted practice" : "extracted practices"}</span>
                   <span>{reference.models.length} {reference.models.length === 1 ? "model" : "models"}</span>
                   <span>{reference.promptTechniques.length} {reference.promptTechniques.length === 1 ? "prompt technique" : "prompt techniques"}</span>

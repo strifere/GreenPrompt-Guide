@@ -81,11 +81,11 @@ export default async function RequestDetailsPage({
           currentUserRole={currentUser.role ?? "USER"}
           request={{
               ...(() => {
-                const { reviewerNotes: _reviewerNotes, ...requestWithoutReviewerNotes } = request;
+                const { reviewerNotes: _, ...requestWithoutReviewerNotes } = request;
                 return {
                   ...requestWithoutReviewerNotes,
                   messages: requestWithoutReviewerNotes.messages.map((message) => {
-                    const { readAt: _readAt, ...messageWithoutReadFlag } = message;
+                    const { readAt: _, ...messageWithoutReadFlag } = message;
                     return messageWithoutReadFlag;
                   }),
                 };
