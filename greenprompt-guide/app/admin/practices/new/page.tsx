@@ -1,7 +1,19 @@
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
+import { prisma } from "@/lib/prisma";
 import styles from "../../admin.module.css";
+import { PracticeForm } from "../practice-form";
 
-export default function NewPracticePage() {
+export default async function NewPracticePage() {
+  const categories = await prisma.category.findMany({
+    orderBy: { name: "asc" },
+    select: {
+      name: true,
+      description: true,
+      tactic: true,
+    },
+  });
+
   return (
     <section className={styles.pageSection}>
       <header className={styles.sectionHeader}>
@@ -9,23 +21,16 @@ export default function NewPracticePage() {
           <p className={styles.kicker}>Practices</p>
           <h2 className={styles.sectionTitle}>Create practice</h2>
           <p className={styles.sectionCopy}>
-            The practice creation flow is coming in a follow-up iteration.
+            Add a catalog practice directly, including its reference, category, and examples.
           </p>
         </div>
         <Link href="/admin/practices" className={`ghost-btn ${styles.headerAction}`}>
+          <ArrowLeft className={styles.arrowLeft} aria-hidden size={18} />
           Back to practices
         </Link>
       </header>
 
-      <div className={styles.placeholder}>
-        <h3 className={styles.placeholderTitle}>Creation form pending</h3>
-        <p>Approve a collaboration request to open the request-driven practice creation flow.</p>
-        <p>
-          <Link href="/admin/requests" className="animated-link">
-            Review collaboration requests
-          </Link>
-        </p>
-      </div>
+      <PracticeForm categories={categories} submitUrl="/api/admin/practices" redirectPath="/admin/practices" />
     </section>
   );
 }

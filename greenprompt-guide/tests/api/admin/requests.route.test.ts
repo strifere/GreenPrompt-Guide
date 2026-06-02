@@ -42,7 +42,7 @@ describe("DELETE /api/admin/requests/:requestId", () => {
         const response = await DELETE(
             createJsonRequest("/api/admin/requests/7", {}, { method: "DELETE" }),
             { params: Promise.resolve({ requestId: "7" }) },
-        );
+        ) as Response;
 
         expect(response.status).toBe(200);
         expect(await response.json()).toEqual({ message: "Request deleted successfully" });
@@ -56,7 +56,7 @@ describe("DELETE /api/admin/requests/:requestId", () => {
         const response = await DELETE(
             createJsonRequest("/api/admin/requests/not-a-number", {}, { method: "DELETE" }),
             { params: Promise.resolve({ requestId: "not-a-number" }) },
-        );
+        ) as Response;
 
         expect(response.status).toBe(400);
         expect(await response.json()).toEqual({ error: "Invalid request id" });
@@ -72,7 +72,7 @@ describe("DELETE /api/admin/requests/:requestId", () => {
         const response = await DELETE(
             createJsonRequest("/api/admin/requests/404", {}, { method: "DELETE" }),
             { params: Promise.resolve({ requestId: "404" }) },
-        );
+        ) as Response;
 
         expect(response.status).toBe(404);
         expect(await response.json()).toEqual({ error: "Request not found" });

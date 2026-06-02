@@ -46,9 +46,9 @@ export default async function AdminPracticesPage() {
               </Link>
 
               <div className={styles.rowActions}>
-                <button type="button" className={`ghost-btn ${styles.actionButton}`}>
+                <Link href={`/admin/practices/edit/${encodeURIComponent(practice.name)}`} className={`ghost-btn ${styles.actionButton}`}>
                   Modify
-                </button>
+                </Link>
                 <AdminPracticeDeleteAction practiceName={practice.name} />
               </div>
             </article>

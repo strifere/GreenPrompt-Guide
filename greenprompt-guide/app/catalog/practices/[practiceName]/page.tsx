@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { getPracticeByName } from "@/domain/practice-repository";
+import { getUserByUsername } from "@/domain/user-repository";
+import { getSession } from "@/lib/session";
 import {
   catalogDatasetHref,
   catalogModelHref,
@@ -66,11 +68,17 @@ export default async function PracticeDetailsPage({
 }: Readonly<PracticeDetailsProps>) {
   const { practiceName } = await params;
   const practiceNameDecoded = decodeURIComponent(practiceName);
-  const practice = await getPracticeByName(practiceNameDecoded);
+  const [practice, username] = await Promise.all([
+    getPracticeByName(practiceNameDecoded),
+    getSession(),
+  ]);
 
   if (!practice) {
     notFound();
   }
+
+  const currentUser = username ? await getUserByUsername(username) : null;
+  const canEditPractice = currentUser?.role === "ADMIN";
 
   const relatedDatasets = Array.from(
     new Map(
@@ -145,6 +153,11 @@ export default async function PracticeDetailsPage({
             </Link>
             <h1>{practice.name}</h1>
           </div>
+          {canEditPractice ? (
+            <Link href={`/admin/practices/edit/${encodeURIComponent(practice.name)}`} className="green-btn">
+              Edit practice
+            </Link>
+          ) : null}
         </header>
 
         <section className="practice-section">

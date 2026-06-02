@@ -53,7 +53,7 @@ export default async function RequestedPracticePage({ params }: Readonly<Request
 					</p>
 				</div>
 				<Link href={`/admin/requests/${request.id}`} className={`ghost-btn ${styles.headerAction}`}>
-					<ArrowLeft aria-hidden size={18} />
+					<ArrowLeft className={styles.arrowLeft} aria-hidden size={18} />
 					Back to request
 				</Link>
 			</header>

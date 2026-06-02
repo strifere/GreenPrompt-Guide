@@ -34,7 +34,10 @@ describe("Admin practices page", () => {
     expect(screen.getByRole("heading", { name: /all practices/i })).toBeInTheDocument();
     expect(screen.getByText("Constraint-first prompting")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /add practice/i })).toHaveAttribute("href", "/admin/practices/new");
-    expect(screen.getByRole("button", { name: /modify/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /modify/i })).toHaveAttribute(
+      "href",
+      "/admin/practices/edit/Constraint-first%20prompting",
+    );
     expect(screen.getByRole("button", { name: /delete/i })).toBeInTheDocument();
   });
 });
