@@ -1,6 +1,6 @@
 import { listUsers } from "@/domain/user-repository";
 import styles from "../admin.module.css";
-import { AdminUserActions } from "../admin-user-actions";
+import { AdminUserActions } from "./admin-user-actions";
 
 function roleLabel(role: string | null) {
   if (role === "ADMIN") {

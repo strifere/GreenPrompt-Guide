@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { listPractices } from "@/domain/practice-repository";
 import styles from "../admin.module.css";
-import { AdminPracticeDeleteAction } from "../admin-practice-delete-action";
+import { AdminPracticeDeleteAction } from "./admin-practice-delete-action";
 import { catalogPracticeHref } from "@/app/catalog/catalog-paths";
 
 export default async function AdminPracticesPage() {
@@ -37,11 +37,11 @@ export default async function AdminPracticesPage() {
                 </div>
                 <p>{practice.description}</p>
                 <div className={styles.meta} aria-label="Practice stats">
-                  <span>{practice.greenScore} green score</span>
-                  <span>{practice.categories.length} categories</span>
-                  <span>{practice.models.length} models</span>
-                  <span>{practice.prompts.length} prompt techniques</span>
-                  <span>{practice.papers.length} references</span>
+                  <span>{practice.greenScore} {practice.greenScore === 1 ? "green point" : "green points"}</span>
+                  <span>{practice.categories.length} {practice.categories.length === 1 ? "category" : "categories"}</span>
+                  <span>{practice.models.length} {practice.models.length === 1 ? "model" : "models"}</span>
+                  <span>{practice.prompts.length} {practice.prompts.length === 1 ? "prompt technique" : "prompt techniques"}</span>
+                  <span>{practice.papers.length} {practice.papers.length === 1 ? "reference" : "references"}</span>
                 </div>
               </Link>
 

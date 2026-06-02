@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type ChangeEvent, type ReactNode, type SyntheticEvent } from "react";
 import { Download, Pencil, Send } from "lucide-react";
-import { AdminRequestDeleteAction } from "@/app/admin/admin-request-actions";
+import { AdminRequestDeleteAction } from "@/app/admin/requests/admin-request-actions";
 import { catalogPracticeHref } from "@/app/catalog/catalog-paths";
 
 type MessageData = {

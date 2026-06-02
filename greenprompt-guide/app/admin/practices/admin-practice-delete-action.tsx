@@ -2,13 +2,13 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import styles from "./admin.module.css";
+import styles from "../admin.module.css";
 
-type AdminRequestDeleteActionProps = {
-  requestId: number;
+type AdminPracticeDeleteActionProps = {
+  practiceName: string;
 };
 
-export function AdminRequestDeleteAction({ requestId }: Readonly<AdminRequestDeleteActionProps>) {
+export function AdminPracticeDeleteAction({ practiceName }: Readonly<AdminPracticeDeleteActionProps>) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -25,19 +25,19 @@ export function AdminRequestDeleteAction({ requestId }: Readonly<AdminRequestDel
     setError("");
 
     try {
-      const response = await fetch(`/api/admin/requests/${requestId}`, {
+      const response = await fetch(`/api/admin/practices/${encodeURIComponent(practiceName)}`, {
         method: "DELETE",
       });
 
       if (!response.ok) {
         const body = (await response.json().catch(() => ({}))) as { error?: string };
-        throw new Error(body.error ?? "Failed to delete request");
+        throw new Error(body.error ?? "Failed to delete practice");
       }
 
       closeDialog();
       router.refresh();
     } catch (deleteError) {
-      setError(deleteError instanceof Error ? deleteError.message : "Failed to delete request");
+      setError(deleteError instanceof Error ? deleteError.message : "Failed to delete practice");
     } finally {
       setLoading(false);
     }
@@ -62,9 +62,9 @@ export function AdminRequestDeleteAction({ requestId }: Readonly<AdminRequestDel
               ✕
             </button>
 
-            <h2>Delete request?</h2>
+            <h2>Delete practice?</h2>
             <p className={styles.dialogHint}>
-              This will permanently remove the request from the system.
+              This will permanently remove {practiceName} from the system.
             </p>
 
             {error ? <div className={`error-message ${styles.dialogError}`}>{error}</div> : null}

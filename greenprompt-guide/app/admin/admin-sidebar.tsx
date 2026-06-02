@@ -10,6 +10,22 @@ const adminSections = [
     label: "Practices",
   },
   {
+    href: "/admin/references",
+    label: "References",
+  },
+  {
+    href: "/admin/promptTechniques",
+    label: "Prompt Techniques",
+  },
+  {
+    href: "/admin/models",
+    label: "Models",
+  },
+  {
+    href: "/admin/datasets",
+    label: "Datasets",
+  },
+  {
     href: "/admin/requests",
     label: "Requests",
   },

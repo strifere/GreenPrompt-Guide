@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { listAllCollaborationRequests } from "@/domain/collaboration-request-repository";
-import { AdminRequestDeleteAction } from "../admin-request-actions";
+import { AdminRequestDeleteAction } from "./admin-request-actions";
 import styles from "../admin.module.css";
 
 type RequestListItem = Awaited<ReturnType<typeof listAllCollaborationRequests>>[number];
