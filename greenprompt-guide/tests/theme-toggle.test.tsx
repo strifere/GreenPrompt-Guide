@@ -4,10 +4,20 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ThemeToggle } from "@/app/ui/theme-toggle";
 
 const mockMediaQuery = {
+  media: "(prefers-color-scheme: dark)",
   matches: false,
   addEventListener: vi.fn(),
   removeEventListener: vi.fn(),
+  addListener: vi.fn(),
+  removeListener: vi.fn(),
+  onchange: null,
+  dispatchEvent: vi.fn(),
 };
+
+Object.defineProperty(globalThis.window, "matchMedia", {
+  writable: true,
+  value: vi.fn(),
+});
 
 describe("ThemeToggle", () => {
   beforeEach(() => {

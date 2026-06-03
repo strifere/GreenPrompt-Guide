@@ -2,7 +2,7 @@ import Link from "next/link";
 import styles from "../admin.module.css";
 import { prisma } from "@/lib/prisma";
 import { catalogDatasetHref } from "@/app/catalog/catalog-paths";
-import { AdminDatasetDeleteAction } from "./admin-dataset-delete-action";
+import { AdminDeleteAction } from "../admin-delete-action";
 
 export default async function AdminDatasetsPage() {
   const datasets = await prisma.dataset.findMany({
@@ -59,7 +59,7 @@ export default async function AdminDatasetsPage() {
                 >
                   Modify
                 </Link>
-                <AdminDatasetDeleteAction datasetName={dataset.name} />
+                <AdminDeleteAction type="dataset" objectKey={dataset.name} />
               </div>
             </article>
           ))}

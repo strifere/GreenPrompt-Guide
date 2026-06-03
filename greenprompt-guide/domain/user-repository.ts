@@ -8,6 +8,12 @@ export type UserPublic = {
   banned?: boolean;
 };
 
+export type AdminRequest = {
+  id: number;
+  requesterUsername: string;
+  request: string;
+};
+
 export type UserWithPassword = UserPublic & {
   password: string;
 };
@@ -173,4 +179,49 @@ export type UpdateEmailInput = {
 export async function updateEmail(input: UpdateEmailInput): Promise<UserPublic> {
   const updated = await prisma.user.update({ where: { username: input.username }, data: { email: input.newEmail } });
   return updated;
+}
+
+// ============================================
+// ADMIN REQUESTS
+// ============================================
+
+export type AdminRequestInput = {
+  currentUsername: string;
+  request: string;
+};
+
+export async function searchExistingAdminRequest(username: string): Promise<AdminRequest | null> {
+  return prisma.adminRequest.findUnique({ where: { requesterUsername: username } });
+}
+
+export async function insertAdminRequest(input: AdminRequestInput): Promise<void> {
+  await prisma.adminRequest.create({
+    data: {
+      requesterUsername: input.currentUsername,
+      request: input.request,
+    },
+  });
+}
+
+export async function listAdminRequests() {
+  return prisma.adminRequest.findMany({
+    orderBy: { requesterUsername: "asc" },
+    select: {
+      id: true,
+      requesterUsername: true,
+      request: true,
+    },
+  });
+}
+
+export async function deleteAdminRequestByUsername(username: string): Promise<void> {
+  await prisma.adminRequest.delete({ where: { requesterUsername: username } });
+}
+
+export async function getAdminRequestByUsername(username: string): Promise<AdminRequest | null> {
+  return prisma.adminRequest.findUnique({ where: { requesterUsername: username } });
+}
+
+export async function promopteUserToAdmin(username: string): Promise<void> {
+  await prisma.user.update({ where: { username }, data: { role: "ADMIN" } });
 }

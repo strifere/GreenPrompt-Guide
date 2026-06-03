@@ -5,20 +5,20 @@ import type { DataFormatType } from "@prisma/client";
 
 export const runtime = "nodejs";
 
-const VALID_DATA_FORMAT_TYPES: DataFormatType[] = [
+const VALID_DATA_FORMAT_TYPES: Set<DataFormatType> = new Set([
   "TEXT_ONLY",
   "IMAGE",
   "PDF",
   "CSV",
   "HTML",
   "ANY_FORMAT",
-];
+]);
 
 function normalizeDataFormatTypes(value: unknown): DataFormatType[] {
   if (!Array.isArray(value)) return ["TEXT_ONLY"];
   const valid = value.filter(
     (v): v is DataFormatType =>
-      typeof v === "string" && VALID_DATA_FORMAT_TYPES.includes(v as DataFormatType),
+      typeof v === "string" && VALID_DATA_FORMAT_TYPES.has(v as DataFormatType),
   );
   return valid.length > 0 ? valid : ["TEXT_ONLY"];
 }

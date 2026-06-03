@@ -7,6 +7,7 @@ import { useEffect, useRef, useState, type ChangeEvent, type Dispatch, type SetS
 type UserProfile = {
 	username: string;
 	email: string;
+	role: string | null;
 };
 
 type Feedback = {
@@ -31,6 +32,8 @@ type EmailChangeModalProps = {
 
 type EmailStep = "email" | "code" | "success";
 
+type RequestStep = "request" | "success";
+
 type DeleteAccountModalProps = {
 	isOpen: boolean;
 	onClose: () => void;
@@ -43,9 +46,68 @@ type LoadProfileParams = {
 	routeUsername?: string;
 	setProfile: Dispatch<SetStateAction<UserProfile>>;
 	setUsernameDraft: Dispatch<SetStateAction<string>>;
+	setProfileStatusDescription: Dispatch<SetStateAction<React.ReactNode>>;
+	setProfileStatusActions: Dispatch<SetStateAction<React.ReactNode>>;
+	setIsRequestAdminModalOpen: Dispatch<SetStateAction<boolean>>;
 };
 
-async function loadProfile({ router, routeUsername, setProfile, setUsernameDraft }: LoadProfileParams) {
+type changeProfileStatusDescriptionParams = {
+	role: string | null;
+	adminRequest: boolean;
+	router: ReturnType<typeof useRouter>;
+	setProfileStatusDescription: Dispatch<SetStateAction<React.ReactNode>>;
+	setProfileStatusActions: Dispatch<SetStateAction<React.ReactNode>>;
+	setIsRequestAdminModalOpen: Dispatch<SetStateAction<boolean>>;
+};
+
+async function changeProfileStatusDescription({ role, adminRequest, router, setProfileStatusDescription, setProfileStatusActions, setIsRequestAdminModalOpen }: changeProfileStatusDescriptionParams) {
+	if (role === "ADMIN") {
+		setProfileStatusDescription(
+			<p className="user-section-description">
+				This is an administrator account.
+			</p>
+		);
+		setProfileStatusActions(
+			<div className="user-actions-row user-actions-row-end">
+				<button
+					type="button"
+					className="solid-btn"
+					onClick={() => router.push("/admin/")}
+				>
+					Admin interface
+				</button>
+			</div>
+		);
+	} else if (adminRequest) {
+		setProfileStatusDescription(
+			<div>
+				<p className="user-section-description">
+					You requested promotion to admin. Please wait for the decision from current admins.
+				</p>
+			</div>
+		);
+		setProfileStatusActions(null);
+	} else {
+		setProfileStatusDescription(
+				<p className="user-section-description">
+					Request promotion to admin.
+				</p>);
+
+		setProfileStatusActions(
+			<div className="user-actions-row user-actions-row-end">
+				<button
+					type="button"
+					className="solid-btn"
+					onClick={() => setIsRequestAdminModalOpen(true)}
+				>
+					Request admin status
+				</button>
+			</div>
+		);
+	}
+}
+
+async function loadProfile({ router, routeUsername, setProfile, setUsernameDraft, setProfileStatusDescription, setProfileStatusActions, setIsRequestAdminModalOpen }: LoadProfileParams) {
 	try {
 		const response = await fetch("/api/auth/profile", {
 			method: "GET",
@@ -71,6 +133,15 @@ async function loadProfile({ router, routeUsername, setProfile, setUsernameDraft
 		if (routeUsername && routeUsername !== data.user.username) {
 			router.replace(`/user/${data.user.username}`);
 		}
+
+		const adminRequestResponse = await fetch("/api/auth/profile/admin-request", {
+			method: "GET",
+			credentials: "include",
+		});
+
+		const adminRequestData = await adminRequestResponse.json();
+
+		changeProfileStatusDescription({ role: data.user.role, adminRequest: adminRequestData.requested, router, setProfileStatusDescription, setProfileStatusActions, setIsRequestAdminModalOpen });
 	} catch (profileError) {
 		console.error(
 			profileError instanceof Error
@@ -417,16 +488,127 @@ function DeleteAccountModal({ isOpen, onClose, onConfirm, onSuccess }: Readonly<
 	);
 }
 
+function RequestAdminModal({ isOpen, onClose, onSuccess }: Readonly<{ isOpen: boolean; onClose: () => void; onSuccess: () => void; }>) {
+	const [step, setStep] = useState<RequestStep>("request");
+	const [request, setRequest] = useState("");
+	const [error, setError] = useState("");
+	const [loading, setLoading] = useState(false);
+
+	const resetAndClose = () => {
+		setStep("request");
+		setRequest("");
+		setError("");
+		setLoading(false);
+		if (step === "success") {
+			onSuccess();
+		} else {
+			onClose();
+		}
+	};
+
+	const handleRequest = async (event: SyntheticEvent<HTMLFormElement>) => {
+		event.preventDefault();
+		setError("");
+		setLoading(true);
+
+		try {
+			const response = await fetch("/api/auth/profile/admin-request", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ request }),
+			});
+
+			const data = await response.json();
+
+			if (!response.ok) {
+				setError(data.error || "Failed to create admin status request");
+				return;
+			}
+
+			setStep("success");
+		} catch (requestError) {
+			setError(
+				"An error occurred: " +
+					(requestError instanceof Error ? requestError.message : "Please try again.")
+			);
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	if (!isOpen) {
+		return null;
+	}
+
+	return (
+		<div className="recovery-modal-overlay">
+			<button
+				type="button"
+				className="recovery-modal-backdrop"
+				aria-label="Close request admin status modal"
+				onClick={resetAndClose}
+			/>
+			<div className="recovery-modal">
+				<button className="recovery-modal-close" onClick={resetAndClose}>
+					✕
+				</button>
+
+				{step === "request" && (
+					<>
+						<h2>Request the admin status</h2>
+						<p>Provide a message for the admin users to explain why you request admin status.</p>
+
+						{error && <div className="error-message">{error}</div>}
+
+						<form onSubmit={handleRequest} className="recovery-form">
+							<div className="form-group">
+								<label htmlFor="request-message">Request Message</label>
+								<textarea
+									className="request-textarea"
+									id="request-message"
+									value={request}
+									onChange={(event: ChangeEvent<HTMLTextAreaElement>) => setRequest(event.target.value)}
+									placeholder="Write your message here..."
+									required
+									autoComplete="email"
+								/>
+							</div>
+
+							<button type="submit" className="recovery-btn" disabled={loading}>
+								{loading ? "Sending..." : "Send request"}
+							</button>
+						</form>
+					</>
+				)}
+
+				{step === "success" && (
+					<>
+						<h2>Admin status requested</h2>
+						<p>Your request for admin status has been submitted. You will be notified once a decision is made.</p>
+
+						<button className="recovery-btn" onClick={onSuccess}>
+							OK
+						</button>
+					</>
+				)}
+			</div>
+		</div>
+	);
+}
+
 export default function UserProfilePage() {
 	const router = useRouter();
 	const params = useParams<{ username?: string | string[] }>();
-	const [profile, setProfile] = useState<UserProfile>({ username: "", email: "" });
+	const [profile, setProfile] = useState<UserProfile>({ username: "", email: "", role: "" });
 	const [isEditingUsername, setIsEditingUsername] = useState(false);
 	const [usernameDraft, setUsernameDraft] = useState("");
 	const [usernameLoading, setUsernameLoading] = useState(false);
 	const [usernameFeedback, setUsernameFeedback] = useState<Feedback>(null);
 	const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
 	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+	const [isRequestAdminModalOpen, setIsRequestAdminModalOpen] = useState(false);
+	const [profileStatusDescription, setProfileStatusDescription] = useState<React.ReactNode>(null);
+	const [profileStatusActions, setProfileStatusActions] = useState<React.ReactNode>(null);
 	const [passwordForm, setPasswordForm] = useState({
 		currentPassword: "",
 		password: "",
@@ -441,7 +623,7 @@ export default function UserProfilePage() {
 	const routeUsername = Array.isArray(params.username) ? params.username[0] : params.username;
 
 	useEffect(() => {
-		void loadProfile({ router, routeUsername, setProfile, setUsernameDraft });
+		void loadProfile({ router, routeUsername, setProfile, setUsernameDraft, setProfileStatusDescription, setProfileStatusActions, setIsRequestAdminModalOpen });
 	}, [routeUsername, router]);
 
 	const handleUsernameEditOpen = () => {
@@ -560,6 +742,17 @@ export default function UserProfilePage() {
 		globalThis.dispatchEvent(new Event("auth-changed"));
 		router.replace("/");
 	};
+
+	const handleRequestAdminSuccess = () => {
+		setIsRequestAdminModalOpen(false);
+		setProfileStatusDescription(
+			<div>
+				<p className="user-section-description">
+					You requested promotion to admin. Please wait for the decision from current admins.
+				</p>
+			</div>
+		);
+	}
 
 	return (
 		<>
@@ -730,21 +923,27 @@ export default function UserProfilePage() {
 							</div>
 						</form>
 					</section>
+					<section className="user-card admin-status-card">
+						<div className="user-section-heading">
+							<h2 className="user-section-title">Profile status</h2>
+							{profileStatusDescription}
+						</div>
+						{profileStatusActions}
+					</section>
+					<section className="user-card user-danger-card">
+						<div className="user-section-heading">
+							<h2 className="user-section-title">Delete account</h2>
+							<p className="user-section-description">
+								This permanently erases your account and signs you out of the system.
+							</p>
+						</div>
 
-								<section className="user-card user-danger-card">
-							<div className="user-section-heading">
-								<h2 className="user-section-title">Delete account</h2>
-								<p className="user-section-description">
-									This permanently erases your account and signs you out of the system.
-								</p>
-							</div>
-
-							<div className="user-actions-row user-actions-row-end">
-								<button type="button" className="danger-btn" onClick={() => setIsDeleteModalOpen(true)}>
-									Delete account
-								</button>
-							</div>
-						</section>
+						<div className="user-actions-row user-actions-row-end">
+							<button type="button" className="danger-btn" onClick={() => setIsDeleteModalOpen(true)}>
+								Delete account
+							</button>
+						</div>
+					</section>
 				</div>
 			</main>
 
@@ -759,6 +958,11 @@ export default function UserProfilePage() {
 				onClose={() => setIsDeleteModalOpen(false)}
 				onConfirm={handleDeleteAccount}
 				onSuccess={handleDeleteSuccess}
+			/>
+			<RequestAdminModal
+				isOpen={isRequestAdminModalOpen}
+				onClose={() => setIsRequestAdminModalOpen(false)}
+				onSuccess={handleRequestAdminSuccess}
 			/>
 		</>
 	);

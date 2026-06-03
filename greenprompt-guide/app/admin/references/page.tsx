@@ -2,7 +2,7 @@ import Link from "next/link";
 import styles from "../admin.module.css";
 import { listReferences } from "@/domain/reference-repository";
 import { catalogReferenceHref } from "@/app/catalog/catalog-paths";
-import { AdminReferenceDeleteAction } from "./admin-reference-delete-action";
+import { AdminDeleteAction } from "../admin-delete-action";
 
 export default async function AdminReferencesPage() {
   const references = await listReferences();
@@ -50,7 +50,7 @@ export default async function AdminReferencesPage() {
                 <Link href={`/admin/references/edit/${encodeURIComponent(reference.title)}`} className={`ghost-btn ${styles.actionButton}`}>
                   Modify
                 </Link>
-                <AdminReferenceDeleteAction referenceTitle={reference.title} />
+                <AdminDeleteAction type="reference" objectKey={reference.title} />
               </div>
             </article>
           ))}

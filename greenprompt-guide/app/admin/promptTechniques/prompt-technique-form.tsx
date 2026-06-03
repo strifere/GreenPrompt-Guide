@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, type ChangeEvent, type SyntheticEvent } from "react";
 import styles from "../admin.module.css";
+import { submitObject } from "@/lib/admin-actions-client";
 
 export type PromptTechniqueFormInitialValues = {
   name?: string;
@@ -35,40 +36,13 @@ export function PromptTechniqueForm({
   const [error, setError] = useState("");
 
   const handleSubmit = async (event: SyntheticEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setSaving(true);
-    setError("");
-
     const body = {
       name: name.trim(),
       description: description.trim(),
       example: example.trim() || null,
     };
 
-    try {
-      const response = await fetch(submitUrl, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-
-      const data = (await response.json().catch(() => ({}))) as { error?: string };
-
-      if (!response.ok) {
-        throw new Error(data.error ?? "Failed to save the prompt technique");
-      }
-
-      router.push(redirectPath);
-      router.refresh();
-    } catch (submitError) {
-      setError(
-        submitError instanceof Error
-          ? submitError.message
-          : "Unable to save the prompt technique right now",
-      );
-    } finally {
-      setSaving(false);
-    }
+    submitObject({ event, setSaving, setError, submitUrl, method, body, redirectPath, router, type: "practice" });
   };
 
   return (

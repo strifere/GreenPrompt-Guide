@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { listPractices } from "@/domain/practice-repository";
 import styles from "../admin.module.css";
-import { AdminPracticeDeleteAction } from "./admin-practice-delete-action";
 import { catalogPracticeHref } from "@/app/catalog/catalog-paths";
+import { AdminDeleteAction } from "../admin-delete-action";
 
 export default async function AdminPracticesPage() {
   const practices = await listPractices();
@@ -49,7 +49,7 @@ export default async function AdminPracticesPage() {
                 <Link href={`/admin/practices/edit/${encodeURIComponent(practice.name)}`} className={`ghost-btn ${styles.actionButton}`}>
                   Modify
                 </Link>
-                <AdminPracticeDeleteAction practiceName={practice.name} />
+                <AdminDeleteAction type="practice" objectKey={practice.name} />
               </div>
             </article>
           ))}

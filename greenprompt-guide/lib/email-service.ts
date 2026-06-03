@@ -128,6 +128,36 @@ class EmailService {
       html,
     });
   }
+
+  async sendAdminRequestResponse(email: string, accepted: boolean, message: string): Promise<boolean> {
+    const subject = accepted ? "Your admin request has been accepted" : "Your admin request has been rejected";
+    const text = accepted
+      ? `Congratulations! Your request to become an admin has been accepted.\n`
+      : `We regret to inform you that your request to become an admin has been rejected.\n\nMessage from the admin team: ${message}`;
+    const html = accepted
+      ? `<p>Congratulations! Your request to become an admin has been accepted.</p>`
+      : `<p>We regret to inform you that your request to become an admin has been rejected.</p><p><strong>Message from the admin team:</strong> ${message}</p>`;
+
+    return this.send({
+      to: email,
+      subject,
+      text,
+      html,
+    });
+  }
+
+  async sendAdminPromotionNotice(email: string): Promise<boolean> {
+    const subject = "You've been promoted to admin!";
+    const text = "Congratulations! You've been promoted to an admin role. You now have access to admin features and controls.";
+    const html = `<p>Congratulations! You've been promoted to an admin role.</p><p>You now have access to admin features and controls.</p>`;
+
+    return this.send({
+      to: email,
+      subject,
+      text,
+      html,
+    });
+  }
 }
 
 export const emailService = new EmailService();

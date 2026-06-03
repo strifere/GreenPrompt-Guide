@@ -67,16 +67,14 @@ export async function POST(request: Request, context: RequestMessagesRouteContex
 		const isAdmin = currentUser.role === "ADMIN";
 		const isAdminMoreInfoRequest = isAdmin && intent === "MORE_INFO_REQUEST";
 		const isRequesterResponse = !isAdmin && collaborationRequest.status === "REQUESTED_MORE_INFO";
+		const requesterType = isRequesterResponse ? "RESPONSE" : "NOTE";
 		const messageType = isAdminMoreInfoRequest
 			? "MORE_INFO_REQUEST"
-			: isRequesterResponse
-				? "RESPONSE"
-				: "NOTE";
+			: requesterType;
+		const responseType = isRequesterResponse ? "PENDING" : null;
 		const nextStatus: CollaborationRequestStatus | null = isAdminMoreInfoRequest
 			? "REQUESTED_MORE_INFO"
-			: isRequesterResponse
-				? "PENDING"
-				: null;
+			: responseType;
 		const createdMessage = await createCollaborationRequestMessage({
 			requestId: parsedRequestId,
 			authorUsername: currentUser.username,

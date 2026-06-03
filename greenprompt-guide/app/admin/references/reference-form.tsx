@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, type ChangeEvent, type SyntheticEvent } from "react";
 import styles from "../admin.module.css";
+import { submitObject } from "@/lib/admin-actions-client";
 
 export type ReferenceFormInitialValues = {
   title?: string;
@@ -51,10 +52,6 @@ export function ReferenceForm({
   const [error, setError] = useState("");
 
   const handleSubmit = async (event: SyntheticEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setSaving(true);
-    setError("");
-
     const body = {
       title: title.trim(),
       authors: authors.trim(),
@@ -69,26 +66,7 @@ export function ReferenceForm({
       link: link.trim() || null,
     };
 
-    try {
-      const response = await fetch(submitUrl, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-
-      const data = (await response.json().catch(() => ({}))) as { error?: string };
-
-      if (!response.ok) {
-        throw new Error(data.error ?? "Failed to save the reference");
-      }
-
-      router.push(redirectPath);
-      router.refresh();
-    } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : "Unable to save the reference right now");
-    } finally {
-      setSaving(false);
-    }
+    submitObject({ event, setSaving, setError, submitUrl, method, body, redirectPath, router, type: "reference" });
   };
 
   return (

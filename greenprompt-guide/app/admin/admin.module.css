@@ -214,6 +214,26 @@
   color: #fff;
 }
 
+.solidAction {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+.notificationAction {
+  margin-right: 5px;
+  border-color: var(--home-green);
+  background: color-mix(in srgb, var(--home-green) 20%, transparent);
+  color: var(--text-main);
+}
+
+.notificationRejection {
+  margin-left: 5px;
+  border-color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 20%, transparent);
+  color: var(--text-main);
+}
+
 .badge {
   display: inline-flex;
   align-items: center;
@@ -289,6 +309,17 @@
 
 .dialogError {
   margin-bottom: 16px;
+}
+
+.requestMessage {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+  color: var(--text-main);
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1.5;
 }
 
 .creationForm {

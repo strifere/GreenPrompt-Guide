@@ -224,13 +224,7 @@ function createInitialMetrics(initialValues: PracticeFormInitialValues | undefin
 	return initialValues.metrics.map((metric, index) => ({ ...metric, id: index + 1 }));
 }
 
-function toggleTextSelection(currentValues: string[], value: string) {
-	return currentValues.includes(value)
-		? currentValues.filter((currentValue) => currentValue !== value)
-		: [...currentValues, value];
-}
-
-function toggleNumberSelection(currentValues: number[], value: number) {
+function toggleSelection<T>(currentValues: T[], value: T) {	
 	return currentValues.includes(value)
 		? currentValues.filter((currentValue) => currentValue !== value)
 		: [...currentValues, value];
@@ -493,7 +487,7 @@ export function PracticeForm({
 							<input
 								type="checkbox"
 								checked={selectedCategoryNames.includes(category.name)}
-								onChange={() => setSelectedCategoryNames((currentValues) => toggleTextSelection(currentValues, category.name))}
+								onChange={() => setSelectedCategoryNames((currentValues) => toggleSelection(currentValues, category.name))}
 							/>
 							<span>{category.name}</span>
 						</label>
@@ -562,7 +556,7 @@ export function PracticeForm({
 								<input
 									type="checkbox"
 									checked={selectedPromptTechniqueNames.includes(promptTechnique.name)}
-									onChange={() => setSelectedPromptTechniqueNames((currentValues) => toggleTextSelection(currentValues, promptTechnique.name))}
+									onChange={() => setSelectedPromptTechniqueNames((currentValues) => toggleSelection(currentValues, promptTechnique.name))}
 								/>
 								<span>{promptTechnique.name}</span>
 							</label>
@@ -575,7 +569,7 @@ export function PracticeForm({
 								<input
 									type="checkbox"
 									checked={selectedModelNames.includes(model.name)}
-									onChange={() => setSelectedModelNames((currentValues) => toggleTextSelection(currentValues, model.name))}
+									onChange={() => setSelectedModelNames((currentValues) => toggleSelection(currentValues, model.name))}
 								/>
 								<span>{model.name}</span>
 							</label>
@@ -588,7 +582,7 @@ export function PracticeForm({
 								<input
 									type="checkbox"
 									checked={selectedReferenceTitles.includes(reference.title)}
-									onChange={() => setSelectedReferenceTitles((currentValues) => toggleTextSelection(currentValues, reference.title))}
+									onChange={() => setSelectedReferenceTitles((currentValues) => toggleSelection(currentValues, reference.title))}
 								/>
 								<span>{reference.title} ({reference.year})</span>
 							</label>
@@ -601,7 +595,7 @@ export function PracticeForm({
 								<input
 									type="checkbox"
 									checked={selectedHyperparameterIds.includes(hyperparameter.id)}
-									onChange={() => setSelectedHyperparameterIds((currentValues) => toggleNumberSelection(currentValues, hyperparameter.id))}
+									onChange={() => setSelectedHyperparameterIds((currentValues) => toggleSelection(currentValues, hyperparameter.id))}
 								/>
 								<span>
 									{hyperparameter.name}: {hyperparameter.value} ({hyperparameter.dataType}) - {hyperparameter.referenceTitle}
@@ -752,7 +746,7 @@ export function PracticeForm({
 				</section>
 			) : null}
 
-			{!isEditMode ? (
+			{isEditMode ? null : (
 				<section className={styles.creationSection}>
 					<h3 className={styles.creationSectionTitle}>Reference</h3>
 					<div className={styles.creationSplitGrid}>
@@ -808,7 +802,7 @@ export function PracticeForm({
 						<input id="reference-link" value={referenceLink} onChange={(event: ChangeEvent<HTMLInputElement>) => setReferenceLink(event.target.value)} required />
 					</div>
 				</section>
-			) : null}
+			)}
 
 			{error ? <div className="error-message">{error}</div> : null}
 

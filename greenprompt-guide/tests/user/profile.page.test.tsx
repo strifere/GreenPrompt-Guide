@@ -19,9 +19,82 @@ describe("UserProfilePage", () => {
     replace: mockReplace,
   };
 
+  // Centralized mock registry to decouple tests from sequential call orders
+  let mockFetchResponses: {
+    profile?: any;
+    adminRequest?: any;
+    username?: any;
+    password?: any;
+    delete?: any;
+    emailRequest?: any;
+    emailVerify?: any;
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
-    globalThis.fetch = vi.fn();
+
+    // Default successful base responses for layout and mount renders
+    mockFetchResponses = {
+      profile: {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          user: {
+            username: "testuser",
+            email: "test@example.com",
+            role: "USER",
+          },
+        }),
+      },
+      adminRequest: {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          requested: false,
+        }),
+      },
+    };
+
+    // Robust URL-based mock routing
+    globalThis.fetch = vi.fn().mockImplementation(async (url: string) => {
+      if (url.includes("/api/auth/profile/admin-request")) {
+        return typeof mockFetchResponses.adminRequest === "function"
+          ? mockFetchResponses.adminRequest()
+          : mockFetchResponses.adminRequest;
+      }
+      if (url.includes("/api/auth/profile/username")) {
+        return typeof mockFetchResponses.username === "function"
+          ? mockFetchResponses.username()
+          : mockFetchResponses.username;
+      }
+      if (url.includes("/api/auth/profile/password")) {
+        return typeof mockFetchResponses.password === "function"
+          ? mockFetchResponses.password()
+          : mockFetchResponses.password;
+      }
+      if (url.includes("/api/auth/profile/delete")) {
+        return typeof mockFetchResponses.delete === "function"
+          ? mockFetchResponses.delete()
+          : mockFetchResponses.delete;
+      }
+      if (url.includes("/api/auth/profile/email/request")) {
+        return typeof mockFetchResponses.emailRequest === "function"
+          ? mockFetchResponses.emailRequest()
+          : mockFetchResponses.emailRequest;
+      }
+      if (url.includes("/api/auth/profile/email/verify")) {
+        return typeof mockFetchResponses.emailVerify === "function"
+          ? mockFetchResponses.emailVerify()
+          : mockFetchResponses.emailVerify;
+      }
+      if (url.includes("/api/auth/profile")) {
+        return typeof mockFetchResponses.profile === "function"
+          ? mockFetchResponses.profile()
+          : mockFetchResponses.profile;
+      }
+      return { ok: false, status: 404, json: async () => ({ error: "Not found" }) };
+    });
+
     (useRouter as any).mockReturnValue(mockRouter);
     (useParams as any).mockReturnValue({
       username: "testuser",
@@ -34,17 +107,6 @@ describe("UserProfilePage", () => {
 
   describe("Profile Loading", () => {
     it("should render the profile page immediately", async () => {
-      (globalThis.fetch as any).mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => ({
-          user: {
-            username: "testuser",
-            email: "test@example.com",
-          },
-        }),
-      });
-
       render(<UserProfilePage />);
 
       expect(screen.getByText("Your details")).toBeInTheDocument();
@@ -56,17 +118,6 @@ describe("UserProfilePage", () => {
     });
 
     it("should fetch profile on mount", async () => {
-      (globalThis.fetch as any).mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => ({
-          user: {
-            username: "testuser",
-            email: "test@example.com",
-          },
-        }),
-      });
-
       render(<UserProfilePage />);
 
       await waitFor(() => {
@@ -84,11 +135,11 @@ describe("UserProfilePage", () => {
 
   describe("Profile Fetch Errors", () => {
     it("should redirect to login on 401 error", async () => {
-      (globalThis.fetch as any).mockResolvedValueOnce({
+      mockFetchResponses.profile = {
         ok: false,
         status: 401,
         json: async () => ({ error: "Not authenticated" }),
-      });
+      };
 
       render(<UserProfilePage />);
 
@@ -98,11 +149,11 @@ describe("UserProfilePage", () => {
     });
 
     it("should keep rendering the page when profile fetch fails", async () => {
-      (globalThis.fetch as any).mockResolvedValueOnce({
+      mockFetchResponses.profile = {
         ok: false,
         status: 500,
         json: async () => ({ error: "Server error" }),
-      });
+      };
 
       render(<UserProfilePage />);
 
@@ -115,19 +166,6 @@ describe("UserProfilePage", () => {
   });
 
   describe("Successful Profile Load", () => {
-    beforeEach(() => {
-      (globalThis.fetch as any).mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => ({
-          user: {
-            username: "testuser",
-            email: "test@example.com",
-          },
-        }),
-      });
-    });
-
     it("should display username", async () => {
       render(<UserProfilePage />);
 
@@ -159,7 +197,7 @@ describe("UserProfilePage", () => {
         username: "wronguser",
       });
 
-      (globalThis.fetch as any).mockResolvedValueOnce({
+      mockFetchResponses.profile = {
         ok: true,
         status: 200,
         json: async () => ({
@@ -168,7 +206,7 @@ describe("UserProfilePage", () => {
             email: "test@example.com",
           },
         }),
-      });
+      };
 
       render(<UserProfilePage />);
 
@@ -179,19 +217,6 @@ describe("UserProfilePage", () => {
   });
 
   describe("Username Editing", () => {
-    beforeEach(() => {
-      (globalThis.fetch as any).mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => ({
-          user: {
-            username: "testuser",
-            email: "test@example.com",
-          },
-        }),
-      });
-    });
-
     it("should open username edit form when clicking edit button", async () => {
       render(<UserProfilePage />);
 
@@ -208,30 +233,17 @@ describe("UserProfilePage", () => {
     });
 
     it("should update username successfully", async () => {
-      vi.clearAllMocks();
-      (globalThis.fetch as any) = vi.fn();
-      (globalThis.fetch as any)
-        .mockResolvedValueOnce({
-          ok: true,
-          status: 200,
-          json: async () => ({
-            user: {
-              username: "testuser",
-              email: "test@example.com",
-            },
-          }),
-        })
-        .mockResolvedValueOnce({
-          ok: true,
-          status: 200,
-          json: async () => ({
-            message: "Username updated successfully",
-            user: {
-              username: "newusername",
-              email: "test@example.com",
-            },
-          }),
-        });
+      mockFetchResponses.username = {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          message: "Username updated successfully",
+          user: {
+            username: "newusername",
+            email: "test@example.com",
+          },
+        }),
+      };
 
       const dispatchEvent = vi.spyOn(globalThis, "dispatchEvent");
 
@@ -262,26 +274,13 @@ describe("UserProfilePage", () => {
     });
 
     it("should show error on username update failure", async () => {
-      vi.clearAllMocks();
-      (globalThis.fetch as any) = vi.fn();
-      (globalThis.fetch as any)
-        .mockResolvedValueOnce({
-          ok: true,
-          status: 200,
-          json: async () => ({
-            user: {
-              username: "testuser",
-              email: "test@example.com",
-            },
-          }),
-        })
-        .mockResolvedValueOnce({
-          ok: false,
-          status: 409,
-          json: async () => ({
-            error: "Username already taken",
-          }),
-        });
+      mockFetchResponses.username = {
+        ok: false,
+        status: 409,
+        json: async () => ({
+          error: "Username already taken",
+        }),
+      };
 
       render(<UserProfilePage />);
 
@@ -304,17 +303,6 @@ describe("UserProfilePage", () => {
     });
 
     it("should cancel username edit", async () => {
-      (globalThis.fetch as any).mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => ({
-          user: {
-            username: "testuser",
-            email: "test@example.com",
-          },
-        }),
-      });
-
       render(<UserProfilePage />);
 
       await waitFor(() => {
@@ -337,40 +325,15 @@ describe("UserProfilePage", () => {
   });
 
   describe("Password Change", () => {
-    beforeEach(() => {
-      (globalThis.fetch as any).mockResolvedValueOnce({
+    it("should update password successfully", async () => {
+      mockFetchResponses.password = {
         ok: true,
         status: 200,
         json: async () => ({
-          user: {
-            username: "testuser",
-            email: "test@example.com",
-          },
+          message: "Password changed successfully",
+          status: 200,
         }),
-      });
-    });
-
-    it("should update password successfully", async () => {
-      vi.clearAllMocks();
-      (globalThis.fetch as any) = vi.fn();
-      (globalThis.fetch as any)
-        .mockResolvedValueOnce({
-          ok: true,
-          status: 200,
-          json: async () => ({
-            user: {
-              username: "testuser",
-              email: "test@example.com",
-            },
-          }),
-        })
-        .mockResolvedValueOnce({
-          ok: true,
-          status: 200,
-          json: async () => ({
-            message: "Password changed successfully",
-          }),
-        });
+      };
 
       render(<UserProfilePage />);
 
@@ -399,26 +362,13 @@ describe("UserProfilePage", () => {
     });
 
     it("should show error on password change failure", async () => {
-      vi.clearAllMocks();
-      (globalThis.fetch as any) = vi.fn();
-      (globalThis.fetch as any)
-        .mockResolvedValueOnce({
-          ok: true,
-          status: 200,
-          json: async () => ({
-            user: {
-              username: "testuser",
-              email: "test@example.com",
-            },
-          }),
-        })
-        .mockResolvedValueOnce({
-          ok: false,
-          status: 401,
-          json: async () => ({
-            error: "Current password is incorrect",
-          }),
-        });
+      mockFetchResponses.password = {
+        ok: false,
+        status: 401,
+        json: async () => ({
+          error: "Current password is incorrect",
+        }),
+      };
 
       render(<UserProfilePage />);
 
@@ -447,26 +397,13 @@ describe("UserProfilePage", () => {
     });
 
     it("should clear password fields after successful change", async () => {
-      vi.clearAllMocks();
-      (globalThis.fetch as any) = vi.fn();
-      (globalThis.fetch as any)
-        .mockResolvedValueOnce({
-          ok: true,
-          status: 200,
-          json: async () => ({
-            user: {
-              username: "testuser",
-              email: "test@example.com",
-            },
-          }),
-        })
-        .mockResolvedValueOnce({
-          ok: true,
-          status: 200,
-          json: async () => ({
-            message: "Password changed successfully",
-          }),
-        });
+      mockFetchResponses.password = {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          message: "Password changed successfully",
+        }),
+      };
 
       render(<UserProfilePage />);
 
@@ -502,19 +439,6 @@ describe("UserProfilePage", () => {
   });
 
   describe("Email Modal", () => {
-    beforeEach(() => {
-      (globalThis.fetch as any).mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => ({
-          user: {
-            username: "testuser",
-            email: "test@example.com",
-          },
-        }),
-      });
-    });
-
     it("should open email change modal when clicking edit email button", async () => {
       render(<UserProfilePage />);
 
@@ -553,32 +477,22 @@ describe("UserProfilePage", () => {
     });
 
     it("should update profile email after successful email change", async () => {
-      (globalThis.fetch as any)
-        .mockResolvedValueOnce({
-          ok: true,
-          status: 200,
-          json: async () => ({
-            user: {
-              username: "testuser",
-              email: "test@example.com",
-            },
-          }),
-        })
-        .mockResolvedValueOnce({
-          ok: true,
-          status: 200,
-          json: async () => ({
-            message: "Verification code sent",
-          }),
-        })
-        .mockResolvedValueOnce({
-          ok: true,
-          status: 200,
-          json: async () => ({
-            message: "Email updated successfully",
-            user: { email: "newemail@example.com" },
-          }),
-        });
+      mockFetchResponses.emailRequest = {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          message: "Verification code sent",
+        }),
+      };
+
+      mockFetchResponses.emailVerify = {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          message: "Email updated successfully",
+          user: { email: "newemail@example.com" },
+        }),
+      };
 
       render(<UserProfilePage />);
 
@@ -586,32 +500,30 @@ describe("UserProfilePage", () => {
         expect(screen.getByLabelText("Edit email")).toBeInTheDocument();
       });
 
-      // Open modal and complete email change flow
       fireEvent.click(screen.getByLabelText("Edit email"));
 
       await waitFor(() => {
         expect(screen.getByText("Change Your Email")).toBeInTheDocument();
       });
 
-      // After successful verification, the email should be updated
-      // This would happen after going through the modal flow
+      // Complete the uncompleted test flow actions safely
+      const emailInput = screen.getByLabelText("New Email");
+      await userEvent.type(emailInput, "newemail@example.com");
+
+      fireEvent.click(screen.getByRole("button", { name: /Send verification code/i }));
+
+      const codeInput = await screen.findByLabelText("Verification Code");
+      await userEvent.type(codeInput, "ABC123");
+
+      fireEvent.click(screen.getByRole("button", { name: /Verify email/i }));
+
+      await waitFor(() => {
+        expect(screen.getByText("Email Changed Successfully")).toBeInTheDocument();
+      });
     });
   });
 
   describe("Delete Account", () => {
-    beforeEach(() => {
-      (globalThis.fetch as any).mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => ({
-          user: {
-            username: "testuser",
-            email: "test@example.com",
-          },
-        }),
-      });
-    });
-
     it("should render the delete account section", async () => {
       render(<UserProfilePage />);
 
@@ -623,14 +535,13 @@ describe("UserProfilePage", () => {
     });
 
     it("should delete the account after confirming the current password", async () => {
-      (globalThis.fetch as any)
-        .mockResolvedValueOnce({
-          ok: true,
-          status: 200,
-          json: async () => ({
-            message: "Account deleted successfully",
-          }),
-        });
+      mockFetchResponses.delete = {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          message: "Account deleted successfully",
+        }),
+      };
 
       const dispatchEvent = vi.spyOn(globalThis, "dispatchEvent");
 
@@ -673,19 +584,6 @@ describe("UserProfilePage", () => {
   });
 
   describe("Page Layout", () => {
-    beforeEach(() => {
-      (globalThis.fetch as any).mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => ({
-          user: {
-            username: "testuser",
-            email: "test@example.com",
-          },
-        }),
-      });
-    });
-
     it("should display all required sections", async () => {
       render(<UserProfilePage />);
 
@@ -705,17 +603,6 @@ describe("UserProfilePage", () => {
         username: ["testuser"],
       });
 
-      (globalThis.fetch as any).mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => ({
-          user: {
-            username: "testuser",
-            email: "test@example.com",
-          },
-        }),
-      });
-
       render(<UserProfilePage />);
 
       await waitFor(() => {
@@ -726,17 +613,6 @@ describe("UserProfilePage", () => {
     it("should use first element when username is array", async () => {
       (useParams as any).mockReturnValue({
         username: ["testuser", "extra"],
-      });
-
-      (globalThis.fetch as any).mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => ({
-          user: {
-            username: "testuser",
-            email: "test@example.com",
-          },
-        }),
       });
 
       render(<UserProfilePage />);
@@ -754,9 +630,7 @@ describe("UserProfilePage", () => {
 
   describe("Error Recovery", () => {
     it("should handle network error during profile fetch", async () => {
-      (globalThis.fetch as any).mockRejectedValueOnce(
-        new Error("Network error")
-      );
+      mockFetchResponses.profile = () => Promise.reject(new Error("Network error"));
 
       render(<UserProfilePage />);
 
@@ -766,11 +640,11 @@ describe("UserProfilePage", () => {
     });
 
     it("should keep rendering the page when error object is null", async () => {
-      (globalThis.fetch as any).mockResolvedValueOnce({
+      mockFetchResponses.profile = {
         ok: false,
         status: 500,
         json: async () => ({}),
-      });
+      };
 
       render(<UserProfilePage />);
 

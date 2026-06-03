@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, type ChangeEvent, type SyntheticEvent } from "react";
 import styles from "../admin.module.css";
+import { submitObject } from "@/lib/admin-actions-client";
 
 const DATA_FORMAT_OPTIONS = [
   { value: "TEXT_ONLY", label: "Text only" },
@@ -58,41 +59,13 @@ export function DatasetForm({
   };
 
   const handleSubmit = async (event: SyntheticEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setSaving(true);
-    setError("");
-
     const body = {
       name: name.trim(),
       description: description.trim() || null,
       size: size.trim() || null,
       dataFormatType,
     };
-
-    try {
-      const response = await fetch(submitUrl, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-
-      const data = (await response.json().catch(() => ({}))) as { error?: string };
-
-      if (!response.ok) {
-        throw new Error(data.error ?? "Failed to save the dataset");
-      }
-
-      router.push(redirectPath);
-      router.refresh();
-    } catch (submitError) {
-      setError(
-        submitError instanceof Error
-          ? submitError.message
-          : "Unable to save the dataset right now",
-      );
-    } finally {
-      setSaving(false);
-    }
+    submitObject({ event, setSaving, setError, submitUrl, method, body, redirectPath, router, type: "dataset" });
   };
 
   return (

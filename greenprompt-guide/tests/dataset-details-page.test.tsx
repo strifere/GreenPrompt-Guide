@@ -5,6 +5,14 @@ import DatasetDetailsPage from "@/app/catalog/datasets/[datasetName]/page";
 import { getDatasetByName } from "@/domain/dataset-repository";
 import { notFound } from "next/navigation";
 
+vi.mock("@/lib/session", () => ({
+  getSession: vi.fn().mockResolvedValue(null), // By default, simulate an unauthenticated user
+}));
+
+vi.mock("@/domain/user-repository", () => ({
+  getUserByUsername: vi.fn().mockResolvedValue(null),
+}));
+
 vi.mock("next/link", () => ({
   default: ({ href, children, ...props }: { href: string; children: ReactNode }) => (
     <a href={href} {...props}>

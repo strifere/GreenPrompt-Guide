@@ -2,7 +2,7 @@ import Link from "next/link";
 import styles from "../admin.module.css";
 import { prisma } from "@/lib/prisma";
 import { catalogModelHref } from "@/app/catalog/catalog-paths";
-import { AdminModelDeleteAction } from "./admin-model-delete-action";
+import { AdminDeleteAction } from "../admin-delete-action";
 
 export default async function AdminModelsPage() {
   const models = await prisma.model.findMany({
@@ -62,7 +62,7 @@ export default async function AdminModelsPage() {
                 >
                   Modify
                 </Link>
-                <AdminModelDeleteAction modelName={model.name} />
+                <AdminDeleteAction type="model" objectKey={model.name} />
               </div>
             </article>
           ))}

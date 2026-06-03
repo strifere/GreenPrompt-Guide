@@ -2,45 +2,37 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import styles from "../admin.module.css";
+import { deleteObject } from "@/lib/admin-actions-client";
+import styles from "./admin.module.css";
 
-type AdminReferenceDeleteActionProps = {
-  referenceTitle: string;
+type AdminDeleteActionProps = {
+    type: "model" | "reference" | "practice" | "dataset";
+    objectKey: string;
 };
 
-export function AdminReferenceDeleteAction({ referenceTitle }: Readonly<AdminReferenceDeleteActionProps>) {
+export function AdminDeleteAction({ type, objectKey }: Readonly<AdminDeleteActionProps>) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  let types : "models" | "references" | "practices" | "datasets" = "models";
+
+  switch (type) {
+    case "reference":
+      types = "references";
+      break;
+    case "practice":
+      types = "practices";
+      break;
+    case "dataset":
+      types = "datasets";
+      break;
+  } 
 
   const closeDialog = () => {
     setOpen(false);
     setLoading(false);
     setError("");
-  };
-
-  const handleDelete = async () => {
-    setLoading(true);
-    setError("");
-
-    try {
-      const response = await fetch(`/api/admin/references/${encodeURIComponent(referenceTitle)}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        const body = (await response.json().catch(() => ({}))) as { error?: string };
-        throw new Error(body.error ?? "Failed to delete reference");
-      }
-
-      closeDialog();
-      router.refresh();
-    } catch (deleteError) {
-      setError(deleteError instanceof Error ? deleteError.message : "Failed to delete reference");
-    } finally {
-      setLoading(false);
-    }
   };
 
   return (
@@ -66,10 +58,9 @@ export function AdminReferenceDeleteAction({ referenceTitle }: Readonly<AdminRef
               ✕
             </button>
 
-            <h2>Delete reference?</h2>
+            <h2>Delete {type}?</h2>
             <p className={styles.dialogHint}>
-              This will permanently remove &quot;{referenceTitle}&quot; from the system. Associated
-              practices and hyperparameters linked only to this reference may also be affected.
+              This will permanently remove &quot;{objectKey}&quot; from the system. {type === "reference" && ("Associated practices and hyperparameters linked only to this reference may also be affected.")}
             </p>
 
             {error ? <div className={`error-message ${styles.dialogError}`}>{error}</div> : null}
@@ -85,7 +76,7 @@ export function AdminReferenceDeleteAction({ referenceTitle }: Readonly<AdminRef
               <button
                 type="button"
                 className={`recovery-btn ${styles.dialogDangerButton}`}
-                onClick={handleDelete}
+                onClick={deleteObject.bind(null, objectKey, types, setLoading, setError, router, closeDialog)}
                 disabled={loading}
               >
                 {loading ? "Deleting..." : "I'm sure, delete"}
