@@ -46,7 +46,7 @@ export default async function EditPracticePage({ params }: Readonly<EditPractice
 		}),
 		prisma.reference.findMany({
 			orderBy: { title: "asc" },
-			select: { title: true, year: true },
+			select: { title: true, year: true, authors: true },
 		}),
 		prisma.hyperparameter.findMany({
 			orderBy: [{ name: "asc" }, { value: "asc" }],

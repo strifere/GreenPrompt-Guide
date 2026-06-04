@@ -2,8 +2,11 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import styles from "../../admin.module.css";
 import { PromptTechniqueForm } from "../prompt-technique-form";
+import { listReferences } from "@/domain/reference-repository";
 
-export default function NewPromptTechniquePage() {
+export default async function NewPromptTechniquePage() {
+  const references = await listReferences();
+
   return (
     <section className={styles.pageSection}>
       <header className={styles.sectionHeader}>
@@ -23,6 +26,11 @@ export default function NewPromptTechniquePage() {
       <PromptTechniqueForm
         submitUrl="/api/admin/promptTechniques"
         redirectPath="/admin/promptTechniques"
+        references={references.map((ref) => ({
+          title: ref.title,
+          year: ref.year,
+          authors: ref.authors,
+        }))}
       />
     </section>
   );

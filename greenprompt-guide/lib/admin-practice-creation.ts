@@ -20,14 +20,15 @@ export type AdminPracticePayload = {
 		greenScore?: number | string;
 		tactic?: TacticType;
 	};
-	category?: {
-		mode?: "existing" | "new";
+	categoryNames?: string[];
+	newCategory?: {
 		name?: string;
 		description?: string;
 		tactic?: TacticType;
 	};
 	examples?: PracticeExamplePayload[];
 	reference?: {
+		mode?: "existing" | "new";
 		title?: string;
 		authors?: string;
 		abstract?: string;
@@ -84,26 +85,32 @@ export type NormalizedAdminPracticePayload = {
 		greenScore: number;
 		tactic: TacticType;
 	};
-	category: {
-		mode: "existing" | "new";
+	categoryNames: string[];
+	newCategory: {
 		name: string;
 		description: string | null;
-		tactic: TacticType | null;
-	};
+		tactic: TacticType;
+	} | null;
 	examples: PracticeExamplePayload[];
-	reference: {
-		title: string;
-		authors: string;
-		abstract: string | null;
-		keywords: string | null;
-		year: number;
-		studyType: string;
-		domain: string | null;
-		task: string | null;
-		venue: string | null;
-		toolAvailability: string | null;
-		link: string;
-	};
+	reference: 
+		| {
+				mode: "existing";
+				title: string;
+		  }
+		| {
+				mode: "new";
+				title: string;
+				authors: string;
+				abstract: string | null;
+				keywords: string | null;
+				year: number;
+				studyType: string;
+				domain: string | null;
+				task: string | null;
+				venue: string | null;
+				toolAvailability: string | null;
+				link: string;
+		  };
 };
 
 export type NormalizedAdminPracticeMetricPayload = {
@@ -259,10 +266,15 @@ export function normalizeAdminPracticePayload(payload: AdminPracticePayload) {
 	const practiceDescription = trimText(payload.practice?.description);
 	const practiceGreenScore = parseInteger(payload.practice?.greenScore);
 	const practiceTactic = payload.practice?.tactic ?? null;
-	const categoryMode = payload.category?.mode ?? null;
-	const categoryName = trimText(payload.category?.name);
-	const categoryDescription = trimNullableText(payload.category?.description);
-	const categoryTactic = payload.category?.tactic ?? null;
+	
+	const categoryNames = uniqueTextList(payload.categoryNames);
+	
+	const newCategoryName = trimText(payload.newCategory?.name);
+	const newCategoryDescription = trimNullableText(payload.newCategory?.description);
+	// Fixed: Default to "GREEN_PRACTICE" if missing, ensuring it fits TacticType
+	const newCategoryTactic = payload.newCategory?.tactic ?? "GREEN_PRACTICE";
+	
+	const referenceMode = payload.reference?.mode ?? null;
 	const referenceTitle = trimText(payload.reference?.title);
 	const referenceAuthors = trimText(payload.reference?.authors);
 	const referenceAbstract = trimNullableText(payload.reference?.abstract);
@@ -274,6 +286,7 @@ export function normalizeAdminPracticePayload(payload: AdminPracticePayload) {
 	const referenceVenue = trimNullableText(payload.reference?.venue);
 	const referenceToolAvailability = trimNullableText(payload.reference?.toolAvailability);
 	const referenceLink = trimText(payload.reference?.link);
+	
 	const examples = normalizeExamples(payload.examples);
 
 	if (!practiceName || !practiceDescription || practiceGreenScore === null || !practiceTactic) {
@@ -284,26 +297,59 @@ export function normalizeAdminPracticePayload(payload: AdminPracticePayload) {
 		return { error: "Green score must be between 0 and 100" };
 	}
 
-	if (categoryMode !== "existing" && categoryMode !== "new") {
-		return { error: "A category mode is required" };
+	if (categoryNames.length === 0 && !newCategoryName) {
+		return { error: "At least one category selection or a new category is required" };
 	}
 
-	if (!categoryName) {
-		return { error: "A category is required" };
+	if (referenceMode !== "existing" && referenceMode !== "new") {
+		return { error: "A reference mode is required" };
 	}
 
-	if (categoryMode === "new" && !categoryTactic) {
-		return { error: "A tactic is required for a new category" };
+	if (!referenceTitle) {
+		return { error: "A reference title is required" };
 	}
 
-	if (!referenceTitle || !referenceAuthors || referenceYear === null || !referenceStudyType || !referenceLink) {
-		return { error: "Reference title, authors, year, study type, and link are required" };
+	let referencePayload: NormalizedAdminPracticePayload["reference"];
+
+	if (referenceMode === "existing") {
+		referencePayload = {
+			mode: "existing",
+			title: referenceTitle,
+		};
+	} else {
+		if (!referenceAuthors || referenceYear === null || !referenceStudyType || !referenceLink) {
+			return { error: "Reference authors, year, study type, and link are required for a new reference" };
+		}
+
+		referencePayload = {
+			mode: "new",
+			title: referenceTitle,
+			authors: referenceAuthors,
+			abstract: referenceAbstract,
+			keywords: referenceKeywords,
+			year: referenceYear,
+			studyType: referenceStudyType,
+			domain: referenceDomain,
+			task: referenceTask,
+			venue: referenceVenue,
+			toolAvailability: referenceToolAvailability,
+			link: referenceLink,
+		};
 	}
 
 	for (const example of examples) {
 		if (!example.scenario || !example.originalPrompts || !example.improvedPrompts || !example.observations) {
 			return { error: "Each practice example must include a scenario, original prompts, improved prompts, and observations" };
 		}
+	}
+
+	let newCategoryPayload: NormalizedAdminPracticePayload["newCategory"] = null;
+	if (newCategoryName) {
+		newCategoryPayload = {
+			name: newCategoryName,
+			description: newCategoryDescription,
+			tactic: newCategoryTactic,
+		};
 	}
 
 	return {
@@ -314,26 +360,10 @@ export function normalizeAdminPracticePayload(payload: AdminPracticePayload) {
 				greenScore: practiceGreenScore,
 				tactic: practiceTactic,
 			},
-			category: {
-				mode: categoryMode,
-				name: categoryName,
-				description: categoryDescription,
-				tactic: categoryTactic,
-			},
+			categoryNames,
+			newCategory: newCategoryPayload,
 			examples,
-			reference: {
-				title: referenceTitle,
-				authors: referenceAuthors,
-				abstract: referenceAbstract,
-				keywords: referenceKeywords,
-				year: referenceYear,
-				studyType: referenceStudyType,
-				domain: referenceDomain,
-				task: referenceTask,
-				venue: referenceVenue,
-				toolAvailability: referenceToolAvailability,
-				link: referenceLink,
-			},
+			reference: referencePayload,
 		} satisfies NormalizedAdminPracticePayload,
 	};
 }
@@ -454,18 +484,10 @@ export async function createAdminPractice(
 	payload: NormalizedAdminPracticePayload,
 	options: { createdFromRequestId?: number } = {},
 ) {
-	let categoryName = payload.category.name;
+	const finalCategoryNames = [...payload.categoryNames];
 
-	if (payload.category.mode === "existing") {
-		const existingCategory = await tx.category.findUnique({ where: { name: categoryName } });
-
-		if (!existingCategory) {
-			throw new Error("Selected category was not found");
-		}
-
-		categoryName = existingCategory.name;
-	} else {
-		const existingCategory = await tx.category.findUnique({ where: { name: categoryName } });
+	if (payload.newCategory) {
+		const existingCategory = await tx.category.findUnique({ where: { name: payload.newCategory.name } });
 
 		if (existingCategory) {
 			throw new Error("That category already exists. Select it from the existing categories list instead.");
@@ -473,28 +495,58 @@ export async function createAdminPractice(
 
 		await tx.category.create({
 			data: {
-				name: categoryName,
-				description: payload.category.description,
-				tactic: payload.category.tactic ?? payload.practice.tactic,
+				name: payload.newCategory.name,
+				description: payload.newCategory.description,
+				tactic: payload.newCategory.tactic,
+			},
+		});
+
+		if (!finalCategoryNames.includes(payload.newCategory.name)) {
+			finalCategoryNames.push(payload.newCategory.name);
+		}
+	}
+
+	for (const categoryName of payload.categoryNames) {
+		const existingCategory = await tx.category.findUnique({ where: { name: categoryName } });
+
+		if (!existingCategory) {
+			throw new Error(`Selected category "${categoryName}" was not found`);
+		}
+	}
+
+	let referenceTitle = payload.reference.title;
+
+	if (payload.reference.mode === "existing") {
+		const existingReference = await tx.reference.findUnique({ where: { title: referenceTitle } });
+
+		if (!existingReference) {
+			throw new Error("Selected reference was not found");
+		}
+		
+		referenceTitle = existingReference.title;
+	} else {
+		const existingReference = await tx.reference.findUnique({ where: { title: referenceTitle } });
+
+		if (existingReference) {
+			throw new Error("That reference already exists. Select it from the existing references list instead.");
+		}
+
+		await tx.reference.create({
+			data: {
+				title: payload.reference.title,
+				authors: payload.reference.authors,
+				abstract: payload.reference.abstract,
+				keywords: payload.reference.keywords,
+				year: payload.reference.year,
+				studyType: payload.reference.studyType,
+				domain: payload.reference.domain,
+				task: payload.reference.task,
+				venue: payload.reference.venue,
+				toolAvailability: payload.reference.toolAvailability,
+				link: payload.reference.link,
 			},
 		});
 	}
-
-	const createdReference = await tx.reference.create({
-		data: {
-			title: payload.reference.title,
-			authors: payload.reference.authors,
-			abstract: payload.reference.abstract,
-			keywords: payload.reference.keywords,
-			year: payload.reference.year,
-			studyType: payload.reference.studyType,
-			domain: payload.reference.domain,
-			task: payload.reference.task,
-			venue: payload.reference.venue,
-			toolAvailability: payload.reference.toolAvailability,
-			link: payload.reference.link,
-		},
-	});
 
 	return tx.practice.create({
 		data: {
@@ -504,13 +556,13 @@ export async function createAdminPractice(
 			tactic: payload.practice.tactic,
 			createdFromRequestId: options.createdFromRequestId,
 			categories: {
-				create: {
+				create: finalCategoryNames.map((categoryName) => ({
 					categoryName,
-				},
+				})),
 			},
 			papers: {
 				create: {
-					referenceTitle: createdReference.title,
+					referenceTitle,
 				},
 			},
 			practiceExamples: payload.examples.length > 0

@@ -35,6 +35,7 @@ export function AdminRequestDeleteAction({ requestId }: Readonly<AdminRequestDel
       }
 
       closeDialog();
+      router.push("/admin/requests");
       router.refresh();
     } catch (deleteError) {
       setError(deleteError instanceof Error ? deleteError.message : "Failed to delete request");

@@ -7,10 +7,10 @@ type RouteContext = {
 
 export async function PATCH(request: NextRequest, context: RouteContext) {
   const { modelName } = await Promise.resolve(context.params);
-  return await updateObjectAPI("models", request, modelName);
+  return await updateObjectAPI("model", request, modelName);
 }
 
 export async function DELETE(_request: NextRequest, context: RouteContext) {
   const { modelName } = await Promise.resolve(context.params);
-  return await deleteObjectAPI("models", modelName);
+  return await deleteObjectAPI("model", modelName);
 }

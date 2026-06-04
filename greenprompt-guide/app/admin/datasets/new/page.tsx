@@ -2,8 +2,11 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import styles from "../../admin.module.css";
 import { DatasetForm } from "../dataset-form";
+import { listReferences } from "@/domain/reference-repository";
 
-export default function NewDatasetPage() {
+export default async function NewDatasetPage() {
+  const references = await listReferences();
+
   return (
     <section className={styles.pageSection}>
       <header className={styles.sectionHeader}>
@@ -20,7 +23,15 @@ export default function NewDatasetPage() {
         </Link>
       </header>
 
-      <DatasetForm submitUrl="/api/admin/datasets" redirectPath="/admin/datasets" />
+      <DatasetForm
+        submitUrl="/api/admin/datasets"
+        redirectPath="/admin/datasets"
+        references={references.map((ref) => ({
+          title: ref.title,
+          year: ref.year,
+          authors: ref.authors,
+        }))}
+      />
     </section>
   );
 }

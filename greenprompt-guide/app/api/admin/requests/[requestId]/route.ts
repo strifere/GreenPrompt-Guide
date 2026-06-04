@@ -39,39 +39,45 @@ async function getAuthenticatedAdmin() {
     return { currentUser };
 }
 
+async function initializeAdminRequestContext(context: RequestedPracticeRouteContext) : Promise< any > {
+    const authResult = await getAuthenticatedAdmin();
+
+    if ("errorResponse" in authResult) {
+        throw new Error("Unauthorized");
+    }
+
+    const { requestId } = await context.params;
+    const parsedRequestId = parseRequestId(requestId);
+
+    if (!parsedRequestId) {
+        throw new Error("Invalid request id");
+    }
+
+    const collaborationRequest = await getCollaborationRequestDetailsById(parsedRequestId);
+
+    if (!collaborationRequest) {
+        throw new Error("Collaboration request not found");
+    }
+
+    return [collaborationRequest, parsedRequestId, authResult] as const;
+}
+
 export async function POST(request: Request, context: RequestedPracticeRouteContext) {
     try {
-        const authResult = await getAuthenticatedAdmin();
+        const [collaborationRequestContext, parsedRequestId, authResult] = await initializeAdminRequestContext(context);
 
-        if ("errorResponse" in authResult) {
-            return authResult.errorResponse;
-        }
-
-        const { requestId } = await context.params;
-        const parsedRequestId = parseRequestId(requestId);
-
-        if (!parsedRequestId) {
-            return NextResponse.json({ error: "Invalid request id" }, { status: 400 });
-        }
-
-        const collaborationRequest = await getCollaborationRequestDetailsById(parsedRequestId);
-
-        if (!collaborationRequest) {
-            return NextResponse.json({ error: "Request not found" }, { status: 404 });
-        }
-
-        if (collaborationRequest.createdPractice) {
+        if (collaborationRequestContext.createdPractice) {
             return NextResponse.json(
                 {
                     message: "The practice for this request was already created",
-                    request: collaborationRequest,
-                    practice: collaborationRequest.createdPractice,
+                    request: collaborationRequestContext,
+                    practice: collaborationRequestContext.createdPractice,
                 },
                 { status: 200 },
             );
         }
 
-        if (collaborationRequest.status !== "PENDING") {
+        if (collaborationRequestContext.status !== "PENDING") {
             return NextResponse.json({ error: "Only pending requests can be approved from this flow" }, { status: 409 });
         }
 
@@ -107,37 +113,36 @@ export async function POST(request: Request, context: RequestedPracticeRouteCont
             { status: 200 },
         );
     } catch (error) {
-        console.error("Requested practice creation error:", error);
-        return NextResponse.json({ error: "An error occurred while creating the practice" }, { status: 500 });
+        if (error instanceof Error && error.message === "Collaboration request not found") {
+            return NextResponse.json({ error: "Request not found" }, { status: 404 });
+        } else if (error instanceof Error && error.message === "Invalid request id") {
+            return NextResponse.json({ error: "Invalid request id" }, { status: 400 });
+        } else if (error instanceof Error && error.message === "Unauthorized") {
+            return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+        } else{
+            console.error("Requested practice creation error:", error);
+            return NextResponse.json({ error: "An error occurred while creating the practice" }, { status: 500 });
+        }
     }
 }
 
 export async function DELETE(_request: Request, context: RequestedPracticeRouteContext) {
     try {
-        const authResult = await getAuthenticatedAdmin();
-
-        if ("errorResponse" in authResult) {
-            return authResult.errorResponse;
-        }
-
-        const { requestId } = await context.params;
-        const parsedRequestId = parseRequestId(requestId);
-
-        if (!parsedRequestId) {
-            return NextResponse.json({ error: "Invalid request id" }, { status: 400 });
-        }
-
-        const collaborationRequest = await getCollaborationRequestDetailsById(parsedRequestId);
-
-        if (!collaborationRequest) {
-            return NextResponse.json({ error: "Request not found" }, { status: 404 });
-        }
+        const [_collaborationRequestContext, parsedRequestId, _authResult] = await initializeAdminRequestContext(context);
 
         await deleteCollaborationRequestById(parsedRequestId);
 
         return NextResponse.json({ message: "Request deleted successfully" }, { status: 200 });
     } catch (error) {
-        console.error("Collaboration request deletion error:", error);
-        return NextResponse.json({ error: "An error occurred while deleting the request" }, { status: 500 });
+        if (error instanceof Error && error.message === "Collaboration request not found") {
+            return NextResponse.json({ error: "Request not found" }, { status: 404 });
+        } else if (error instanceof Error && error.message === "Invalid request id") {
+            return NextResponse.json({ error: "Invalid request id" }, { status: 400 });
+        } else if (error instanceof Error && error.message === "Unauthorized") {
+            return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+        } else{
+            console.error("Collaboration request deletion error:", error);
+            return NextResponse.json({ error: "An error occurred while deleting the request" }, { status: 500 });
+        }
     }
 }

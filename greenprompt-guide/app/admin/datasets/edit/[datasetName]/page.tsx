@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { getDatasetByName } from "@/domain/dataset-repository";
+import { listReferences } from "@/domain/reference-repository";
 import styles from "../../../admin.module.css";
 import { DatasetForm } from "../../dataset-form";
 import type { DataFormatType } from "@prisma/client";
@@ -13,11 +14,21 @@ type EditDatasetPageProps = {
 export default async function EditDatasetPage({ params }: Readonly<EditDatasetPageProps>) {
   const { datasetName } = await params;
   const decodedName = decodeURIComponent(datasetName);
-  const dataset = await getDatasetByName(decodedName);
+
+  const [dataset, allReferences] = await Promise.all([
+    getDatasetByName(decodedName),
+    listReferences(),
+  ]);
 
   if (!dataset) {
     notFound();
   }
+
+  // Deduplicate reference titles from the papers join (a reference may appear via
+  // multiple paper entries if multiple practices share the same reference).
+  const selectedReferenceTitles = Array.from(
+    new Set(dataset.papers.map((entry) => entry.reference.title)),
+  );
 
   return (
     <section className={styles.pageSection}>
@@ -26,7 +37,7 @@ export default async function EditDatasetPage({ params }: Readonly<EditDatasetPa
           <p className={styles.kicker}>Datasets</p>
           <h2 className={styles.sectionTitle}>Modify dataset</h2>
           <p className={styles.sectionCopy}>
-            Update the dataset details and supported data formats.
+            Update the dataset details, supported data formats, and linked references.
           </p>
         </div>
         <Link href="/admin/datasets" className={`ghost-btn ${styles.headerAction}`}>
@@ -40,11 +51,17 @@ export default async function EditDatasetPage({ params }: Readonly<EditDatasetPa
         method="PATCH"
         submitUrl={`/api/admin/datasets/${encodeURIComponent(dataset.name)}`}
         redirectPath="/admin/datasets"
+        references={allReferences.map((ref) => ({
+          title: ref.title,
+          year: ref.year,
+          authors: ref.authors,
+        }))}
         initialValues={{
           name: dataset.name,
           description: dataset.description,
           size: dataset.size,
           dataFormatType: dataset.dataFormatType as DataFormatType[],
+          selectedReferenceTitles,
         }}
       />
     </section>

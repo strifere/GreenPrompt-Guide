@@ -17,6 +17,7 @@ export type NamedOption = {
 export type ReferenceOption = {
 	title: string;
 	year: number;
+	authors: string;
 };
 
 export type HyperparameterOption = {
@@ -135,26 +136,32 @@ type PracticeCreateFormBody = {
 		greenScore: number;
 		tactic: string;
 	};
-	category: {
-		mode: "existing" | "new";
+	categoryNames: string[];
+	newCategory: {
 		name: string;
 		description: string;
 		tactic: string;
-	};
+	} | null;
 	examples: PracticeExampleBody[];
-	reference: {
-		title: string;
-		authors: string;
-		abstract: string;
-		keywords: string;
-		year: string;
-		studyType: string;
-		domain: string;
-		task: string;
-		venue: string;
-		toolAvailability: string;
-		link: string;
-	};
+	reference: 
+		| {
+				mode: "existing";
+				title: string;
+		  }
+		| {
+				mode: "new";
+				title: string;
+				authors: string;
+				abstract: string;
+				keywords: string;
+				year: string;
+				studyType: string;
+				domain: string;
+				task: string;
+				venue: string;
+				toolAvailability: string;
+				link: string;
+		  };
 };
 
 type PracticeUpdateFormBody = {
@@ -264,26 +271,20 @@ export function PracticeForm({
 }: Readonly<PracticeFormProps>) {
 	const router = useRouter();
 	const isEditMode = mode === "edit";
+	
 	const [practiceTitle, setPracticeTitle] = useState(initialValues?.practiceTitle ?? "");
 	const [practiceDescription, setPracticeDescription] = useState(initialValues?.practiceDescription ?? "");
 	const [greenScore, setGreenScore] = useState(String(initialValues?.greenScore ?? 50));
 	const [tactic, setTactic] = useState(initialValues?.tactic ?? "GREEN_PRACTICE");
-	const [categoryMode, setCategoryMode] = useState<"existing" | "new">(categories.length > 0 ? "existing" : "new");
-	const [existingCategoryName, setExistingCategoryName] = useState(initialValues?.selectedCategoryNames?.[0] ?? categories[0]?.name ?? "");
+	
 	const [selectedCategoryNames, setSelectedCategoryNames] = useState(initialValues?.selectedCategoryNames ?? []);
-	const [selectedPromptTechniqueNames, setSelectedPromptTechniqueNames] = useState(initialValues?.selectedPromptTechniqueNames ?? []);
-	const [selectedModelNames, setSelectedModelNames] = useState(initialValues?.selectedModelNames ?? []);
-	const [selectedReferenceTitles, setSelectedReferenceTitles] = useState(initialValues?.selectedReferenceTitles ?? []);
-	const [selectedHyperparameterIds, setSelectedHyperparameterIds] = useState(initialValues?.selectedHyperparameterIds ?? []);
+	const [createNewCategory, setCreateNewCategory] = useState(false);
 	const [newCategoryName, setNewCategoryName] = useState("");
 	const [newCategoryDescription, setNewCategoryDescription] = useState("");
 	const [newCategoryTactic, setNewCategoryTactic] = useState("GREEN_PRACTICE");
-	const initialExamples = createInitialExamples(initialValues);
-	const [examples, setExamples] = useState<ExampleDraft[]>(initialExamples);
-	const [nextExampleId, setNextExampleId] = useState(initialExamples.length + 1);
-	const initialMetrics = createInitialMetrics(initialValues);
-	const [metrics, setMetrics] = useState<MetricDraft[]>(initialMetrics);
-	const [nextMetricId, setNextMetricId] = useState(initialMetrics.length + 1);
+
+	const [referenceMode, setReferenceMode] = useState<"existing" | "new">(references.length > 0 ? "existing" : "new");
+	const [existingReferenceTitle, setExistingReferenceTitle] = useState(initialValues?.selectedReferenceTitles?.[0] ?? references[0]?.title ?? "");
 	const [referenceTitle, setReferenceTitle] = useState(initialValues?.referenceTitle ?? "");
 	const [referenceAuthors, setReferenceAuthors] = useState(initialValues?.referenceAuthors ?? "");
 	const [referenceAbstract, setReferenceAbstract] = useState(initialValues?.referenceAbstract ?? "");
@@ -295,6 +296,20 @@ export function PracticeForm({
 	const [referenceVenue, setReferenceVenue] = useState(initialValues?.referenceVenue ?? "");
 	const [referenceToolAvailability, setReferenceToolAvailability] = useState(initialValues?.referenceToolAvailability ?? "");
 	const [referenceLink, setReferenceLink] = useState(initialValues?.referenceLink ?? "");
+
+	const [selectedPromptTechniqueNames, setSelectedPromptTechniqueNames] = useState(initialValues?.selectedPromptTechniqueNames ?? []);
+	const [selectedModelNames, setSelectedModelNames] = useState(initialValues?.selectedModelNames ?? []);
+	const [selectedReferenceTitles, setSelectedReferenceTitles] = useState(initialValues?.selectedReferenceTitles ?? []);
+	const [selectedHyperparameterIds, setSelectedHyperparameterIds] = useState(initialValues?.selectedHyperparameterIds ?? []);
+	
+	const initialExamples = createInitialExamples(initialValues);
+	const [examples, setExamples] = useState<ExampleDraft[]>(initialExamples);
+	const [nextExampleId, setNextExampleId] = useState(initialExamples.length + 1);
+	
+	const initialMetrics = createInitialMetrics(initialValues);
+	const [metrics, setMetrics] = useState<MetricDraft[]>(initialMetrics);
+	const [nextMetricId, setNextMetricId] = useState(initialMetrics.length + 1);
+	
 	const [saving, setSaving] = useState(false);
 	const [error, setError] = useState("");
 
@@ -385,33 +400,34 @@ export function PracticeForm({
 			}
 			: {
 				practice: buildPracticeBody(),
-				category: categoryMode === "existing"
+				categoryNames: selectedCategoryNames,
+				newCategory: createNewCategory && newCategoryName.trim()
 					? {
-						mode: "existing",
-						name: existingCategoryName,
-						description: "",
-						tactic: "GREEN_PRACTICE",
-					}
-					: {
-						mode: "new",
 						name: newCategoryName.trim(),
 						description: newCategoryDescription.trim(),
 						tactic: newCategoryTactic,
-					},
+					}
+					: null,
 				examples: buildExamplesBody(),
-				reference: {
-					title: referenceTitle.trim(),
-					authors: referenceAuthors.trim(),
-					abstract: referenceAbstract.trim(),
-					keywords: referenceKeywords.trim(),
-					year: referenceYear.trim(),
-					studyType: referenceStudyType.trim(),
-					domain: referenceDomain.trim(),
-					task: referenceTask.trim(),
-					venue: referenceVenue.trim(),
-					toolAvailability: referenceToolAvailability.trim(),
-					link: referenceLink.trim(),
-				},
+				reference: referenceMode === "existing" 
+					? {
+						mode: "existing",
+						title: existingReferenceTitle,
+					}
+					: {
+						mode: "new",
+						title: referenceTitle.trim(),
+						authors: referenceAuthors.trim(),
+						abstract: referenceAbstract.trim(),
+						keywords: referenceKeywords.trim(),
+						year: referenceYear.trim(),
+						studyType: referenceStudyType.trim(),
+						domain: referenceDomain.trim(),
+						task: referenceTask.trim(),
+						venue: referenceVenue.trim(),
+						toolAvailability: referenceToolAvailability.trim(),
+						link: referenceLink.trim(),
+					},
 			};
 
 		try {
@@ -495,55 +511,56 @@ export function PracticeForm({
 				</MultiCheckboxSection>
 			) : (
 				<section className={styles.creationSection}>
-					<h3 className={styles.creationSectionTitle}>Category</h3>
+					<h3 className={styles.creationSectionTitle}>Categories</h3>
+					<p className={styles.creationHint} style={{ marginBottom: "0.5rem" }}>Select one or more existing categories:</p>
 					{categories.length > 0 ? (
-						<div className={styles.creationCategoryToggle} role="radiogroup" aria-label="Category mode">
-							<label className={styles.creationRadioCard}>
-								<input type="radio" name="category-mode" checked={categoryMode === "existing"} onChange={() => setCategoryMode("existing")} />
-								<span>Use an existing category</span>
-							</label>
-							<label className={styles.creationRadioCard}>
-								<input type="radio" name="category-mode" checked={categoryMode === "new"} onChange={() => setCategoryMode("new")} />
-								<span>Create a new category</span>
-							</label>
-						</div>
-					) : null}
-
-					{categoryMode === "existing" && categories.length > 0 ? (
-						<div className="form-group">
-							<label htmlFor="existing-category">Available categories</label>
-							<select id="existing-category" className={styles.creationSelect} value={existingCategoryName} onChange={(event: ChangeEvent<HTMLSelectElement>) => setExistingCategoryName(event.target.value)}>
-								{categories.map((category) => (
-									<option key={category.name} value={category.name}>
-										{category.name}
-									</option>
-								))}
-							</select>
-							<p className={styles.creationHint}>
-								This practice will be attached to {existingCategoryName || "the selected category"}.
-							</p>
+						<div className={styles.creationCategoryToggle} style={{ marginBottom: "1.5rem" }}>
+							{categories.map((category) => (
+								<label key={category.name} className={styles.creationRadioCard}>
+									<input
+										type="checkbox"
+										checked={selectedCategoryNames.includes(category.name)}
+										onChange={() => setSelectedCategoryNames((currentValues) => toggleSelection(currentValues, category.name))}
+									/>
+									<span>{category.name}</span>
+								</label>
+							))}
 						</div>
 					) : (
-						<div className={styles.creationSplitGrid}>
-							<div className="form-group">
-								<label htmlFor="new-category-name">Category name</label>
-								<input id="new-category-name" value={newCategoryName} onChange={(event: ChangeEvent<HTMLInputElement>) => setNewCategoryName(event.target.value)} required={categoryMode === "new"} />
-							</div>
-							<div className="form-group">
-								<label htmlFor="new-category-tactic">Category tactic</label>
-								<select id="new-category-tactic" className={styles.creationSelect} value={newCategoryTactic} onChange={(event: ChangeEvent<HTMLSelectElement>) => setNewCategoryTactic(event.target.value)}>
-									<option value="GREEN_PRACTICE">Green practice</option>
-									<option value="RED_PRACTICE">Red practice</option>
-								</select>
-							</div>
-						</div>
+						<p className={styles.creationHint} style={{ marginBottom: "1.5rem" }}>No existing categories available.</p>
 					)}
 
-					{categoryMode === "new" ? (
-						<div className="form-group">
-							<label htmlFor="new-category-description">Category description</label>
-							<textarea id="new-category-description" className={styles.creationTextarea} value={newCategoryDescription} onChange={(event: ChangeEvent<HTMLTextAreaElement>) => setNewCategoryDescription(event.target.value)} rows={3} />
-						</div>
+					<div style={{ marginBottom: "1rem" }}>
+						<label className={styles.creationRadioCard}>
+							<input
+								type="checkbox"
+								checked={createNewCategory}
+								onChange={(event: ChangeEvent<HTMLInputElement>) => setCreateNewCategory(event.target.checked)}
+							/>
+							<span>Create a new category too</span>
+						</label>
+					</div>
+
+					{createNewCategory ? (
+						<>
+							<div className={styles.creationSplitGrid}>
+								<div className="form-group">
+									<label htmlFor="new-category-name">Category name</label>
+									<input id="new-category-name" value={newCategoryName} onChange={(event: ChangeEvent<HTMLInputElement>) => setNewCategoryName(event.target.value)} required={createNewCategory} />
+								</div>
+								<div className="form-group">
+									<label htmlFor="new-category-tactic">Category tactic</label>
+									<select id="new-category-tactic" className={styles.creationSelect} value={newCategoryTactic} onChange={(event: ChangeEvent<HTMLSelectElement>) => setNewCategoryTactic(event.target.value)}>
+										<option value="GREEN_PRACTICE">Green practice</option>
+										<option value="RED_PRACTICE">Red practice</option>
+									</select>
+								</div>
+							</div>
+							<div className="form-group">
+								<label htmlFor="new-category-description">Category description</label>
+								<textarea id="new-category-description" className={styles.creationTextarea} value={newCategoryDescription} onChange={(event: ChangeEvent<HTMLTextAreaElement>) => setNewCategoryDescription(event.target.value)} rows={3} />
+							</div>
+						</>
 					) : null}
 				</section>
 			)}
@@ -584,7 +601,7 @@ export function PracticeForm({
 									checked={selectedReferenceTitles.includes(reference.title)}
 									onChange={() => setSelectedReferenceTitles((currentValues) => toggleSelection(currentValues, reference.title))}
 								/>
-								<span>{reference.title} ({reference.year})</span>
+								<span>{reference.title} ({reference.year}) - {reference.authors}</span>
 							</label>
 						))}
 					</MultiCheckboxSection>
@@ -749,58 +766,90 @@ export function PracticeForm({
 			{isEditMode ? null : (
 				<section className={styles.creationSection}>
 					<h3 className={styles.creationSectionTitle}>Reference</h3>
-					<div className={styles.creationSplitGrid}>
-						<div className="form-group">
-							<label htmlFor="reference-title">Title</label>
-							<input id="reference-title" value={referenceTitle} onChange={(event: ChangeEvent<HTMLInputElement>) => setReferenceTitle(event.target.value)} required />
+					
+					{references.length > 0 ? (
+						<div className={styles.creationCategoryToggle} role="radiogroup" aria-label="Reference mode">
+							<label className={styles.creationRadioCard}>
+								<input type="radio" name="reference-mode" checked={referenceMode === "existing"} onChange={() => setReferenceMode("existing")} />
+								<span>Use an existing reference</span>
+							</label>
+							<label className={styles.creationRadioCard}>
+								<input type="radio" name="reference-mode" checked={referenceMode === "new"} onChange={() => setReferenceMode("new")} />
+								<span>Create a new reference</span>
+							</label>
 						</div>
+					) : null}
+
+					{referenceMode === "existing" && references.length > 0 ? (
 						<div className="form-group">
-							<label htmlFor="reference-authors">Authors</label>
-							<input id="reference-authors" value={referenceAuthors} onChange={(event: ChangeEvent<HTMLInputElement>) => setReferenceAuthors(event.target.value)} required />
+							<label htmlFor="existing-reference">Available references</label>
+							<select id="existing-reference" className={styles.creationSelect} value={existingReferenceTitle} onChange={(event: ChangeEvent<HTMLSelectElement>) => setExistingReferenceTitle(event.target.value)}>
+								{references.map((reference) => (
+									<option key={reference.title} value={reference.title}>
+										{reference.title} ({reference.year}) - {reference.authors}
+									</option>
+								))}
+							</select>
+							<p className={styles.creationHint}>
+								This practice will be attached to {existingReferenceTitle || "the selected reference"}.
+							</p>
 						</div>
-					</div>
-					<div className="form-group">
-						<label htmlFor="reference-abstract">Abstract</label>
-						<textarea id="reference-abstract" className={styles.creationTextarea} value={referenceAbstract} onChange={(event: ChangeEvent<HTMLTextAreaElement>) => setReferenceAbstract(event.target.value)} rows={5} />
-					</div>
-					<div className={styles.creationSplitGrid}>
-						<div className="form-group">
-							<label htmlFor="reference-keywords">Keywords</label>
-							<input id="reference-keywords" value={referenceKeywords} onChange={(event: ChangeEvent<HTMLInputElement>) => setReferenceKeywords(event.target.value)} placeholder="Comma-separated keywords" />
-						</div>
-						<div className="form-group">
-							<label htmlFor="reference-year">Year</label>
-							<input id="reference-year" type="number" value={referenceYear} onChange={(event: ChangeEvent<HTMLInputElement>) => setReferenceYear(event.target.value)} required />
-						</div>
-					</div>
-					<div className={styles.creationSplitGrid}>
-						<div className="form-group">
-							<label htmlFor="reference-study-type">Study type</label>
-							<input id="reference-study-type" value={referenceStudyType} onChange={(event: ChangeEvent<HTMLInputElement>) => setReferenceStudyType(event.target.value)} required />
-						</div>
-						<div className="form-group">
-							<label htmlFor="reference-domain">Domain</label>
-							<input id="reference-domain" value={referenceDomain} onChange={(event: ChangeEvent<HTMLInputElement>) => setReferenceDomain(event.target.value)} />
-						</div>
-					</div>
-					<div className={styles.creationSplitGrid}>
-						<div className="form-group">
-							<label htmlFor="reference-task">Task</label>
-							<input id="reference-task" value={referenceTask} onChange={(event: ChangeEvent<HTMLInputElement>) => setReferenceTask(event.target.value)} />
-						</div>
-						<div className="form-group">
-							<label htmlFor="reference-venue">Venue</label>
-							<input id="reference-venue" value={referenceVenue} onChange={(event: ChangeEvent<HTMLInputElement>) => setReferenceVenue(event.target.value)} />
-						</div>
-					</div>
-					<div className="form-group">
-						<label htmlFor="reference-tool-availability">Tool availability</label>
-						<input id="reference-tool-availability" value={referenceToolAvailability} onChange={(event: ChangeEvent<HTMLInputElement>) => setReferenceToolAvailability(event.target.value)} />
-					</div>
-					<div className="form-group">
-						<label htmlFor="reference-link">Link</label>
-						<input id="reference-link" value={referenceLink} onChange={(event: ChangeEvent<HTMLInputElement>) => setReferenceLink(event.target.value)} required />
-					</div>
+					) : (
+						<>
+							<div className={styles.creationSplitGrid}>
+								<div className="form-group">
+									<label htmlFor="reference-title">Title</label>
+									<input id="reference-title" value={referenceTitle} onChange={(event: ChangeEvent<HTMLInputElement>) => setReferenceTitle(event.target.value)} required={referenceMode === "new"} />
+								</div>
+								<div className="form-group">
+									<label htmlFor="reference-authors">Authors</label>
+									<input id="reference-authors" value={referenceAuthors} onChange={(event: ChangeEvent<HTMLInputElement>) => setReferenceAuthors(event.target.value)} required={referenceMode === "new"} />
+								</div>
+							</div>
+							<div className="form-group">
+								<label htmlFor="reference-abstract">Abstract</label>
+								<textarea id="reference-abstract" className={styles.creationTextarea} value={referenceAbstract} onChange={(event: ChangeEvent<HTMLTextAreaElement>) => setReferenceAbstract(event.target.value)} rows={5} />
+							</div>
+							<div className={styles.creationSplitGrid}>
+								<div className="form-group">
+									<label htmlFor="reference-keywords">Keywords</label>
+									<input id="reference-keywords" value={referenceKeywords} onChange={(event: ChangeEvent<HTMLInputElement>) => setReferenceKeywords(event.target.value)} placeholder="Comma-separated keywords" />
+								</div>
+								<div className="form-group">
+									<label htmlFor="reference-year">Year</label>
+									<input id="reference-year" type="number" value={referenceYear} onChange={(event: ChangeEvent<HTMLInputElement>) => setReferenceYear(event.target.value)} required={referenceMode === "new"} />
+								</div>
+							</div>
+							<div className={styles.creationSplitGrid}>
+								<div className="form-group">
+									<label htmlFor="reference-study-type">Study type</label>
+									<input id="reference-study-type" value={referenceStudyType} onChange={(event: ChangeEvent<HTMLInputElement>) => setReferenceStudyType(event.target.value)} required={referenceMode === "new"} />
+								</div>
+								<div className="form-group">
+									<label htmlFor="reference-domain">Domain</label>
+									<input id="reference-domain" value={referenceDomain} onChange={(event: ChangeEvent<HTMLInputElement>) => setReferenceDomain(event.target.value)} />
+								</div>
+							</div>
+							<div className={styles.creationSplitGrid}>
+								<div className="form-group">
+									<label htmlFor="reference-task">Task</label>
+									<input id="reference-task" value={referenceTask} onChange={(event: ChangeEvent<HTMLInputElement>) => setReferenceTask(event.target.value)} />
+								</div>
+								<div className="form-group">
+									<label htmlFor="reference-venue">Venue</label>
+									<input id="reference-venue" value={referenceVenue} onChange={(event: ChangeEvent<HTMLInputElement>) => setReferenceVenue(event.target.value)} />
+								</div>
+							</div>
+							<div className="form-group">
+								<label htmlFor="reference-tool-availability">Tool availability</label>
+								<input id="reference-tool-availability" value={referenceToolAvailability} onChange={(event: ChangeEvent<HTMLInputElement>) => setReferenceToolAvailability(event.target.value)} />
+							</div>
+							<div className="form-group">
+								<label htmlFor="reference-link">Link</label>
+								<input id="reference-link" value={referenceLink} onChange={(event: ChangeEvent<HTMLInputElement>) => setReferenceLink(event.target.value)} required={referenceMode === "new"} />
+							</div>
+						</>
+					)}
 				</section>
 			)}
 

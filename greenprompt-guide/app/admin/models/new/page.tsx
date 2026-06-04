@@ -2,8 +2,11 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import styles from "../../admin.module.css";
 import { ModelForm } from "../model-form";
+import { listReferences } from "@/domain/reference-repository";
 
-export default function NewModelPage() {
+export default async function NewModelPage() {
+  const references = await listReferences();
+
   return (
     <section className={styles.pageSection}>
       <header className={styles.sectionHeader}>
@@ -20,7 +23,15 @@ export default function NewModelPage() {
         </Link>
       </header>
 
-      <ModelForm submitUrl="/api/admin/models" redirectPath="/admin/models" />
+      <ModelForm
+        submitUrl="/api/admin/models"
+        redirectPath="/admin/models"
+        references={references.map((ref) => ({
+          title: ref.title,
+          year: ref.year,
+          authors: ref.authors,
+        }))}
+      />
     </section>
   );
 }

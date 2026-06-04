@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { getModelByName } from "@/domain/model-repository";
+import { listReferences } from "@/domain/reference-repository";
 import styles from "../../../admin.module.css";
 import { ModelForm } from "../../model-form";
 import type { DataFormatType } from "@prisma/client";
@@ -13,11 +14,17 @@ type EditModelPageProps = {
 export default async function EditModelPage({ params }: Readonly<EditModelPageProps>) {
   const { modelName } = await params;
   const decodedName = decodeURIComponent(modelName);
-  const model = await getModelByName(decodedName);
+
+  const [model, allReferences] = await Promise.all([
+    getModelByName(decodedName),
+    listReferences(),
+  ]);
 
   if (!model) {
     notFound();
   }
+
+  const selectedReferenceTitles = model.references.map((entry) => entry.reference.title);
 
   return (
     <section className={styles.pageSection}>
@@ -26,7 +33,7 @@ export default async function EditModelPage({ params }: Readonly<EditModelPagePr
           <p className={styles.kicker}>Models</p>
           <h2 className={styles.sectionTitle}>Modify model</h2>
           <p className={styles.sectionCopy}>
-            Update the model details and supported data formats.
+            Update the model details, supported data formats, and linked references.
           </p>
         </div>
         <Link href="/admin/models" className={`ghost-btn ${styles.headerAction}`}>
@@ -40,12 +47,18 @@ export default async function EditModelPage({ params }: Readonly<EditModelPagePr
         method="PATCH"
         submitUrl={`/api/admin/models/${encodeURIComponent(model.name)}`}
         redirectPath="/admin/models"
+        references={allReferences.map((ref) => ({
+          title: ref.title,
+          year: ref.year,
+          authors: ref.authors,
+        }))}
         initialValues={{
           name: model.name,
           description: model.description,
           parameters: model.parameters,
           size: model.size,
           dataFormatType: model.dataFormatType as DataFormatType[],
+          selectedReferenceTitles,
         }}
       />
     </section>

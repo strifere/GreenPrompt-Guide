@@ -7,10 +7,10 @@ type RouteContext = {
 
 export async function PATCH(request: NextRequest, context: RouteContext) {
   const { datasetName } = await Promise.resolve(context.params);
-  return await updateObjectAPI("datasets", request, datasetName);
+  return await updateObjectAPI("dataset", request, datasetName);
 }
 
 export async function DELETE(_request: NextRequest, context: RouteContext) {
   const { datasetName } = await Promise.resolve(context.params);
-  return await deleteObjectAPI("datasets", datasetName);
+  return await deleteObjectAPI("dataset", datasetName);
 }

@@ -3,6 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import styles from "../../admin.module.css";
 import { PracticeForm } from "../practice-form";
+import { listReferences } from "@/domain/reference-repository";
 
 export default async function NewPracticePage() {
   const categories = await prisma.category.findMany({
@@ -13,6 +14,8 @@ export default async function NewPracticePage() {
       tactic: true,
     },
   });
+
+  const references = await listReferences();
 
   return (
     <section className={styles.pageSection}>
@@ -30,7 +33,7 @@ export default async function NewPracticePage() {
         </Link>
       </header>
 
-      <PracticeForm categories={categories} submitUrl="/api/admin/practices" redirectPath="/admin/practices" />
+      <PracticeForm categories={categories} references={references} submitUrl="/api/admin/practices" redirectPath="/admin/practices" />
     </section>
   );
 }
