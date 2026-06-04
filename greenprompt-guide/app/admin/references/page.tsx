@@ -23,8 +23,8 @@ export default async function AdminReferencesPage() {
       </header>
 
       {references.length === 0 ? (
-        <div className={styles.placeholder}>
-          <h3 className={styles.placeholderTitle}>No references yet</h3>
+        <div className="empty-state">
+          <h2>No references yet</h2>
           <p>Once references are imported, they will appear here for review.</p>
         </div>
       ) : (

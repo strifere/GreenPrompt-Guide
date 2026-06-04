@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getReferenceByTitle } from "@/domain/reference-repository";
 import {
   catalogDatasetHref,
+  catalogHyperparameterHref,
   catalogModelHref,
   catalogPracticeHref,
   catalogPromptTechniqueHref,
@@ -273,7 +274,9 @@ export default async function ReferenceDetailsPage({
               {reference.hyperparameters.length > 0 ? (
                 reference.hyperparameters.map((hyperparameter) => (
                   <li key={hyperparameter.id}>
-                    {hyperparameter.name}: {hyperparameter.value} ({hyperparameter.dataType})
+                    <Link href={catalogHyperparameterHref(hyperparameter.id)} className="reference-link">
+                      {hyperparameter.name}: {hyperparameter.value} ({hyperparameter.dataType})
+                    </Link>
                   </li>
                 ))
               ) : (

@@ -66,7 +66,7 @@ async function validateReferences(referenceTitles: string[]): Promise<NextRespon
 }
 
 export async function updateObjectAPI(
-  type: "model" | "dataset" | "reference",
+  type: "model" | "dataset" | "reference" | "hyperparameter",
   request: NextRequest,
   objectKey: any,
 ): Promise<NextResponse> {
@@ -89,6 +89,9 @@ export async function updateObjectAPI(
         break;
       case "reference":
         existing = await prisma.reference.findUnique({ where: { title: decodedName }, select: { title: true } });
+        break;
+      case "hyperparameter":
+        existing = await prisma.hyperparameter.findUnique({ where: { id: Number.parseInt(String(decodedName)) }, select: { id: true } });
         break;
       default:
         return NextResponse.json({ error: "Invalid type" }, { status: 400 });
@@ -123,9 +126,7 @@ export async function updateObjectAPI(
       ]);
 
       return NextResponse.json({ model: object }, { status: 200 });
-    }
-
-    if (type === "dataset") {
+    } else if (type === "dataset") {
       const referenceTitles = parseReferenceTitles(body.referenceTitles);
       const refError = await validateReferences(referenceTitles);
       if (refError) return refError;
@@ -147,6 +148,18 @@ export async function updateObjectAPI(
       ]);
 
       return NextResponse.json({ dataset: object }, { status: 200 });
+    } else if (type === "hyperparameter") {
+      const object = await prisma.hyperparameter.update({
+        where: { id: Number.parseInt(String(decodedName)) },
+        data: {
+          referenceTitle: secureTrim(body.referenceTitle),
+          practiceName: secureTrim(body.practiceName),
+          name: secureTrim(body.name),
+          value: secureTrim(body.value),
+          dataType: secureTrim(body.dataType),
+        },
+      });
+      return NextResponse.json({ hyperparameter: object }, { status: 200 });
     }
 
     // type === "reference"
@@ -177,7 +190,7 @@ export async function updateObjectAPI(
 }
 
 export async function deleteObjectAPI(
-  type: "model" | "dataset" | "reference",
+  type: "model" | "dataset" | "reference" | "hyperparameter",
   objectKey: any,
 ): Promise<NextResponse> {
   try {
@@ -209,6 +222,12 @@ export async function deleteObjectAPI(
           select: { title: true },
         });
         break;
+      case "hyperparameter":
+        existing = await prisma.hyperparameter.findUnique({
+          where: { id: Number.parseInt(String(decodedTitle)) },
+          select: { id: true },
+        });
+        break;
       default:
         return NextResponse.json({ error: "Invalid type" }, { status: 400 });
     }
@@ -224,6 +243,9 @@ export async function deleteObjectAPI(
       case "dataset":
         await prisma.dataset.delete({ where: { name: decodedTitle } });
         break;
+      case "hyperparameter":
+        await prisma.hyperparameter.delete({ where: { id: Number.parseInt(String(decodedTitle)) } });
+        break;
       default:
         await prisma.reference.delete({ where: { title: decodedTitle } });
     }
@@ -236,7 +258,7 @@ export async function deleteObjectAPI(
 }
 
 export async function insertObjectAPI(
-  type: "model" | "dataset",
+  type: "model" | "dataset" | "hyperparameter",
   request: NextRequest,
 ): Promise<NextResponse> {
   try {
@@ -260,6 +282,9 @@ export async function insertObjectAPI(
         break;
       case "dataset":
         existing = await prisma.dataset.findUnique({ where: { name }, select: { name: true } });
+        break;
+      case "hyperparameter":
+        existing = false; // Hyperparameters are identified by ID, so we allow duplicate names.
         break;
       default:
         return NextResponse.json({ error: "Invalid type" }, { status: 400 });
@@ -292,7 +317,7 @@ export async function insertObjectAPI(
           prisma.modelReference.create({ data: { modelName: name, referenceTitle } }),
         ),
       ]);
-    } else {
+    } else if (type === "dataset") {
       [object] = await prisma.$transaction([
         prisma.dataset.create({
           data: {
@@ -305,6 +330,18 @@ export async function insertObjectAPI(
         ...referenceTitles.map((referenceTitle) =>
           prisma.paperDataset.create({ data: { datasetName: name, referenceTitle } }),
         ),
+      ]);
+    } else if (type === "hyperparameter") {
+      [object] = await prisma.$transaction([
+        prisma.hyperparameter.create({
+          data: {
+            referenceTitle: secureTrim(body.referenceTitle),
+            practiceName: secureTrim(body.practiceName),
+            name: secureTrim(body.name),
+            value: secureTrim(body.value),
+            dataType: secureTrim(body.dataType),
+          },
+        }),
       ]);
     }
 

@@ -28,8 +28,8 @@ export default async function AdminDatasetsPage() {
       </header>
 
       {datasets.length === 0 ? (
-        <div className={styles.placeholder}>
-          <h3 className={styles.placeholderTitle}>No datasets yet</h3>
+        <div className="empty-state">
+          <h2>No datasets yet</h2>
           <p>Once datasets are added, they will appear here for review.</p>
         </div>
       ) : (

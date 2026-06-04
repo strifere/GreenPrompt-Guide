@@ -2,8 +2,8 @@ import { SyntheticEvent } from "react";
 import { useRouter } from "next/navigation";
 
 export async function deleteObject(
-    objectKey: string, 
-    type: "models" | "datasets" | "practices" | "references",
+    objectKey: string | number, 
+    type: "models" | "datasets" | "practices" | "references" | "hyperparameters",
     setLoading: React.Dispatch<React.SetStateAction<boolean>>,
     setError: React.Dispatch<React.SetStateAction<string>>,
     router: ReturnType<typeof useRouter>,
@@ -13,7 +13,7 @@ export async function deleteObject(
     setError("");
 
     try {
-      const response = await fetch(`/api/admin/${type}/${encodeURIComponent(objectKey)}`, {
+      const response = await fetch(`/api/admin/${type}/${encodeURIComponent(String(objectKey))}`, {
         method: "DELETE",
       });
 
@@ -40,7 +40,7 @@ type SubmitObjectParams = {
   body: Record<string, any>;
   redirectPath: string;
   router: ReturnType<typeof import("next/navigation").useRouter>;
-  type: "model" | "dataset" | "practice" | "reference";
+  type: "model" | "dataset" | "practice" | "reference" | "hyperparameter";
 };
 
 export async function submitObject( { event, setSaving, setError, submitUrl, method, body, redirectPath, router, type }: SubmitObjectParams) : Promise<boolean> {

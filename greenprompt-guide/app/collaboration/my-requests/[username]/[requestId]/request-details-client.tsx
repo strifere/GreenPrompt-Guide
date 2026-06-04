@@ -512,7 +512,7 @@ export default function RequestDetailsClient({ request: initialRequest, currentU
 							<MessageCard key={message.id} message={message} currentUsername={currentUsername} />
 						))
 					) : (
-						<div className="collaboration-empty-state">
+						<div className="empty-state">
 							<h3>No messages yet</h3>
 							<p>The conversation for this request will appear here.</p>
 						</div>

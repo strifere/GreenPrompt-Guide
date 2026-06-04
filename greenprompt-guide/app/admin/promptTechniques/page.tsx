@@ -29,8 +29,8 @@ export default async function AdminPromptTechniquesPage() {
       </header>
 
       {promptTechniques.length === 0 ? (
-        <div className={styles.placeholder}>
-          <h3 className={styles.placeholderTitle}>No prompt techniques yet</h3>
+        <div className="empty-state">
+          <h2>No prompt techniques yet</h2>
           <p>Once prompt techniques are added, they will appear here for review.</p>
         </div>
       ) : (

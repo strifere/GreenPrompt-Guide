@@ -78,7 +78,7 @@ export default async function AdminRequestsPage() {
             ))}
           </div>
         ) : (
-          <div className="collaboration-empty-state">
+          <div className="empty-state">
             <h2>No requests yet</h2>
             <p>There are no collaboration requests in the system yet.</p>
           </div>

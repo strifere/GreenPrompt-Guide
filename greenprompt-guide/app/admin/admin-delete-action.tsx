@@ -6,8 +6,8 @@ import { deleteObject } from "@/lib/admin-actions-client";
 import styles from "./admin.module.css";
 
 type AdminDeleteActionProps = {
-    type: "model" | "reference" | "practice" | "dataset";
-    objectKey: string;
+    type: "model" | "reference" | "practice" | "dataset" | "hyperparameter";
+    objectKey: string | number; // Name for most types, but ID for hyperparameters
 };
 
 export function AdminDeleteAction({ type, objectKey }: Readonly<AdminDeleteActionProps>) {
@@ -15,7 +15,7 @@ export function AdminDeleteAction({ type, objectKey }: Readonly<AdminDeleteActio
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  let types : "models" | "references" | "practices" | "datasets" = "models";
+  let types : "models" | "references" | "practices" | "datasets" | "hyperparameters" = "models";
 
   switch (type) {
     case "reference":
@@ -26,6 +26,9 @@ export function AdminDeleteAction({ type, objectKey }: Readonly<AdminDeleteActio
       break;
     case "dataset":
       types = "datasets";
+      break;
+    case "hyperparameter":
+      types = "hyperparameters";
       break;
   } 
 

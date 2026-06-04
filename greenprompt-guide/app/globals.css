@@ -718,20 +718,20 @@ a {
   margin-left: 10px;
 }
 
-.collaboration-empty-state {
+.empty-state {
   padding: 28px;
   border-radius: 18px;
   border: 1px dashed color-mix(in srgb, var(--line) 55%, transparent);
   background: color-mix(in srgb, var(--surface) 96%, transparent);
 }
 
-.collaboration-empty-state h2 {
+.empty-state h2 {
   margin: 0 0 6px;
   font-family: var(--font-display), "Trebuchet MS", sans-serif;
   font-size: 1.4rem;
 }
 
-.collaboration-empty-state p {
+.empty-state p {
   margin: 0;
   color: var(--text-muted);
 }

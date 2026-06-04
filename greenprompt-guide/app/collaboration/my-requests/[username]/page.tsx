@@ -84,7 +84,7 @@ export default async function MyRequestsPage({ params }: Readonly<MyRequestsPage
 						))}
 					</div>
 				) : (
-					<div className="collaboration-empty-state">
+					<div className="empty-state">
 						<h2>No requests yet</h2>
 						<p>You have not submitted any collaboration requests yet.</p>
 					</div>

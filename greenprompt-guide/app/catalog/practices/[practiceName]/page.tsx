@@ -6,6 +6,7 @@ import { getUserByUsername } from "@/domain/user-repository";
 import { getSession } from "@/lib/session";
 import {
   catalogDatasetHref,
+  catalogHyperparameterHref,
   catalogModelHref,
   catalogPromptTechniqueHref,
   catalogReferenceHref,
@@ -248,7 +249,9 @@ export default async function PracticeDetailsPage({
               {practice.hyperparameters.length > 0 ? (
                 practice.hyperparameters.map((hyperparameter) => (
                   <li key={hyperparameter.id}>
-                    {hyperparameter.name}: {hyperparameter.value} ({hyperparameter.dataType})
+                    <Link href={catalogHyperparameterHref(hyperparameter.id)} className="reference-link">
+                      {hyperparameter.name}: {hyperparameter.value} ({hyperparameter.dataType})
+                    </Link>
                   </li>
                 ))
               ) : (

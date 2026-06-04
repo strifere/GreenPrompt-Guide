@@ -26,16 +26,16 @@ const adminSections = [
     label: "Datasets",
   },
   {
+    href: "/admin/hyperparameters",
+    label: "Hyperparameters",
+  },
+  {
     href: "/admin/requests",
     label: "Requests",
   },
   {
     href: "/admin/users",
     label: "Users",
-  },
-  {
-    href: "/admin/settings",
-    label: "Settings",
   },
 ] as const;
 
