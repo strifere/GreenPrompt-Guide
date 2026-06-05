@@ -106,7 +106,7 @@ export default async function DatasetDetailsPage({
                 relatedReferences.map((reference, index) => (
                   <li key={`reference-${dataset.name}-${index}`}>
                     <Link href={catalogReferenceHref(reference.title)} className="reference-link">
-                      {reference.title}{reference.year && ` (${reference.year})`}
+                      {reference.title}{(reference.year !== null) && ` (${reference.year})`}
                     </Link>
                   </li>
                 ))

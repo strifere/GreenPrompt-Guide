@@ -108,7 +108,7 @@ export default async function ModelDetailsPage({
                 relatedReferences.map((reference, index) => (
                   <li key={`reference-${model.name}-${index}`}>
                     <Link href={catalogReferenceHref(reference.title)} className="reference-link">
-                      {reference.title}{reference.year && ` (${reference.year})`}
+                      {reference.title}{(reference.year !== null) && ` (${reference.year})`}
                     </Link>
                   </li>
                 ))

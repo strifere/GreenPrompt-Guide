@@ -1,7 +1,6 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import type { ReactNode } from "react";
 import { ModelForm } from "@/app/admin/models/model-form";
 import * as adminActionsClient from "@/lib/admin-actions-client";
 
@@ -56,8 +55,8 @@ describe("ModelForm", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
-
-  it("renders the form with required fields", () => {
+    
+    it("renders the form with required fields", () => {
     render(
       <ModelForm
         submitUrl="/api/admin/models"

@@ -1,6 +1,5 @@
 "use client";
 
-import { useAuth } from "@/lib/use-auth";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type Dispatch, type RefObject, type SetStateAction } from "react";

@@ -8,7 +8,7 @@ import RequestDetailsClient from "./request-details-client";
 
 
 type RequestDetailsProps = {
-  params: Promise<{ username: string; requestId: string }>;
+  params: { username: string; requestId: string };
 };
 
 function formatStatus(status: string) {
@@ -29,7 +29,7 @@ function formatStatus(status: string) {
 export default async function RequestDetailsPage({
   params,
 }: Readonly<RequestDetailsProps>) {
-  const { username, requestId } = await params;
+  const { username, requestId } = params;
   const requestedUsername = decodeURIComponent(username);
   const currentUsername = await getSession();
 

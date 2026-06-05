@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { mkdir, writeFile } from "node:fs/promises";
+import { createCollaborationRequestDir, writeCollaborationRequestFile } from "@/lib/collaboration-request-fs";
 import { NextRequest, NextResponse } from "next/server";
 import {
 	createCollaborationRequest,
@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
 		}
 
 		const storageDir = getCollaborationPdfStorageDir();
-		await mkdir(storageDir, { recursive: true });
+		await createCollaborationRequestDir(storageDir);
 
 		const safeName = sourcePdf.name.trim().replace(/[^a-zA-Z0-9._-]+/g, "_") || "supporting.pdf";
 		const relativePath = `${randomUUID()}-${safeName}`;
@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
 		createdRequestId = createdRequest.id;
 
 		try {
-			await writeFile(absolutePath, pdfBytes);
+			await writeCollaborationRequestFile(absolutePath, pdfBytes);
 		} catch (storageError) {
 			if (createdRequestId != null) {
 				await deleteCollaborationRequestById(createdRequestId).catch(() => undefined);

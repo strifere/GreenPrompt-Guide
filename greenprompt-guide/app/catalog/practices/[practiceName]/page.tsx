@@ -284,7 +284,7 @@ export default async function PracticeDetailsPage({
             {practice.papers.map((entry) => (
               <li key={entry.reference.title}>
                 <Link href={catalogReferenceHref(entry.reference.title)} className="reference-link">
-                  {entry.reference.title ?? "Reference"}{entry.reference.year && ` (${entry.reference.year})`}
+                  {entry.reference.title ?? "Reference"}{entry.reference.year !== null && ` (${entry.reference.year})`}
                 </Link>
               </li>
             ))}

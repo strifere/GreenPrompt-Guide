@@ -5,7 +5,6 @@ import { getModelByName } from "@/domain/model-repository";
 import { listReferences } from "@/domain/reference-repository";
 import styles from "../../../admin.module.css";
 import { ModelForm } from "../../model-form";
-import type { DataFormatType } from "@prisma/client";
 
 type EditModelPageProps = {
   params: Promise<{ modelName: string }>;
@@ -57,7 +56,7 @@ export default async function EditModelPage({ params }: Readonly<EditModelPagePr
           description: model.description,
           parameters: model.parameters,
           size: model.size,
-          dataFormatType: model.dataFormatType as DataFormatType[],
+          dataFormatType: model.dataFormatType,
           selectedReferenceTitles,
         }}
       />

@@ -5,7 +5,6 @@ import { getDatasetByName } from "@/domain/dataset-repository";
 import { listReferences } from "@/domain/reference-repository";
 import styles from "../../../admin.module.css";
 import { DatasetForm } from "../../dataset-form";
-import type { DataFormatType } from "@prisma/client";
 
 type EditDatasetPageProps = {
   params: Promise<{ datasetName: string }>;
@@ -60,7 +59,7 @@ export default async function EditDatasetPage({ params }: Readonly<EditDatasetPa
           name: dataset.name,
           description: dataset.description,
           size: dataset.size,
-          dataFormatType: dataset.dataFormatType as DataFormatType[],
+          dataFormatType: dataset.dataFormatType,
           selectedReferenceTitles,
         }}
       />

@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { readCollaborationRequestFile } from "@/lib/collaboration-request-fs";
 import path from "node:path";
 import { NextResponse } from "next/server";
 import { getUserByUsername } from "@/domain/user-repository";
@@ -47,7 +47,7 @@ export async function GET(_request: Request, context: CollaborationPdfRouteConte
 		let fileBuffer: Uint8Array;
 
 		try {
-			fileBuffer = new Uint8Array(await readFile(absolutePath));
+			fileBuffer = new Uint8Array(await readCollaborationRequestFile(absolutePath));
 		} catch (fileError) {
 			if (typeof fileError === "object" && fileError !== null && "code" in fileError && fileError.code === "ENOENT") {
 				return NextResponse.json({ error: "PDF not found" }, { status: 404 });
