@@ -429,6 +429,7 @@ export default function RequestDetailsClient({ request: initialRequest, currentU
 	const hasRejectionReason = Boolean(request.status === "DENIED" && request.rejectionReason?.trim());
 	const canRequestMoreInfo = request.status === "PENDING";
 	const canShowReopen = request.status === "DENIED";
+	const canPostMessage = request.status !== "DENIED" && request.status !== "APPROVED";
 
 	return (
 		<section className="collaboration-request-overview">
@@ -518,7 +519,7 @@ export default function RequestDetailsClient({ request: initialRequest, currentU
 						</div>
 					)}
 				</div>
-				{canShowReopen ? null : (
+				{canPostMessage ? null : (
 					<form className="collaboration-message-box" onSubmit={handleMessageSubmit}>
 					<div className="form-group">
 						<label htmlFor="request-message">Write a new message</label>

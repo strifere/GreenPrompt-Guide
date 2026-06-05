@@ -1,5 +1,6 @@
 "use client";
 
+import { useAuth } from "@/lib/use-auth";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type Dispatch, type RefObject, type SetStateAction } from "react";
@@ -478,8 +479,8 @@ function CollaborationPageContent({
 }
 
 export default function CollaboratePage() {
-	const formRef = useRef<HTMLFormElement | null>(null);
 	const router = useRouter();
+	const formRef = useRef<HTMLFormElement | null>(null);
 	const [isCheckingAccess, setIsCheckingAccess] = useState(false);
 	const [modalState, setModalState] = useState<ModalState | null>(null);
 	const [formErrorMessage, setFormErrorMessage] = useState<string | null>(null);
@@ -493,6 +494,12 @@ export default function CollaboratePage() {
 			const authenticatedSession = await getAuthenticatedSession();
 
 			if (!isMounted) {
+				return;
+			}
+
+			// Redirect if not logged in
+			if (!authenticatedSession) {
+				router.replace("/login");
 				return;
 			}
 

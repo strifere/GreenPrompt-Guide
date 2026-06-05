@@ -138,7 +138,6 @@ export function HyperparameterForm({
               id="hp-referenceTitle"
               value={referenceTitle}
               onChange={(e: ChangeEvent<HTMLSelectElement>) => setReferenceTitle(e.target.value)}
-              required
             >
               <option value="" disabled>Select a reference...</option>
               {references.map((ref) => (

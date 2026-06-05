@@ -26,4 +26,9 @@ export default defineConfig({
       "@": path.resolve(__dirname, "."),
     },
   },
+  css: {
+    modules: {
+      generateScopedName: "[name]__[local]",
+    },
+  },
 });

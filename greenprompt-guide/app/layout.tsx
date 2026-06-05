@@ -7,6 +7,7 @@ import { CarbonBadge } from "./ui/carbon-badge";
 import { ThemeToggle } from "./ui/theme-toggle";
 import { TopbarMenu } from "./ui/topbar-menu";
 import { AuthButtons } from "./ui/auth-buttons";
+import { CollaborationButton } from "./ui/collaboration-button";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -96,9 +97,7 @@ export default async function RootLayout({
             <Link href="/catalog" className="animated-link">
               Catalog
             </Link>
-            <Link href="/collaboration" className="animated-link">
-              Collaboration
-            </Link>
+            <CollaborationButton />
             <Link href="/#about-greenprompt-guide" className="animated-link">
               About
             </Link>

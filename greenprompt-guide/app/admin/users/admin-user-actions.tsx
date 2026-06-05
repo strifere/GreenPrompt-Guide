@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import styles from "../admin.module.css";
 
 type AdminUserActionsProps = {
@@ -10,7 +10,7 @@ type AdminUserActionsProps = {
   banned: boolean;
 };
 
-type Mode = "ban" | "unban" | "delete" | "promote" | "accept-request"| "reject-request" | null;
+type Mode = "ban" | "unban" | "delete" | null;
 
 type DialogMode = Exclude<Mode, null>;
 
@@ -31,29 +31,12 @@ const dialogCopy: Record<DialogMode, { title: (username: string) => string; hint
     hint: "Explain why this account is being deleted.",
     confirm: "I'm sure, delete",
     placeholder: "Reason for deleting the user",
-  },
-  promote: {
-    title: (username) => `Promote ${username} to admin?`,
-    hint: "This will grant the user admin privileges.",
-    confirm: "I'm sure, promote",
-  },
-  "accept-request": {
-    title: (username) => `Accept ${username}'s admin request?`,
-    hint: "This will grant the user admin privileges.",
-    confirm: "I'm sure, accept",
-  },
-  "reject-request": {
-    title: (username) => `Reject ${username}'s admin request?`,
-    hint: "This will notify the user that their request has been rejected.",
-    confirm: "I'm sure, reject",
   }
 };
 
 function getLoadingLabel(mode: DialogMode) {
   if (mode === "delete") return "Deleting...";
   if (mode === "ban") return "Banning...";
-  if (mode === "promote") return "Promoting...";
-  if (mode === "accept-request") return "Accepting request...";
 
   return "Unbanning...";
 }
@@ -65,7 +48,6 @@ type AdminUserModerationDialogProps = {
   reason: string;
   loading: boolean;
   error: string;
-  requestMessage: string;
   onClose: () => void;
   onReasonChange: (reason: string) => void;
   onSubmit: () => void;
@@ -78,7 +60,6 @@ function AdminUserModerationDialog({
   reason,
   loading,
   error,
-  requestMessage,
   onClose,
   onReasonChange,
   onSubmit,
@@ -88,7 +69,7 @@ function AdminUserModerationDialog({
   }
 
   const copy = dialogCopy[mode];
-  const needsReason = mode === "ban" || mode === "delete" || mode === "reject-request";
+  const needsReason = mode === "ban" || mode === "delete";
   const isReasonMissing = needsReason && reason.trim().length === 0;
 
   return (
@@ -123,15 +104,6 @@ function AdminUserModerationDialog({
           <p className={styles.dialogHint}>The user&apos;s activity will be restored.</p>
         )}
 
-        {mode === "accept-request" && (
-          <div>
-            <p className={styles.dialogHint}> Request message:</p>
-            <p className={styles.requestMessage}>
-              {requestMessage}
-            </p>
-          </div>
-        )}
-
         <div className={styles.dialogActions}>
           <button type="button" className={`ghost-btn ${styles.dialogCancelButton}`} onClick={onClose}>
             Cancel
@@ -145,39 +117,12 @@ function AdminUserModerationDialog({
   );
 }
 
-async function loadRequestedAdminStatus(username: string, setRequestedAdmin: (requested: boolean) => void, setRequestMessage: (message: string) => void) {
-  try {
-    const adminRequestResponse = await fetch(`/api/admin/users/${encodeURIComponent(username)}/admin-request`, {
-      method: "GET",
-      credentials: "include",
-    });
-  
-    if (!adminRequestResponse.ok) {
-      setRequestedAdmin(false);
-      return;
-    }
-
-		const adminRequestData = await adminRequestResponse.json();
-
-    setRequestedAdmin(adminRequestData.requested);
-    setRequestMessage(adminRequestData.requested ? adminRequestData.message : "");
-  } catch (requestError) {
-    console.error(
-      "An error occurred: " +
-        (requestError instanceof Error ? requestError.message : "Please try again.")
-    );
-    setRequestedAdmin(false);
-  }
-}
-
 export function AdminUserActions({ username, email, banned }: Readonly<AdminUserActionsProps>) {
   const router = useRouter();
   const [mode, setMode] = useState<Mode>(null);
   const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [requestedAdmin, setRequestedAdmin] = useState(false);
-  const [requestMessage, setRequestMessage] = useState("");
 
   const closeDialog = () => {
     setMode(null);
@@ -216,10 +161,6 @@ export function AdminUserActions({ username, email, banned }: Readonly<AdminUser
 
   const isDialogOpen = mode !== null;
 
-  useEffect(() => {
-    loadRequestedAdminStatus(username, setRequestedAdmin, setRequestMessage);
-  }, [username, loading]);
-
   return (
     <>
       <div className={styles.rowActions}>
@@ -230,32 +171,6 @@ export function AdminUserActions({ username, email, banned }: Readonly<AdminUser
         >
           {banned ? "Unban" : "Ban"}
         </button>
-        {requestedAdmin ? (
-          <div>
-            <button
-              type="button"
-              className={`ghost-btn ${styles.actionButton} ${styles.notificationAction}`}
-              onClick={() => setMode("accept-request")}
-            >
-              Accept request
-            </button>
-            <button
-              type="button"
-              className={`ghost-btn ${styles.actionButton} ${styles.notificationRejection}`}
-              onClick={() => setMode("reject-request")}
-            >
-              Deny request
-            </button>
-          </div>
-        ) : (
-          <button
-            type="button"
-            className={`ghost-btn ${styles.actionButton} ${styles.solidAction}`}
-            onClick={() => setMode("promote")}
-          >
-            Promote
-          </button>
-        )}
         <button
           type="button"
           className={`ghost-btn ${styles.actionButton} ${styles.dangerAction}`}
@@ -273,7 +188,6 @@ export function AdminUserActions({ username, email, banned }: Readonly<AdminUser
           reason={reason}
           loading={loading}
           error={error}
-          requestMessage={requestMessage}
           onClose={closeDialog}
           onReasonChange={setReason}
           onSubmit={submitModeration}

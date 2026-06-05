@@ -76,19 +76,8 @@ model User {
   submittedCollaborationRequests CollaborationRequest[]        @relation("CollaborationRequestSubmitter")
   reviewedCollaborationRequests  CollaborationRequest[]        @relation("CollaborationRequestReviewer")
   collaborationRequestMessages   CollaborationRequestMessage[] @relation("CollaborationRequestMessageAuthor")
-  adminRequest                   AdminRequest?                 @relation("AdminRequestSubmmiter")
 
   @@map("users")
-}
-
-model AdminRequest {
-  id                Int    @id @default(autoincrement())
-  request           String
-  requesterUsername String @unique
-
-  requester User @relation("AdminRequestSubmmiter", fields: [requesterUsername], references: [username], onDelete: Cascade)
-
-  @@map("admin-requests")
 }
 
 model Category {

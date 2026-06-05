@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { emailService } from "@/lib/email-service";
 import {
-  deleteAdminRequestByUsername,
   deleteUserByUsername,
   getUserByUsername,
-  promopteUserToAdmin,
   updateUserBanStatus,
 } from "@/domain/user-repository";
 import { requireAdmin } from "@/lib/admin-auth";
@@ -30,6 +28,12 @@ async function handleBanUser(username: string, user: { email: string }, body: un
     return NextResponse.json({ error: "Ban reason is required" }, { status: 400 });
   }
 
+  const isBannedUserAdmin = await getUserByUsername(username);
+
+  if (isBannedUserAdmin?.role === "ADMIN") {
+    return NextResponse.json({ error: "Cannot ban an admin" }, { status: 400 });
+  };
+
   const emailSent = await emailService.sendUserBanNotice(user.email, reason);
 
   if (!emailSent) {
@@ -51,49 +55,6 @@ async function handleUnbanUser(username: string, user: { email: string }) {
   await updateUserBanStatus({ username, banned: false });
 
   return NextResponse.json({ message: "User unbanned successfully" }, { status: 200 });
-}
-
-async function handleAcceptRequest(username: string, user: { email: string }) {
-  await promopteUserToAdmin(username);
-  await deleteAdminRequestByUsername(username);
-  
-  const emailSent = await emailService.sendAdminRequestResponse(user.email, true, "");
-
-  if (!emailSent) {
-    return NextResponse.json({ error: "Failed to notify the user" }, { status: 502 });
-  }
-  return NextResponse.json({ message: "Admin request accepted and user notified" }, { status: 200 });
-}
-
-async function handleRejectRequest(username: string, user: { email: string }, body: unknown) {
-  const reason = getReason(body);
-
-  if (!reason) {
-    return NextResponse.json({ error: "Rejection reason is required" }, { status: 400 });
-  }
-
-  const emailSent = await emailService.sendAdminRequestResponse(user.email, false, reason);
-
-  if (!emailSent) {
-    return NextResponse.json({ error: "Failed to notify the user" }, { status: 502 });
-  }
-
-  await deleteAdminRequestByUsername(username);
-
-  return NextResponse.json({ message: "Admin request rejected and user notified" }, { status: 200 });
-}
-
-async function handlePromoteUser(username: string, user: { email: string }) {
-  await promopteUserToAdmin(username);
-  await deleteAdminRequestByUsername(username);
-
-  const emailSent = await emailService.sendAdminPromotionNotice(user.email);
-
-  if (!emailSent) {
-    return NextResponse.json({ error: "Failed to notify the user" }, { status: 502 });
-  }
-
-  return NextResponse.json({ message: "User promoted to admin successfully" }, { status: 200 });
 }
 
 export async function DELETE(request: NextRequest, context: RouteContext) {
@@ -158,12 +119,6 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
         return handleBanUser(username, user, body);
       case "unban":
         return handleUnbanUser(username, user);
-      case "accept-request":
-        return handleAcceptRequest(username, user);
-      case "reject-request":
-        return handleRejectRequest(username, user, body);
-      case "promote":
-        return handlePromoteUser(username, user);
       default:
         return NextResponse.json({ error: "Invalid moderation action" }, { status: 400 });
     }
