@@ -1,6 +1,6 @@
 "use client";
 
-import { PracticeForm, type CategoryOption } from "../../practice-form";
+import { PracticeForm, type CategoryOption, type ReferenceOption } from "../../practice-form";
 
 type RequestedPracticeFormProps = {
 	requestId: number;
@@ -10,6 +10,7 @@ type RequestedPracticeFormProps = {
 	requestReferenceLink: string;
 	requestExamples: string | null;
 	categories: CategoryOption[];
+	references: ReferenceOption[];
 };
 
 export function RequestPracticeForm({
@@ -20,10 +21,12 @@ export function RequestPracticeForm({
 	requestReferenceLink,
 	requestExamples,
 	categories,
+	references,
 }: Readonly<RequestedPracticeFormProps>) {
 	return (
 		<PracticeForm
 			categories={categories}
+			references={references}
 			submitUrl={`/api/admin/requests/${requestId}`}
 			redirectPath={`/admin/requests/${requestId}`}
 			initialValues={{

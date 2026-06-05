@@ -42,6 +42,16 @@ export default async function RequestedPracticePage({ params }: Readonly<Request
 		},
 	});
 
+	// Fetch references to allow admins to select an existing one
+	const references = await prisma.reference.findMany({
+		orderBy: { title: "asc" },
+		select: {
+			title: true,
+			year: true,
+			authors: true,
+		},
+	});
+
 	return (
 		<section className={styles.pageSection}>
 			<header className={styles.sectionHeader}>
@@ -66,6 +76,7 @@ export default async function RequestedPracticePage({ params }: Readonly<Request
 				requestReferenceLink={request.referenceLink}
 				requestExamples={request.practiceExamples}
 				categories={categories}
+				references={references}
 			/>
 		</section>
 	);

@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 
 export async function deleteObject(
     objectKey: string | number, 
-    type: "models" | "datasets" | "practices" | "references" | "hyperparameters",
+    type: "models" | "datasets" | "practices" | "references" | "hyperparameters" | "categories",
     setLoading: React.Dispatch<React.SetStateAction<boolean>>,
     setError: React.Dispatch<React.SetStateAction<string>>,
     router: ReturnType<typeof useRouter>,

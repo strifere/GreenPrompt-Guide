@@ -32,6 +32,9 @@ vi.mock("@/lib/prisma", () => ({
 		category: {
 			findMany: vi.fn(),
 		},
+		reference: {
+			findMany: vi.fn(),
+		},
 	},
 }));
 
@@ -45,8 +48,11 @@ vi.mock("@/app/admin/practices/new/[requestId]/request-practice-form", () => ({
 }));
 
 describe("RequestedPracticePage", () => {
-	beforeEach(() => {
+	beforeEach(async () => {
 		vi.clearAllMocks();
+		const { prisma } = await import("@/lib/prisma");
+		// Automatically resolve with empty arrays so existing test contexts do not fail unexpectedly
+		(prisma.reference.findMany as any).mockResolvedValue([]);
 	});
 
 	const createMockRequest = (overrides = {}) => ({
@@ -109,7 +115,7 @@ describe("RequestedPracticePage", () => {
 
 		try {
 			await page;
-		} catch (e: any) {
+		} catch (_e: any) {
 			expect((notFound as any).mock.calls.length).toBeGreaterThan(0);
 		}
 	});
@@ -182,6 +188,24 @@ describe("RequestedPracticePage", () => {
 		});
 	});
 
+	it("loads references from database ordered by title", async () => {
+		const { getCollaborationRequestDetailsById } = await import("@/domain/collaboration-request-repository");
+		const { prisma } = await import("@/lib/prisma");
+
+		(getCollaborationRequestDetailsById as any).mockResolvedValueOnce(createMockRequest());
+
+		render(await RequestedPracticePage({ params: Promise.resolve({ requestId: "1" }) }));
+
+		expect(prisma.reference.findMany).toHaveBeenCalledWith({
+			orderBy: { title: "asc" },
+			select: {
+				title: true,
+				year: true,
+				authors: true,
+			},
+		});
+	});
+
 	it("passes request details to RequestPracticeForm", async () => {
 		const { getCollaborationRequestDetailsById } = await import("@/domain/collaboration-request-repository");
 		const { prisma } = await import("@/lib/prisma");
@@ -201,7 +225,7 @@ describe("RequestedPracticePage", () => {
 		render(await RequestedPracticePage({ params: Promise.resolve({ requestId: "42" }) }));
 
 		const form = screen.getByTestId("request-practice-form");
-		const props = JSON.parse(form.getAttribute("data-props") || "{}");
+		const props = JSON.parse(form.dataset.props || "{}");
 
 		expect(props.requestId).toBe(42);
 		expect(props.requestTitle).toBe("Green Optimization");
@@ -226,9 +250,30 @@ describe("RequestedPracticePage", () => {
 		render(await RequestedPracticePage({ params: Promise.resolve({ requestId: "1" }) }));
 
 		const form = screen.getByTestId("request-practice-form");
-		const props = JSON.parse(form.getAttribute("data-props") || "{}");
+		const props = JSON.parse(form.dataset.props || "{}");
 
 		expect(props.categories).toEqual(mockCategories);
+	});
+
+	it("passes references to RequestPracticeForm", async () => {
+		const { getCollaborationRequestDetailsById } = await import("@/domain/collaboration-request-repository");
+		const { prisma } = await import("@/lib/prisma");
+
+		const mockReferences = [
+			{ title: "Ref 1", year: 2020, authors: "Author 1" },
+			{ title: "Ref 2", year: 2021, authors: "Author 2" },
+		];
+
+		(getCollaborationRequestDetailsById as any).mockResolvedValueOnce(createMockRequest());
+		(prisma.category.findMany as any).mockResolvedValueOnce([]);
+		(prisma.reference.findMany as any).mockResolvedValueOnce(mockReferences);
+
+		render(await RequestedPracticePage({ params: Promise.resolve({ requestId: "1" }) }));
+
+		const form = screen.getByTestId("request-practice-form");
+		const props = JSON.parse(form.dataset.props || "{}");
+
+		expect(props.references).toEqual(mockReferences);
 	});
 
 	it("passes correct submit and redirect URLs to RequestPracticeForm", async () => {
@@ -241,7 +286,6 @@ describe("RequestedPracticePage", () => {
 		render(await RequestedPracticePage({ params: Promise.resolve({ requestId: "99" }) }));
 
 		const form = screen.getByTestId("request-practice-form");
-		const props = JSON.parse(form.getAttribute("data-props") || "{}");
 
 		// RequestPracticeForm should derive submitUrl and redirectPath from requestId
 		expect(form).toBeInTheDocument();
@@ -259,7 +303,7 @@ describe("RequestedPracticePage", () => {
 		render(await RequestedPracticePage({ params: Promise.resolve({ requestId: "1" }) }));
 
 		const form = screen.getByTestId("request-practice-form");
-		const props = JSON.parse(form.getAttribute("data-props") || "{}");
+		const props = JSON.parse(form.dataset.props || "{}");
 
 		expect(props.requestExamples).toBeNull();
 	});
@@ -304,7 +348,7 @@ describe("RequestedPracticePage", () => {
 		render(await RequestedPracticePage({ params: Promise.resolve({ requestId: "1" }) }));
 
 		const form = screen.getByTestId("request-practice-form");
-		const props = JSON.parse(form.getAttribute("data-props") || "{}");
+		const props = JSON.parse(form.dataset.props || "{}");
 
 		expect(props.requestTitle).toBe('Practice & "Special" <Tags>');
 	});

@@ -283,7 +283,7 @@ export function PracticeForm({
 	const [newCategoryDescription, setNewCategoryDescription] = useState("");
 	const [newCategoryTactic, setNewCategoryTactic] = useState("GREEN_PRACTICE");
 
-	const [referenceMode, setReferenceMode] = useState<"existing" | "new">(references.length > 0 ? "existing" : "new");
+	const [referenceMode, setReferenceMode] = useState<"existing" | "new">(references.length > 0 && !source ? "existing" : "new");
 	const [existingReferenceTitle, setExistingReferenceTitle] = useState(initialValues?.selectedReferenceTitles?.[0] ?? references[0]?.title ?? "");
 	const [referenceTitle, setReferenceTitle] = useState(initialValues?.referenceTitle ?? "");
 	const [referenceAuthors, setReferenceAuthors] = useState(initialValues?.referenceAuthors ?? "");

@@ -73,7 +73,7 @@ describe("AdminPracticesNewPage", () => {
     render(element);
 
     const form = screen.getByTestId("practice-form");
-    const props = JSON.parse(form.getAttribute("data-props") || "{}");
+    const props = JSON.parse(form.dataset.props || "{}");
     expect(props.submitUrl).toBe("/api/admin/practices");
   });
 
@@ -104,7 +104,7 @@ describe("AdminPracticesNewPage", () => {
     render(element);
 
     const form = screen.getByTestId("practice-form");
-    const props = JSON.parse(form.getAttribute("data-props") || "{}");
+    const props = JSON.parse(form.dataset.props || "{}");
     expect(props.categories).toHaveLength(2);
   });
 
@@ -118,7 +118,7 @@ describe("AdminPracticesNewPage", () => {
     render(element);
 
     const form = screen.getByTestId("practice-form");
-    const props = JSON.parse(form.getAttribute("data-props") || "{}");
+    const props = JSON.parse(form.dataset.props || "{}");
     expect(props.references).toHaveLength(1);
   });
 });

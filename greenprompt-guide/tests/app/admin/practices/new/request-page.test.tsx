@@ -4,6 +4,7 @@ import AdminRequestPracticePage from "@/app/admin/practices/new/[requestId]/page
 
 const getCollaborationRequestDetailsById = vi.hoisted(() => vi.fn());
 const prismaCategoryFindManyMock = vi.hoisted(() => vi.fn());
+const prismaReferenceFindManyMock = vi.hoisted(() => vi.fn());
 const listReferencesMock = vi.hoisted(() => vi.fn());
 const listPromptTechniquesMock = vi.hoisted(() => vi.fn());
 const listModelsMock = vi.hoisted(() => vi.fn());
@@ -22,6 +23,9 @@ vi.mock("@/lib/prisma", () => ({
   prisma: {
     category: {
       findMany: prismaCategoryFindManyMock,
+    },
+    reference: {
+      findMany: prismaReferenceFindManyMock,
     },
   },
 }));
@@ -66,6 +70,7 @@ describe("AdminRequestPracticePage", () => {
   it("calls notFound when request does not exist", async () => {
     getCollaborationRequestDetailsById.mockResolvedValueOnce(null);
     prismaCategoryFindManyMock.mockResolvedValueOnce([]);
+    prismaReferenceFindManyMock.mockResolvedValueOnce([]);
     listReferencesMock.mockResolvedValueOnce([]);
     listPromptTechniquesMock.mockResolvedValueOnce([]);
     listModelsMock.mockResolvedValueOnce([]);
@@ -76,7 +81,7 @@ describe("AdminRequestPracticePage", () => {
         params: Promise.resolve({ requestId: "999" }),
       });
     } catch (e) {
-      // notFound throws, so we catch it
+      expect(e).toBeInstanceOf(Error);
     }
 
     expect(notFoundMock).toHaveBeenCalled();
@@ -95,6 +100,7 @@ describe("AdminRequestPracticePage", () => {
       requestDetails: "Details",
     });
     prismaCategoryFindManyMock.mockResolvedValueOnce([]);
+    prismaReferenceFindManyMock.mockResolvedValueOnce([]);
     listReferencesMock.mockResolvedValueOnce([]);
     listPromptTechniquesMock.mockResolvedValueOnce([]);
     listModelsMock.mockResolvedValueOnce([]);
@@ -121,6 +127,7 @@ describe("AdminRequestPracticePage", () => {
       requestDetails: "Details",
     });
     prismaCategoryFindManyMock.mockResolvedValueOnce([]);
+    prismaReferenceFindManyMock.mockResolvedValueOnce([]);
     listReferencesMock.mockResolvedValueOnce([]);
     listPromptTechniquesMock.mockResolvedValueOnce([]);
     listModelsMock.mockResolvedValueOnce([]);
@@ -148,6 +155,7 @@ describe("AdminRequestPracticePage", () => {
       requestDetails: "Details",
     });
     prismaCategoryFindManyMock.mockResolvedValueOnce([]);
+    prismaReferenceFindManyMock.mockResolvedValueOnce([]);
     listReferencesMock.mockResolvedValueOnce([]);
     listPromptTechniquesMock.mockResolvedValueOnce([]);
     listModelsMock.mockResolvedValueOnce([]);
@@ -174,6 +182,7 @@ describe("AdminRequestPracticePage", () => {
       requestDetails: "Details",
     });
     prismaCategoryFindManyMock.mockResolvedValueOnce([]);
+    prismaReferenceFindManyMock.mockResolvedValueOnce([]);
     listReferencesMock.mockResolvedValueOnce([]);
     listPromptTechniquesMock.mockResolvedValueOnce([]);
     listModelsMock.mockResolvedValueOnce([]);
@@ -201,6 +210,7 @@ describe("AdminRequestPracticePage", () => {
     };
     getCollaborationRequestDetailsById.mockResolvedValueOnce(requestData);
     prismaCategoryFindManyMock.mockResolvedValueOnce([]);
+    prismaReferenceFindManyMock.mockResolvedValueOnce([]);
     listReferencesMock.mockResolvedValueOnce([]);
     listPromptTechniquesMock.mockResolvedValueOnce([]);
     listModelsMock.mockResolvedValueOnce([]);
@@ -227,6 +237,7 @@ describe("AdminRequestPracticePage", () => {
       createdPractice: null,
     });
     prismaCategoryFindManyMock.mockResolvedValueOnce([]);
+    prismaReferenceFindManyMock.mockResolvedValueOnce([]);
     listReferencesMock.mockResolvedValueOnce([]);
     listPromptTechniquesMock.mockResolvedValueOnce([]);
     listModelsMock.mockResolvedValueOnce([]);
@@ -242,6 +253,37 @@ describe("AdminRequestPracticePage", () => {
         name: true,
         description: true,
         tactic: true,
+      },
+    });
+  });
+
+  it("queries references ordered by title", async () => {
+    getCollaborationRequestDetailsById.mockResolvedValueOnce({
+      id: 1,
+      practiceTitle: "Practice",
+      practiceSummary: "Summary",
+      practiceDescription: "Description",
+      referenceLink: "https://example.com",
+      practiceExamples: "Examples",
+      createdPractice: null,
+    });
+    prismaCategoryFindManyMock.mockResolvedValueOnce([]);
+    prismaReferenceFindManyMock.mockResolvedValueOnce([]);
+    listReferencesMock.mockResolvedValueOnce([]);
+    listPromptTechniquesMock.mockResolvedValueOnce([]);
+    listModelsMock.mockResolvedValueOnce([]);
+    listHyperparametersMock.mockResolvedValueOnce([]);
+
+    await AdminRequestPracticePage({
+      params: Promise.resolve({ requestId: "1" }),
+    });
+
+    expect(prismaReferenceFindManyMock).toHaveBeenCalledWith({
+      orderBy: { title: "asc" },
+      select: {
+        title: true,
+        year: true,
+        authors: true,
       },
     });
   });

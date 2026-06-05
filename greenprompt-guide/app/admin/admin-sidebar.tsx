@@ -10,6 +10,10 @@ const adminSections = [
     label: "Practices",
   },
   {
+    href: "/admin/categories",
+    label: "Categories",
+  },
+  {
     href: "/admin/references",
     label: "References",
   },
