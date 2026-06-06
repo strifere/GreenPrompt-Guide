@@ -3,10 +3,13 @@ import { notFound } from "next/navigation";
 import { getReferenceByTitle } from "@/domain/reference-repository";
 import {
   catalogDatasetHref,
+  catalogHyperparameterHref,
   catalogModelHref,
   catalogPracticeHref,
   catalogPromptTechniqueHref,
 } from "../../catalog-paths";
+import { getUserByUsername } from "@/domain/user-repository";
+import { getSession } from "@/lib/session";
 
 type ReferenceDetailsProps = {
   params: Promise<{ referenceTitle: string }>;
@@ -120,6 +123,10 @@ export default async function ReferenceDetailsPage({
   const referenceTitleDecoded = decodeURIComponent(referenceTitle);
   const reference = await getReferenceByTitle(referenceTitleDecoded);
 
+  const username = await getSession();
+  const currentUser = username ? await getUserByUsername(username) : null;
+  const canEditReference = currentUser?.role === "ADMIN";
+
   if (!reference) {
     notFound();
   }
@@ -138,6 +145,11 @@ export default async function ReferenceDetailsPage({
           <div>
             <h1>{reference.title}</h1>
           </div>
+          {canEditReference ? (
+            <Link href={`/admin/references/edit/${encodeURIComponent(reference.title)}`} className="green-btn">
+              Edit reference
+            </Link>
+          ) : null}
         </header>
 
         <section className="practice-section">
@@ -262,7 +274,9 @@ export default async function ReferenceDetailsPage({
               {reference.hyperparameters.length > 0 ? (
                 reference.hyperparameters.map((hyperparameter) => (
                   <li key={hyperparameter.id}>
-                    {hyperparameter.name}: {hyperparameter.value} ({hyperparameter.dataType})
+                    <Link href={catalogHyperparameterHref(hyperparameter.id)} className="reference-link">
+                      {hyperparameter.name}: {hyperparameter.value} ({hyperparameter.dataType})
+                    </Link>
                   </li>
                 ))
               ) : (

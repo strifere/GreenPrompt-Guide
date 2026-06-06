@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ThemeToggle } from "./theme-toggle";
 import { useAuth } from "@/lib/use-auth";
 import { Menu } from "lucide-react";
+import { CollaborationButton } from "./collaboration-button";
 
 function MenuIcon() {
   return (
@@ -73,9 +74,7 @@ export function TopbarMenu() {
             <Link href="/catalog" className="animated-link" onClick={closeMenu}>
               Catalog
             </Link>
-            <Link href="/collaboration" className="animated-link" onClick={closeMenu}>
-              Collaboration
-            </Link>
+            <CollaborationButton onClick={closeMenu} />
             <Link href="/#about-greenprompt-guide" className="animated-link" onClick={closeMenu}>
               About
             </Link>

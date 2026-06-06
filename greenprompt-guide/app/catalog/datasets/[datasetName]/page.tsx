@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getDatasetByName } from "@/domain/dataset-repository";
 import { catalogPracticeHref, catalogReferenceHref } from "../../catalog-paths";
+import { getUserByUsername } from "@/domain/user-repository";
+import { getSession } from "@/lib/session";
 
 type DatasetDetailsProps = {
   params: Promise<{ datasetName: string }>;
@@ -13,6 +15,10 @@ export default async function DatasetDetailsPage({
   const { datasetName } = await params;
   const datasetNameDecoded = decodeURIComponent(datasetName);
   const dataset = await getDatasetByName(datasetNameDecoded);
+
+  const username = await getSession();
+  const currentUser = username ? await getUserByUsername(username) : null;
+  const canEditDataset = currentUser?.role === "ADMIN";
 
   if (!dataset) {
     notFound();
@@ -42,6 +48,11 @@ export default async function DatasetDetailsPage({
               <p>{dataset.description}</p>
             )}
           </div>
+          {canEditDataset ? (
+            <Link href={`/admin/datasets/edit/${encodeURIComponent(dataset.name)}`} className="green-btn">
+              Edit dataset
+            </Link>
+          ) : null}
         </header>
 
         <section className="practice-facts-grid" aria-label="Dataset metadata">
@@ -95,7 +106,7 @@ export default async function DatasetDetailsPage({
                 relatedReferences.map((reference, index) => (
                   <li key={`reference-${dataset.name}-${index}`}>
                     <Link href={catalogReferenceHref(reference.title)} className="reference-link">
-                      {reference.title}{reference.year && ` (${reference.year})`}
+                      {reference.title}{(reference.year !== null) && ` (${reference.year})`}
                     </Link>
                   </li>
                 ))

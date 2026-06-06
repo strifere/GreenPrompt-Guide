@@ -17,3 +17,7 @@ export function catalogModelHref(modelName: string) {
 export function catalogDatasetHref(datasetName: string) {
   return `/catalog/datasets/${encodeURIComponent(datasetName)}`;
 }
+
+export function catalogHyperparameterHref(hyperparameterId: number) {
+  return `/catalog/hyperparameters/${encodeURIComponent(hyperparameterId.toString())}`;
+}

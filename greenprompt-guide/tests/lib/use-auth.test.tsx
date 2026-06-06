@@ -8,10 +8,10 @@ vi.mock("next/navigation", () => ({
   usePathname: usePathnameMock,
 }));
 
-function createResponse(user: string, ok = true) {
+function createResponse(user: string, role: string, ok = true) {
   return {
     ok,
-    json: async () => ({ user }),
+    json: async () => ({ user, role }),
   } as Response;
 }
 
@@ -21,19 +21,19 @@ describe("useAuth", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     usePathnameMock.mockReturnValue("/login");
-    vi.stubGlobal("fetch", fetchMock as unknown as typeof fetch);
+    vi.stubGlobal("fetch", fetchMock);
     fetchMock.mockReset();
   });
 
   it("fetches the current user session", async () => {
-    fetchMock.mockResolvedValueOnce(createResponse("victor"));
+    fetchMock.mockResolvedValueOnce(createResponse("victor", "ADMIN"));
 
     const { result } = renderHook(() => useAuth());
 
     expect(result.current.loading).toBe(true);
 
     await waitFor(() => expect(result.current.loading).toBe(false));
-    expect(result.current.user).toBe("victor");
+    expect(result.current.user).toEqual({ username: "victor", role: "ADMIN" });
     expect(fetchMock).toHaveBeenCalledWith(
       "/api/auth/check",
       expect.objectContaining({ method: "GET", credentials: "include", cache: "no-store" })
@@ -42,18 +42,18 @@ describe("useAuth", () => {
 
   it("refreshes when the auth-changed event fires", async () => {
     fetchMock
-      .mockResolvedValueOnce(createResponse("victor"))
-      .mockResolvedValueOnce(createResponse("ana"));
+      .mockResolvedValueOnce(createResponse("victor", "USER"))
+      .mockResolvedValueOnce(createResponse("ana", "ADMIN"));
 
     const { result } = renderHook(() => useAuth());
 
-    await waitFor(() => expect(result.current.user).toBe("victor"));
+    await waitFor(() => expect(result.current.user).toEqual({ username: "victor", role: "USER" }));
 
     act(() => {
       globalThis.dispatchEvent(new Event("auth-changed"));
     });
 
-    await waitFor(() => expect(result.current.user).toBe("ana"));
+    await waitFor(() => expect(result.current.user).toEqual({ username: "ana", role: "ADMIN" }));
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 

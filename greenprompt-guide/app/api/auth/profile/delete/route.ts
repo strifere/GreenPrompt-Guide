@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyPassword } from "@/lib/auth";
 import { clearSession, getSession } from "@/lib/session";
-import { deleteUser, getUserByUsernameWithPassword } from "@/domain/user-repository";
+import { deleteUserByUsername, getUserByUsernameWithPassword } from "@/domain/user-repository";
 
 export async function POST(request: NextRequest) {
 	try {
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
 			return NextResponse.json({ error: "Current password is incorrect" }, { status: 401 });
 		}
 
-		await deleteUser(currentUsername);
+		await deleteUserByUsername(currentUsername);
 		await clearSession();
 
 		return NextResponse.json({ message: "Account deleted successfully" }, { status: 200 });

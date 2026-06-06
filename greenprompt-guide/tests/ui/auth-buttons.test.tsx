@@ -61,7 +61,7 @@ describe("AuthButtons", () => {
   describe("Authenticated State - Menu Interaction", () => {
     beforeEach(() => {
       (useAuth as any).mockReturnValue({
-        user: "testuser",
+        user: { username: "testuser", role: "USER" },
         loading: false,
       });
     });
@@ -70,6 +70,16 @@ describe("AuthButtons", () => {
       render(<AuthButtons />);
       expect(screen.getByLabelText("Open user menu")).toBeInTheDocument();
       expect(screen.getByText("testuser")).toBeInTheDocument();
+    });
+
+    it("should hide the admin interface link for standard users", async () => {
+      render(<AuthButtons />);
+
+      fireEvent.click(screen.getByLabelText("Open user menu"));
+
+      await waitFor(() => {
+        expect(screen.queryByText("Admin interface")).not.toBeInTheDocument();
+      });
     });
 
     it("should open menu when clicking the user button", async () => {
@@ -115,6 +125,19 @@ describe("AuthButtons", () => {
       expect(profileLink).toHaveAttribute("href", `/user/${encodeURIComponent("testuser")}`);
     });
 
+    it("should show the admin interface link for admin users", async () => {
+      (useAuth as any).mockReturnValue({
+        user: { username: "testuser", role: "ADMIN" },
+        loading: false,
+      });
+
+      render(<AuthButtons />);
+      fireEvent.click(screen.getByLabelText("Open user menu"));
+
+      const adminLink = await screen.findByText("Admin interface");
+      expect(adminLink).toHaveAttribute("href", "/admin");
+    });
+
     it("should close menu when clicking 'My profile' link", async () => {
       render(<AuthButtons />);
       const button = screen.getByLabelText("Open user menu");
@@ -131,7 +154,7 @@ describe("AuthButtons", () => {
   describe("Logout Functionality", () => {
     beforeEach(() => {
       (useAuth as any).mockReturnValue({
-        user: "testuser",
+        user: { username: "testuser", role: "USER" },
         loading: false,
       });
     });
@@ -283,7 +306,7 @@ describe("AuthButtons", () => {
   describe("Keyboard Interaction", () => {
     beforeEach(() => {
       (useAuth as any).mockReturnValue({
-        user: "testuser",
+        user: { username: "testuser", role: "USER" },
         loading: false,
       });
     });
@@ -316,7 +339,7 @@ describe("AuthButtons", () => {
   describe("Pointer Interaction", () => {
     beforeEach(() => {
       (useAuth as any).mockReturnValue({
-        user: "testuser",
+        user: { username: "testuser", role: "USER" },
         loading: false,
       });
     });
@@ -349,7 +372,7 @@ describe("AuthButtons", () => {
   describe("Event Cleanup", () => {
     beforeEach(() => {
       (useAuth as any).mockReturnValue({
-        user: "testuser",
+        user: { username: "testuser", role: "USER" },
         loading: false,
       });
     });

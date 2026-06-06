@@ -106,19 +106,6 @@ describe("Signup page and form", () => {
     expect(confirmPasswordInput).toHaveAttribute("type", "password");
   });
 
-  it("toggles the administrator auth code field", async () => {
-    const user = userEvent.setup();
-    render(<SignupForm />);
-
-    expect(screen.queryByLabelText(/admin auth\. code/i)).not.toBeInTheDocument();
-
-    await user.click(screen.getByRole("switch", { name: /toggle administrator account/i }));
-    expect(screen.getByLabelText(/admin auth\. code/i)).toBeInTheDocument();
-
-    await user.click(screen.getByRole("switch", { name: /toggle administrator account/i }));
-    expect(screen.queryByLabelText(/admin auth\. code/i)).not.toBeInTheDocument();
-  });
-
   it("submits the signup form and redirects on success", async () => {
     const user = userEvent.setup();
     render(<SignupForm />);

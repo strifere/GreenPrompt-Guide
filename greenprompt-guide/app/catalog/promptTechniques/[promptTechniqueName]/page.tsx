@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getPromptTechniqueByName } from "@/domain/prompt-technique-repository";
 import { catalogPracticeHref, catalogReferenceHref } from "../../catalog-paths";
+import { getUserByUsername } from "@/domain/user-repository";
+import { getSession } from "@/lib/session";
 
 type PromptTechniqueDetailsProps = {
   params: Promise<{ promptTechniqueName: string }>;
@@ -18,6 +20,10 @@ export default async function PromptTechniqueDetailsPage({
     notFound();
   }
 
+  const username = await getSession();
+  const currentUser = username ? await getUserByUsername(username) : null;
+  const canEditPromptTechnique = currentUser?.role === "ADMIN";
+
   const relatedPractices = promptTechnique.practices.map((entry) => entry.practice);
   const relatedReferences = promptTechnique.references.map((entry) => entry.reference);
 
@@ -31,6 +37,11 @@ export default async function PromptTechniqueDetailsPage({
               <p>{promptTechnique.description}</p>
             )}
           </div>
+          {canEditPromptTechnique ? (
+            <Link href={`/admin/prompt-techniques/edit/${encodeURIComponent(promptTechnique.name)}`} className="green-btn">
+              Edit prompt technique
+            </Link>
+          ) : null}
         </header>
 
         {promptTechnique.example && (
@@ -65,7 +76,7 @@ export default async function PromptTechniqueDetailsPage({
                 relatedReferences.map((reference, index) => (
                   <li key={`reference-${promptTechnique.name}-${index}`}>
                     <Link href={catalogReferenceHref(reference.title)} className="reference-link">
-                      {reference.title}{reference.year && ` (${reference.year})`}
+                      {reference.title}{reference.year !== null && ` (${reference.year})`}
                     </Link>
                   </li>
                 ))

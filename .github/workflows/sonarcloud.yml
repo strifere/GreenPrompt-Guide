@@ -5,6 +5,9 @@ on:
     branches: [ "main", "master" ]
   pull_request:
 
+env:
+  DATABASE_URL: postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@localhost:5432/${{ secrets.POSTGRES_DB }}?schema=public
+
 jobs:
   sonar:
     runs-on: ubuntu-latest
@@ -22,6 +25,10 @@ jobs:
 
       - name: Install dependencies
         run: npm install --ignore-scripts
+        working-directory: greenprompt-guide
+
+      - name: Generate Prisma client
+        run: npm run prisma:generate
         working-directory: greenprompt-guide
 
       - name: Run tests with coverage

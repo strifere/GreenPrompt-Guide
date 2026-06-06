@@ -102,7 +102,7 @@ describe("TopbarMenu", () => {
   describe("Authenticated State", () => {
     beforeEach(() => {
       (useAuth as any).mockReturnValue({
-        user: "testuser",
+        user: { username: "testuser", role: "USER" },
         loading: false,
       });
     });
@@ -129,6 +129,19 @@ describe("TopbarMenu", () => {
         expect(screen.getByText("Catalog")).toBeInTheDocument();
         expect(screen.getByText("Collaboration")).toBeInTheDocument();
         expect(screen.getByText("About")).toBeInTheDocument();
+      });
+    });
+
+    it("should close menu when clicking collaboration link", async () => {
+      render(<TopbarMenu />);
+      const menuButton = screen.getByLabelText("Open menu");
+      
+      fireEvent.click(menuButton);
+      const collaborationLink = await screen.findByText("Collaboration");
+      fireEvent.click(collaborationLink);
+      
+      await waitFor(() => {
+        expect(screen.queryByText("Collaboration")).not.toBeInTheDocument();
       });
     });
   });
@@ -179,7 +192,7 @@ describe("TopbarMenu", () => {
       });
     });
 
-    it("should render all navigation links", async () => {
+    it("should render public navigation links and hide collaboration", async () => {
       render(<TopbarMenu />);
       const menuButton = screen.getByLabelText("Open menu");
       
@@ -187,7 +200,7 @@ describe("TopbarMenu", () => {
       
       await waitFor(() => {
         expect(screen.getByText("Catalog")).toHaveAttribute("href", "/catalog");
-        expect(screen.getByText("Collaboration")).toHaveAttribute("href", "/collaboration");
+        expect(screen.queryByText("Collaboration")).not.toBeInTheDocument();
         expect(screen.getByText("About")).toHaveAttribute("href", "/#about-greenprompt-guide");
       });
     });
@@ -202,19 +215,6 @@ describe("TopbarMenu", () => {
       
       await waitFor(() => {
         expect(screen.queryByText("Catalog")).not.toBeInTheDocument();
-      });
-    });
-
-    it("should close menu when clicking collaboration link", async () => {
-      render(<TopbarMenu />);
-      const menuButton = screen.getByLabelText("Open menu");
-      
-      fireEvent.click(menuButton);
-      const collaborationLink = await screen.findByText("Collaboration");
-      fireEvent.click(collaborationLink);
-      
-      await waitFor(() => {
-        expect(screen.queryByText("Collaboration")).not.toBeInTheDocument();
       });
     });
 

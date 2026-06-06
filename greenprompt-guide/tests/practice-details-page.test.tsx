@@ -3,6 +3,8 @@ import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import PracticeDetailsPage from "@/app/catalog/practices/[practiceName]/page";
 import { getPracticeByName } from "@/domain/practice-repository";
+import { getUserByUsername } from "@/domain/user-repository";
+import { getSession } from "@/lib/session";
 import { notFound } from "next/navigation";
 
 vi.mock("next/link", () => ({
@@ -15,6 +17,14 @@ vi.mock("next/link", () => ({
 
 vi.mock("@/domain/practice-repository", () => ({
   getPracticeByName: vi.fn(),
+}));
+
+vi.mock("@/domain/user-repository", () => ({
+  getUserByUsername: vi.fn(),
+}));
+
+vi.mock("@/lib/session", () => ({
+  getSession: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({
@@ -318,6 +328,37 @@ describe("Practice details requirements", () => {
     const backLink = screen.getByRole("link", { name: /back to catalog/i });
     expect(backLink).toBeInTheDocument();
     expect(backLink).toHaveAttribute("href", "/catalog");
+  });
+
+  it("shows an edit practice link to admin users", async () => {
+    vi.mocked(getPracticeByName).mockResolvedValue(buildPractice() as never);
+    vi.mocked(getSession).mockResolvedValue("victor");
+    vi.mocked(getUserByUsername).mockResolvedValue({ username: "victor", role: "ADMIN" } as never);
+
+    render(
+      await PracticeDetailsPage({
+        params: Promise.resolve({ practiceName: "Constraint-first Prompting" }),
+      }),
+    );
+
+    expect(screen.getByRole("link", { name: /edit practice/i })).toHaveAttribute(
+      "href",
+      "/admin/practices/edit/Constraint-first%20Prompting",
+    );
+  });
+
+  it("does not show an edit practice link to regular users", async () => {
+    vi.mocked(getPracticeByName).mockResolvedValue(buildPractice() as never);
+    vi.mocked(getSession).mockResolvedValue("maria");
+    vi.mocked(getUserByUsername).mockResolvedValue({ username: "maria", role: "USER" } as never);
+
+    render(
+      await PracticeDetailsPage({
+        params: Promise.resolve({ practiceName: "Constraint-first Prompting" }),
+      }),
+    );
+
+    expect(screen.queryByRole("link", { name: /edit practice/i })).not.toBeInTheDocument();
   });
 
   it("handles missing practice by delegating to notFound", async () => {

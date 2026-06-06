@@ -5,6 +5,13 @@ import { notFound } from "next/navigation";
 
 const getReferenceByTitleMock = vi.hoisted(() => vi.fn());
 
+vi.mock("@/lib/session", () => ({
+  getSession: vi.fn().mockResolvedValue(null), // By default, simulate an unauthenticated user
+}));
+
+vi.mock("@/domain/user-repository", () => ({
+  getUserByUsername: vi.fn().mockResolvedValue(null),
+}));
 
 vi.mock("next/link", () => ({
   default: ({ href, children, ...props }: { href: string; children: ReactNode }) => (

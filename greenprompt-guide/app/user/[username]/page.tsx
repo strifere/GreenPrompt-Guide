@@ -7,6 +7,7 @@ import { useEffect, useRef, useState, type ChangeEvent, type Dispatch, type SetS
 type UserProfile = {
 	username: string;
 	email: string;
+	role: string | null;
 };
 
 type Feedback = {
@@ -420,7 +421,7 @@ function DeleteAccountModal({ isOpen, onClose, onConfirm, onSuccess }: Readonly<
 export default function UserProfilePage() {
 	const router = useRouter();
 	const params = useParams<{ username?: string | string[] }>();
-	const [profile, setProfile] = useState<UserProfile>({ username: "", email: "" });
+	const [profile, setProfile] = useState<UserProfile>({ username: "", email: "", role: "" });
 	const [isEditingUsername, setIsEditingUsername] = useState(false);
 	const [usernameDraft, setUsernameDraft] = useState("");
 	const [usernameLoading, setUsernameLoading] = useState(false);
@@ -730,21 +731,20 @@ export default function UserProfilePage() {
 							</div>
 						</form>
 					</section>
+					<section className="user-card user-danger-card">
+						<div className="user-section-heading">
+							<h2 className="user-section-title">Delete account</h2>
+							<p className="user-section-description">
+								This permanently erases your account and signs you out of the system.
+							</p>
+						</div>
 
-								<section className="user-card user-danger-card">
-							<div className="user-section-heading">
-								<h2 className="user-section-title">Delete account</h2>
-								<p className="user-section-description">
-									This permanently erases your account and signs you out of the system.
-								</p>
-							</div>
-
-							<div className="user-actions-row user-actions-row-end">
-								<button type="button" className="danger-btn" onClick={() => setIsDeleteModalOpen(true)}>
-									Delete account
-								</button>
-							</div>
-						</section>
+						<div className="user-actions-row user-actions-row-end">
+							<button type="button" className="danger-btn" onClick={() => setIsDeleteModalOpen(true)}>
+								Delete account
+							</button>
+						</div>
+					</section>
 				</div>
 			</main>
 

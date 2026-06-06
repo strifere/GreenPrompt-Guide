@@ -12,8 +12,6 @@ export function SignupForm() {
     password: "",
     passwordConfirm: "",
   });
-  const [isAdministrator, setIsAdministrator] = useState(false);
-  const [adminAuthCode, setAdminAuthCode] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
   const [error, setError] = useState("");
@@ -59,18 +57,6 @@ export function SignupForm() {
       ...prev,
       [name]: value,
     }));
-  };
-
-  const handleAdminToggle = () => {
-    setIsAdministrator((currentValue) => {
-      const nextValue = !currentValue;
-
-      if (!nextValue) {
-        setAdminAuthCode("");
-      }
-
-      return nextValue;
-    });
   };
 
   const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
@@ -281,35 +267,6 @@ export function SignupForm() {
               </button>
             </div>
           </div>
-
-          <div className="admin-toggle-row">
-            <span className="admin-toggle-label">Are you an administrator?</span>
-            <button
-              type="button"
-              className="admin-toggle"
-              role="switch"
-              aria-checked={isAdministrator}
-              aria-label="Toggle administrator account"
-              data-on={isAdministrator}
-              onClick={handleAdminToggle}
-            >
-              <span className="admin-toggle-thumb" />
-            </button>
-          </div>
-
-          {isAdministrator && (
-            <div className="form-group admin-code-group">
-              <label htmlFor="adminAuthCode">Admin auth. code</label>
-              <input
-                type="text"
-                id="adminAuthCode"
-                name="adminAuthCode"
-                value={adminAuthCode}
-                onChange={(event) => setAdminAuthCode(event.target.value)}
-                placeholder="Admin auth. code"
-              />
-            </div>
-          )}
 
           <button type="submit" className="signup-create-btn" disabled={loading}>
             {loading ? "Creating account..." : "Create account"}

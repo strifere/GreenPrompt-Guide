@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 
 const datasetDetailsArgs = Prisma.validator<Prisma.DatasetDefaultArgs>()({
   include: {
+    // Direct reference links (PaperDataset join table).
     papers: {
       include: {
         reference: {

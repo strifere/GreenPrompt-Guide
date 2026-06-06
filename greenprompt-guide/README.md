@@ -30,6 +30,8 @@ Start database + app:
 docker compose up --build -d
 ```
 
+The collaboration PDF uploads are stored on the host through the bind mount at `./storage/collaboration-requests`, which is mapped into the app container as `/data/uploads/collaboration-requests`.
+
 Open the app at `http://localhost:3000`.
 
 Stop all services:

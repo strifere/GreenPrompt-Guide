@@ -2,8 +2,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { getPracticeByName } from "@/domain/practice-repository";
+import { getUserByUsername } from "@/domain/user-repository";
+import { getSession } from "@/lib/session";
 import {
   catalogDatasetHref,
+  catalogHyperparameterHref,
   catalogModelHref,
   catalogPromptTechniqueHref,
   catalogReferenceHref,
@@ -66,11 +69,17 @@ export default async function PracticeDetailsPage({
 }: Readonly<PracticeDetailsProps>) {
   const { practiceName } = await params;
   const practiceNameDecoded = decodeURIComponent(practiceName);
-  const practice = await getPracticeByName(practiceNameDecoded);
+  const [practice, username] = await Promise.all([
+    getPracticeByName(practiceNameDecoded),
+    getSession(),
+  ]);
 
   if (!practice) {
     notFound();
   }
+
+  const currentUser = username ? await getUserByUsername(username) : null;
+  const canEditPractice = currentUser?.role === "ADMIN";
 
   const relatedDatasets = Array.from(
     new Map(
@@ -145,6 +154,11 @@ export default async function PracticeDetailsPage({
             </Link>
             <h1>{practice.name}</h1>
           </div>
+          {canEditPractice ? (
+            <Link href={`/admin/practices/edit/${encodeURIComponent(practice.name)}`} className="green-btn">
+              Edit practice
+            </Link>
+          ) : null}
         </header>
 
         <section className="practice-section">
@@ -235,7 +249,9 @@ export default async function PracticeDetailsPage({
               {practice.hyperparameters.length > 0 ? (
                 practice.hyperparameters.map((hyperparameter) => (
                   <li key={hyperparameter.id}>
-                    {hyperparameter.name}: {hyperparameter.value} ({hyperparameter.dataType})
+                    <Link href={catalogHyperparameterHref(hyperparameter.id)} className="reference-link">
+                      {hyperparameter.name}: {hyperparameter.value} ({hyperparameter.dataType})
+                    </Link>
                   </li>
                 ))
               ) : (
@@ -268,7 +284,7 @@ export default async function PracticeDetailsPage({
             {practice.papers.map((entry) => (
               <li key={entry.reference.title}>
                 <Link href={catalogReferenceHref(entry.reference.title)} className="reference-link">
-                  {entry.reference.title ?? "Reference"}{entry.reference.year && ` (${entry.reference.year})`}
+                  {entry.reference.title ?? "Reference"}{entry.reference.year !== null && ` (${entry.reference.year})`}
                 </Link>
               </li>
             ))}

@@ -10,6 +10,8 @@ type PasswordRecoveryModalProps = {
 };
 
 export function PasswordRecoveryModal({ isOpen, onClose }: Readonly<PasswordRecoveryModalProps>) {
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [step, setStep] = useState<Step>("email");
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
@@ -274,30 +276,52 @@ export function PasswordRecoveryModal({ isOpen, onClose }: Readonly<PasswordReco
             <form onSubmit={handlePasswordSubmit} className="recovery-form">
               <div className="form-group">
                 <label htmlFor="recovery-password">New Password</label>
-                <input
-                  type="password"
-                  id="recovery-password"
-                  value={password}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                    setPassword(e.target.value)
-                  }
-                  placeholder="password"
-                  required
-                />
+                <div className="password-field">
+                  <input
+                    type={showNewPassword ? "text" : "password"}
+                    id="recovery-password"
+                    value={password}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                      setPassword(e.target.value)
+                    }
+                    placeholder="password"
+                    required
+                  />
+                  <button
+                      type="button"
+                      className="password-visibility-toggle"
+                      aria-label={showNewPassword ? "Hide password" : "Show password"}
+                      aria-pressed={showNewPassword}
+                      onClick={() => setShowNewPassword((currentValue) => !currentValue)}
+                    >
+                      {showNewPassword ? "Hide" : "Show"}
+                  </button>
+                </div>
               </div>
 
               <div className="form-group">
                 <label htmlFor="recovery-password-confirm">Confirm Password</label>
-                <input
-                  type="password"
-                  id="recovery-password-confirm"
-                  value={passwordConfirm}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                    setPasswordConfirm(e.target.value)
-                  }
-                  placeholder="confirm password"
-                  required
-                />
+                <div className="password-field">
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    id="recovery-password-confirm"
+                    value={passwordConfirm}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                      setPasswordConfirm(e.target.value)
+                    }
+                    placeholder="confirm password"
+                    required
+                  />
+                  <button
+                      type="button"
+                      className="password-visibility-toggle"
+                      aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                      aria-pressed={showConfirmPassword}
+                      onClick={() => setShowConfirmPassword((currentValue) => !currentValue)}
+                    >
+                      {showConfirmPassword ? "Hide" : "Show"}
+                  </button>
+                </div>
               </div>
 
               <button type="submit" className="recovery-btn" disabled={loading}>

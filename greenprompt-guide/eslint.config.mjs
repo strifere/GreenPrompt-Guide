@@ -15,11 +15,33 @@ const eslintConfig = defineConfig([
     "vitest.setup.ts",
     "eslint.config.mjs",
   ]),
+  {
+    files: ["**/*.{ts,tsx}"], // Apply to all TypeScript and TypeScript React files
+    rules: {
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          "varsIgnorePattern": "^_",
+          "argsIgnorePattern": "^_"
+        }
+      ]
+    },
+  },
   // Allow explicit any in test files for mocking purposes
   {
     files: ["**/*.test.ts", "**/*.test.tsx"],
     rules: {
       "@typescript-eslint/no-explicit-any": "off",
+      // This rule is already defined above, so it will override it
+      // or simply be redundant if the patterns are the same.
+      // Keeping it here for clarity of previous intent.
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          "varsIgnorePattern": "^_",
+          "argsIgnorePattern": "^_"
+        }
+      ]
     },
   },
 ]);

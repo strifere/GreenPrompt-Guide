@@ -1,14 +1,36 @@
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 
 export type UserPublic = {
   username: string;
   email: string;
   role: string | null;
+  banned?: boolean;
+};
+
+export type AdminRequest = {
+  id: number;
+  requesterUsername: string;
+  request: string;
 };
 
 export type UserWithPassword = UserPublic & {
   password: string;
 };
+
+const listUsersArgs = Prisma.validator<Prisma.UserFindManyArgs>()({
+  orderBy: [{ role: "asc" }, { username: "asc" }],
+  select: {
+    username: true,
+    email: true,
+    role: true,
+    banned: true,
+    createdAt: true,
+    updatedAt: true,
+  },
+});
+
+export type UserListItem = Prisma.UserGetPayload<typeof listUsersArgs>;
 
 // ============================================
 // USER LOOKUP
@@ -19,13 +41,13 @@ export async function getUserByUsername(
 ): Promise<UserPublic | null> {
   const user = await prisma.user.findUnique({
     where: { username },
-    select: { username: true, email: true, role: true },
+    select: { username: true, email: true, role: true, banned: true },
   });
   return user;
 }
 
 export async function getUserEmailByUsername(username: string): Promise<{ email: string } | null> {
-  return (await prisma.user.findUnique({ where: { username }, select: { email: true } })) as { email: string } | null;
+  return prisma.user.findUnique({ where: { username }, select: { email: true } });
 }
 
 export async function getUserByUsernameWithPassword(
@@ -39,7 +61,7 @@ export async function getUserByUsernameWithPassword(
 
 export async function getUserByIdentifier(identifier: string): Promise<UserWithPassword | null> {
   // Use findFirst with OR for identifier lookups (matches original login implementation)
-  return (await prisma.user.findFirst({ where: { OR: [{ username: identifier }, { email: identifier }] } })) as UserWithPassword | null;
+  return prisma.user.findFirst({ where: { OR: [{ username: identifier }, { email: identifier }] } });
 }
 
 export async function isUsernameAvailable(username: string): Promise<boolean> {
@@ -75,7 +97,7 @@ export async function createUser(input: CreateUserInput): Promise<UserPublic> {
         password: input.password,
       },
     });
-    return user as UserPublic;
+    return user;
   } catch (error) {
     if (hasErrorCode(error) && error.code === "P2002") {
       throw new Error("User already exists");
@@ -85,7 +107,32 @@ export async function createUser(input: CreateUserInput): Promise<UserPublic> {
 }
 
 export async function getUserByEmail(email: string): Promise<UserWithPassword | null> {
-  return (await prisma.user.findUnique({ where: { email } })) as UserWithPassword | null;
+  return prisma.user.findUnique({ where: { email } });
+}
+
+export async function listUsers(): Promise<UserListItem[]> {
+  return prisma.user.findMany(listUsersArgs);
+}
+
+export async function deleteUserByUsername(username: string): Promise<void> {
+  await prisma.user.delete({ where: { username } });
+}
+
+export type UpdateUserBanStatusInput = {
+  username: string;
+  banned: boolean;
+};
+
+export async function updateUserBanStatus(
+  input: UpdateUserBanStatusInput,
+): Promise<UserPublic> {
+  const updated = await prisma.user.update({
+    where: { username: input.username },
+    data: { banned: input.banned },
+    select: { username: true, email: true, role: true, banned: true },
+  });
+
+  return updated;
 }
 
 // ============================================
@@ -132,8 +179,4 @@ export type UpdateEmailInput = {
 export async function updateEmail(input: UpdateEmailInput): Promise<UserPublic> {
   const updated = await prisma.user.update({ where: { username: input.username }, data: { email: input.newEmail } });
   return updated;
-}
-
-export async function deleteUser(username: string): Promise<void> {
-  await prisma.user.delete({ where: { username } });
 }
