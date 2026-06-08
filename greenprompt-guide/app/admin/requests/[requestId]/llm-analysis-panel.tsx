@@ -161,9 +161,19 @@ function ExtractionPreview({
         </Section>
       )}
 
-      {result.metrics.length > 0 && (
-        <Section title={`Metrics (${result.metrics.length})`}>
-          {result.metrics.map((m, i) => (
+      {result.metrics && (
+        <Section title={`Metrics (${result.metrics.genericMetrics.length + result.metrics.energyMetrics.length + result.metrics.accuracyMetrics.length})`}>
+          {result.metrics.genericMetrics.map((m, i) => (
+            <div key={i} style={{ fontSize: "0.88rem", color: "var(--text-muted)", marginBottom: "4px" }}>
+              <strong>{m.title}</strong>: {m.value} — {m.description}
+            </div>
+          ))}
+          {result.metrics.energyMetrics.map((m, i) => (
+            <div key={i} style={{ fontSize: "0.88rem", color: "var(--text-muted)", marginBottom: "4px" }}>
+              <strong>{m.title}</strong>: {m.value} — {m.description}
+            </div>
+          ))}
+          {result.metrics.accuracyMetrics.map((m, i) => (
             <div key={i} style={{ fontSize: "0.88rem", color: "var(--text-muted)", marginBottom: "4px" }}>
               <strong>{m.title}</strong>: {m.value} — {m.description}
             </div>

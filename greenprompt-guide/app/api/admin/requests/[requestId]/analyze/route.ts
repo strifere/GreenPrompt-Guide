@@ -35,24 +35,11 @@ export async function POST(_request: Request, context: AnalyzeRouteContext) {
       collaborationRequest.supportingPdfPath,
     );
 
-    let pdfText: string;
-    try {
-      pdfText = await extractTextFromPdf(absolutePath);
-    } catch {
-      return NextResponse.json(
-        { error: "Could not read or parse the PDF file" },
-        { status: 422 },
-      );
-    }
+    const pdfImages = await extractTextFromPdf(absolutePath);
 
-    if (!pdfText.trim()) {
-      return NextResponse.json(
-        { error: "The PDF appears to contain no extractable text (it may be scanned)" },
-        { status: 422 },
-      );
-    }
+    const firstPageImage = (await pdfImages.getPage(0)).toString("base64"); // base64-encoded image of the first page
 
-    const extraction = await analyzeRequestWithOllama(pdfText);
+    const extraction = await analyzeRequestWithOllama(firstPageImage);
 
     return NextResponse.json({ extraction }, { status: 200 });
   } catch (error) {

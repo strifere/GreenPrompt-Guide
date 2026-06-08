@@ -1,7 +1,7 @@
 import { Ollama } from 'ollama';
 
 const OLLAMA_BASE_URL = process.env.OLLAMA_URL ?? "http://localhost:11434";
-const OLLAMA_MODEL = process.env.OLLAMA_MODEL ?? "llama3.1:8b";
+const OLLAMA_MODEL = process.env.OLLAMA_MODEL ?? "gemma4:latest";
 
 export type Practice = {
   name: string;
@@ -82,9 +82,11 @@ export type OllamaExtractionResult = {
   models: Array<Model>;
   datasets: Array<Dataset>;
   hyperparameters: Array<Hyperparameter>;
-  genericMetrics: Array<BaseMetric>;
-  energyMetrics: Array<EnergyMetric>;
-  accuracyMetrics: Array<AccuracyMetric>;
+  metrics: {
+    genericMetrics: Array<BaseMetric>;
+    energyMetrics: Array<EnergyMetric>;
+    accuracyMetrics: Array<AccuracyMetric>;
+  }
   examples: Array<PracticeExample>;
 };
 
@@ -156,12 +158,14 @@ Rules:
 - Only output JSON. Nothing else.`;
 
 export async function analyzeRequestWithOllama(
-  pdfText: string,
+  base64Pdf: string,
 ): Promise<OllamaExtractionResult> {
   const ollama = new Ollama({ host: OLLAMA_BASE_URL });
   const response = await ollama.generate({
     model: OLLAMA_MODEL,
-    prompt: SYSTEM_PROMPT + `Analyze this research paper and extract the structured data:\n\n${pdfText}`,
+    //system: SYSTEM_PROMPT,
+    prompt: `Analyze the first page of this PDF file in image format.` + base64Pdf,
+    //images: [base64Pdf],
     stream: false,
     format: "json",
     options: {
