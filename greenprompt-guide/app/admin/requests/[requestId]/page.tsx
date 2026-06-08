@@ -5,6 +5,7 @@ import { getCollaborationRequestDetailsById } from "@/domain/collaboration-reque
 import { getSession } from "@/lib/session";
 import RequestDetailsClient from "@/app/collaboration/my-requests/[username]/[requestId]/request-details-client";
 import styles from "../../admin.module.css";
+import { LlmAnalysisPanel } from "./llm-analysis-panel";
 
 type AdminRequestDetails = Awaited<ReturnType<typeof getCollaborationRequestDetailsById>>;
 type AdminRequestMessage = NonNullable<AdminRequestDetails>["messages"][number];
@@ -84,6 +85,9 @@ export default async function AdminRequestDetailsPage({ params }: Readonly<Reque
             })),
           }}
         />
+        {request.status !== "APPROVED" && !request.createdPractice && (
+          <LlmAnalysisPanel requestId={parsedRequestId} />
+        )}
       </div>
     </section>
   );
