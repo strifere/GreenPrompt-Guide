@@ -39,7 +39,9 @@ export default async function AdminHyperparametersPage() {
                 </div>
                 <div className={styles.meta} aria-label="Hyperparameter stats">
                   <span>Extracted from: {hyperparameter.referenceTitle} </span>
-                  <span>Used in: {hyperparameter.practiceName} </span>
+                  {hyperparameter.practiceName && (
+                    <span>Used in: {hyperparameter.practiceName} </span>
+                  )}
                 </div>
               </Link>
 

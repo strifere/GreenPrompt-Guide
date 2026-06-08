@@ -5,7 +5,7 @@ import { listCollaborationRequestsByRequesterUsername } from "@/domain/collabora
 import { getSession } from "@/lib/session";
 
 type MyRequestsPageProps = {
-	params: { username: string };
+	params: Promise<{ username: string }>;
 };
 
 function formatDate(value: Date) {
@@ -31,7 +31,7 @@ function formatStatus(status: string) {
 }
 
 export default async function MyRequestsPage({ params }: Readonly<MyRequestsPageProps>) {
-	const { username } = params;
+	const { username } = await params;
 	const requestedUsername = decodeURIComponent(username);
 	const currentUsername = await getSession();
 

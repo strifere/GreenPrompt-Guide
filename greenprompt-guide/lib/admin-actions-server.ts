@@ -332,11 +332,12 @@ export async function insertObjectAPI(
         ),
       ]);
     } else if (type === "hyperparameter") {
+      const practiceName = secureTrim(body.practiceName);
       [object] = await prisma.$transaction([
         prisma.hyperparameter.create({
           data: {
             referenceTitle: secureTrim(body.referenceTitle),
-            practiceName: secureTrim(body.practiceName),
+            practiceName: practiceName == "" ? null : practiceName,
             name: secureTrim(body.name),
             value: secureTrim(body.value),
             dataType: secureTrim(body.dataType),
