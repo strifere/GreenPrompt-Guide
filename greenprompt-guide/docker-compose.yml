@@ -38,6 +38,8 @@ services:
       EMAIL_FROM: ${EMAIL_FROM:-GreenPrompt Guide <greenprompt.guide@gmail.com>}
       COOKIE_SECURE: ${COOKIE_SECURE:-true}
       COLLABORATION_PDF_STORAGE_DIR: ${COLLABORATION_PDF_STORAGE_DIR:-/data/uploads/collaboration-requests}
+      OLLAMA_URL: ${OLLAMA_URL:-http://host.docker.internal:11434}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.1:8b}
     ports:
       - "3000:3000"
       - "5555:5555" # Expose Prisma Studio port for local access
