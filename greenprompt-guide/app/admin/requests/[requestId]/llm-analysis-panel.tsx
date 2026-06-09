@@ -155,9 +155,9 @@ function ExtractionPreview({
         </p>
       </Section>
 
-      {result.categories.length > 0 && (
+      {result.practice.categories.length > 0 && (
         <Section title="Categories">
-          <div>{result.categories.map((c) => <Tag key={c} label={c} />)}</div>
+          <div>{result.practice.categories.map((c) => <Tag key={c} label={c} />)}</div>
         </Section>
       )}
 

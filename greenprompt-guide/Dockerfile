@@ -1,12 +1,14 @@
 FROM node:22-alpine
 
-RUN addgroup -S nonroot \
+RUN apk add --no-cache build-base cairo-dev g++ giflib-dev jpeg-dev librsvg-dev pango-dev \
+    && addgroup -S nonroot \
     && adduser -S nonroot -G nonroot
 
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm ci --ignore-scripts
+RUN npm ci --ignore-scripts \
+    && npm rebuild canvas
 
 COPY app ./app
 COPY public ./public
@@ -25,7 +27,9 @@ ENV DATABASE_URL=${DATABASE_URL}
 
 RUN npm run prisma:generate && npm run build \
     && mkdir -p /data/uploads/collaboration-requests \
-    && chown -R nonroot:nonroot /app /data
+    && mkdir -p /app/.next/cache/images \
+    && chown -R nonroot:nonroot /app /data \
+    && chmod -R 775 /app/.next
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1

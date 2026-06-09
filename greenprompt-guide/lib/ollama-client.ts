@@ -101,7 +101,8 @@ Output exactly this JSON structure:
     "name": "<string: Short, descriptive title of the green prompt practice>",
     "description": "<string: 2-4 sentence description of what the practice is and why it reduces LLM energy use>",
     "greenScore": <integer: 0-100, where 100 means maximum energy saving. Default to 50 if unclear>,
-    "tactic": "<enum: MUST be exactly 'GREEN_PRACTICE' or 'RED_PRACTICE'>"
+    "tactic": "<enum: MUST be exactly 'GREEN_PRACTICE' or 'RED_PRACTICE'>",
+    "categories": ["<string: Category related to the practice>"]
   },
   "practiceExample": {
     "scenario": "<string: Brief description of the scenario/task where this practice is applied>",
@@ -133,7 +134,8 @@ Output exactly this JSON structure:
     "domain": "<string or null: The specific industry or academic domain of the paper>",
     "task": "<string or null: The specific task the language models were given (e.g., Summarization, Code Generation)>",
     "venue": "<string or null: The publication venue (e.g., conference name, journal, arXiv)>",
-    "toolAvailability": "<string or null: Name/link of any custom tool or system built in the paper>"
+    "toolAvailability": "<string or null: Name/link of any custom tool or system built in the paper>",
+    "link": "<string or null: Explicit URL reference link to the paper if found, otherwise null>"
   }
 }
 `
@@ -214,24 +216,77 @@ export async function analyzeRequestWithOllama(
   base64Pdf: string[],
 ): Promise<OllamaExtractionResult> {
   const ollama = new Ollama({ host: OLLAMA_BASE_URL });
-  const response = await ollama.generate({
-    model: OLLAMA_MODEL,
-    prompt: PREFIX_PROMPT + OTHERS_EXCTRACTION_PROMPT + SUFFIX,
-    images: base64Pdf,
-    stream: false,
-    format: "json",
-    options: {
-      temperature: 0.1,   // Low temperature for more deterministic extraction
+
+  // Safe inner function to process individual chunks from the model
+  const queryModel = async (subPrompt: string): Promise<any> => {
+    const response = await ollama.generate({
+      model: OLLAMA_MODEL,
+      prompt: PREFIX_PROMPT + subPrompt + SUFFIX,
+      images: base64Pdf,
+      stream: false,
+      format: "json",
+      options: {
+        temperature: 0.1, // Forces highly deterministic extractions
+        num_predict: 2048,   // Increases the max tokens the model is allowed to generate
+        num_ctx: 8192,       // Expands the context window to fit the image + prompt + large JSON
+      },
+    });
+
+    if (!response.done) {
+      throw new Error(`Ollama execution broken: ${response.done_reason}`);
+    }
+
+    console.log("Raw response from Ollama:", response.response); // Log raw response for debugging
+
+    return JSON.parse(response.response);
+  };
+
+  // Run all 4 extractions sequentially to protect system resources
+  console.log("[Ollama Workflow] Starting block 1/4: Practices & Techniques");
+  const dataBlock1 = await queryModel(PRACTICE_EXTRACTION_PROMPT);
+
+  console.log("[Ollama Workflow] Starting block 2/4: Reference Metadata");
+  const dataBlock2 = await queryModel(REFERENCE_EXTRACTION_PROMPT);
+
+  console.log("[Ollama Workflow] Starting block 3/4: Hardware Models, Datasets & Constants");
+  const dataBlock3 = await queryModel(OTHERS_EXCTRACTION_PROMPT);
+
+  console.log("[Ollama Workflow] Starting block 4/4: Quantitative Metrics");
+  const dataBlock4 = await queryModel(METRICS_EXTRACTION_PROMPT);
+
+  // Compile and map responses safely to guarantee perfect type safety alignment
+  const finalizedResult: OllamaExtractionResult = {
+    practice: {
+      name: dataBlock1?.practice?.name ?? "Unknown Practice",
+      description: dataBlock1?.practice?.description ?? "",
+      greenScore: dataBlock1?.practice?.greenScore ?? 50,
+      tactic: dataBlock1?.practice?.tactic ?? "GREEN_PRACTICE",
+      categories: dataBlock1?.practice?.categories ?? [],
     },
-  });
-  
-  if (!response.done) {
-    throw new Error("Ollama response was not completed:" + response.done_reason);
-  }
+    reference: {
+      title: dataBlock2?.reference?.title ?? "Unknown Title",
+      authors: dataBlock2?.reference?.authors ?? "Unknown Authors",
+      year: dataBlock2?.reference?.year ?? new Date().getFullYear(),
+      abstract: dataBlock2?.reference?.abstract ?? "",
+      keywords: dataBlock2?.reference?.keywords ?? "",
+      studyType: dataBlock2?.reference?.studyType ?? "",
+      domain: dataBlock2?.reference?.domain ?? null,
+      task: dataBlock2?.reference?.task ?? null,
+      venue: dataBlock2?.reference?.venue ?? null,
+      toolAvailability: dataBlock2?.reference?.toolAvailability ?? null,
+      link: dataBlock2?.reference?.link ?? null,
+    },
+    promptTechniques: dataBlock1?.promptTechniques ?? [],
+    models: dataBlock3?.models ?? [],
+    datasets: dataBlock3?.datasets ?? [],
+    hyperparameters: dataBlock3?.hyperparameters ?? [],
+    metrics: {
+      genericMetrics: dataBlock4?.genericMetrics ?? [],
+      energyMetrics: dataBlock4?.energyMetrics ?? [],
+      accuracyMetrics: dataBlock4?.accuracyMetrics ?? [],
+    },
+    examples: dataBlock1?.practiceExample ? [dataBlock1.practiceExample] : [],
+  };
 
-  const data = response.response;
-
-  console.log("Raw Ollama response:", data);
-
-  return JSON.parse(data) as OllamaExtractionResult;
+  return finalizedResult;
 }

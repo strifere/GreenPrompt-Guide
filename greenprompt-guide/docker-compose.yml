@@ -17,6 +17,15 @@ services:
       timeout: 3s
       retries: 20
 
+  ollama:
+    image: ollama/ollama:latest
+    container_name: greenprompt-guide-ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+
   app:
     build:
       context: .
@@ -38,8 +47,8 @@ services:
       EMAIL_FROM: ${EMAIL_FROM:-GreenPrompt Guide <greenprompt.guide@gmail.com>}
       COOKIE_SECURE: ${COOKIE_SECURE:-true}
       COLLABORATION_PDF_STORAGE_DIR: ${COLLABORATION_PDF_STORAGE_DIR:-/data/uploads/collaboration-requests}
-      OLLAMA_URL: ${OLLAMA_URL:-http://host.docker.internal:11434}
-      OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.1:8b}
+      OLLAMA_URL: ${OLLAMA_URL:-http://ollama:11434}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-gemma4:latest}
     ports:
       - "3000:3000"
       - "5555:5555" # Expose Prisma Studio port for local access
@@ -65,3 +74,4 @@ services:
 
 volumes:
   pgdata:
+  ollama_data:
