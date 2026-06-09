@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { getCollaborationRequestDetailsById } from "@/domain/collaboration-request-repository";
+import { findExistingJob, getCollaborationRequestDetailsById } from "@/domain/collaboration-request-repository";
 import { getSession } from "@/lib/session";
 import RequestDetailsClient from "@/app/collaboration/my-requests/[username]/[requestId]/request-details-client";
 import styles from "../../admin.module.css";
@@ -56,6 +56,8 @@ export default async function AdminRequestDetailsPage({ params }: Readonly<Reque
     notFound();
   }
 
+  const existingJob = await findExistingJob(parsedRequestId);
+
   return (
     <section className={styles.pageSection}>
       <div className="practice-details-shell collaboration-details-shell">
@@ -86,7 +88,7 @@ export default async function AdminRequestDetailsPage({ params }: Readonly<Reque
           }}
         />
         {request.status !== "APPROVED" && !request.createdPractice && (
-          <LlmAnalysisPanel requestId={parsedRequestId} />
+          <LlmAnalysisPanel requestId={parsedRequestId} existingJob={existingJob} />
         )}
       </div>
     </section>

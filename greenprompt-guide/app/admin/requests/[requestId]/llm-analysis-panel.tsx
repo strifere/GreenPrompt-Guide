@@ -1,52 +1,110 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { OllamaExtractionResult } from "@/lib/ollama-client";
 import styles from "../../admin.module.css";
 
+type ExistingJob = {
+  status: "PENDING" | "RUNNING" | "DONE" | "FAILED";
+  result: unknown;
+  error: string | null;
+} | null;
+
 type LlmAnalysisPanelProps = {
   requestId: number;
+  existingJob: ExistingJob;
 };
 
 type AnalysisState =
   | { kind: "idle" }
-  | { kind: "loading" }
+  | { kind: "submitting" }
+  | { kind: "polling"; attempt: number }
   | { kind: "error"; message: string }
   | { kind: "done"; result: OllamaExtractionResult };
 
-export function LlmAnalysisPanel({ requestId }: Readonly<LlmAnalysisPanelProps>) {
+function getNextInterval(attempt: number): number {
+  return Math.min(3000 + attempt * 2000, 12000);
+}
+
+function deriveInitialState(existingJob: ExistingJob): AnalysisState {
+  if (!existingJob) return { kind: "idle" };
+
+  switch (existingJob.status) {
+    case "DONE":
+      return { kind: "done", result: existingJob.result as OllamaExtractionResult };
+    case "FAILED":
+      return { kind: "error", message: existingJob.error ?? "Analysis failed" };
+    case "PENDING":
+    case "RUNNING":
+      // Job was in progress when user left — resume polling
+      return { kind: "polling", attempt: 0 };
+  }
+}
+
+export function LlmAnalysisPanel({ requestId, existingJob }: Readonly<LlmAnalysisPanelProps>) {
   const router = useRouter();
-  const [state, setState] = useState<AnalysisState>({ kind: "idle" });
+  const [state, setState] = useState<AnalysisState>(() => deriveInitialState(existingJob));
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (state.kind !== "polling") return;
+
+    const poll = async () => {
+      try {
+        const res = await fetch(`/api/admin/requests/${requestId}/analyze`);
+        const data = await res.json() as {
+          status: "NONE" | "PENDING" | "RUNNING" | "DONE" | "FAILED";
+          extraction?: OllamaExtractionResult;
+          error?: string;
+        };
+
+        if (data.status === "DONE") {
+          setState({ kind: "done", result: data.extraction! });
+        } else if (data.status === "FAILED") {
+          setState({ kind: "error", message: data.error ?? "Analysis failed" });
+        } else {
+          const next = getNextInterval(state.attempt);
+          timeoutRef.current = setTimeout(() => {
+            setState((prev) =>
+              prev.kind === "polling"
+                ? { kind: "polling", attempt: prev.attempt + 1 }
+                : prev,
+            );
+          }, next);
+        }
+      } catch {
+        setState({ kind: "error", message: "Network error while polling" });
+      }
+    };
+
+    poll();
+
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, [state.kind, state.kind === "polling" ? state.attempt : null, requestId]);
 
   const handleAnalyze = async () => {
-    setState({ kind: "loading" });
-
+    setState({ kind: "submitting" });
     try {
-      const response = await fetch(
-        `/api/admin/requests/${requestId}/analyze`,
-        { method: "POST" },
-      );
-      const data = await response.json() as { extraction?: OllamaExtractionResult; error?: string };
-
-      if (!response.ok) {
-        setState({ kind: "error", message: data.error ?? "Analysis failed" });
+      const res = await fetch(`/api/admin/requests/${requestId}/analyze`, {
+        method: "POST",
+      });
+      const data = await res.json() as { jobId?: number; error?: string };
+      if (!res.ok) {
+        setState({ kind: "error", message: data.error ?? "Failed to enqueue job" });
         return;
       }
-
-      setState({ kind: "done", result: data.extraction! });
+      setState({ kind: "polling", attempt: 0 });
     } catch {
-      setState({ kind: "error", message: "Network error. Is Ollama running?" });
+      setState({ kind: "error", message: "Network error. Please try again." });
     }
   };
 
   const handleApproveAndCreate = () => {
     if (state.kind !== "done") return;
-    // Store in sessionStorage so the practice form can read it
-    sessionStorage.setItem(
-      `llm-draft-${requestId}`,
-      JSON.stringify(state.result),
-    );
+    sessionStorage.setItem(`llm-draft-${requestId}`, JSON.stringify(state.result));
     router.push(`/admin/practices/new/${requestId}`);
   };
 
@@ -57,8 +115,7 @@ export function LlmAnalysisPanel({ requestId }: Readonly<LlmAnalysisPanelProps>)
       {state.kind === "idle" && (
         <>
           <p style={{ color: "var(--text-muted)", margin: "0 0 12px" }}>
-            Let the AI analyze the supporting PDF and extract structured data to help you fill in
-            the practice form faster.
+            Let the AI analyze the supporting PDF and extract structured data.
           </p>
           <button type="button" className="solid-btn" onClick={handleAnalyze}>
             Analyze PDF with AI
@@ -66,21 +123,21 @@ export function LlmAnalysisPanel({ requestId }: Readonly<LlmAnalysisPanelProps>)
         </>
       )}
 
-      {state.kind === "loading" && (
+      {state.kind === "submitting" && (
+        <p style={{ color: "var(--text-muted)" }}>Submitting job…</p>
+      )}
+
+      {state.kind === "polling" && (
         <p style={{ color: "var(--text-muted)" }}>
-          Analyzing PDF… this can take 30–60 seconds.
+          Analyzing PDF… this can take 1–2 minutes.
         </p>
       )}
 
       {state.kind === "error" && (
         <>
           <div className="error-message">{state.message}</div>
-          <button
-            type="button"
-            className="ghost-btn"
-            style={{ marginTop: "10px" }}
-            onClick={handleAnalyze}
-          >
+          <button type="button" className="ghost-btn"
+            style={{ marginTop: "10px" }} onClick={handleAnalyze}>
             Try again
           </button>
         </>
@@ -200,8 +257,11 @@ function ExtractionPreview({
       {result.examples.length > 0 && (
         <Section title={`Examples (${result.examples.length})`}>
           {result.examples.map((e, i) => (
-            <div key={i} style={{ fontSize: "0.88rem", color: "var(--text-muted)", marginBottom: "6px" }}>
+            <div key={i} style={{ fontSize: "0.88rem", color: "var(--text-muted)", marginBottom: "6px", display: "flex", flexDirection: "column", gap: "4px" }}>
               <strong>Scenario:</strong> {e.scenario}
+              <strong>Original prompts:</strong> {e.originalPrompts}
+              <strong>Improved prompts:</strong> {e.improvedPrompts}
+              <strong>Observations:</strong> {e.observations}
             </div>
           ))}
         </Section>

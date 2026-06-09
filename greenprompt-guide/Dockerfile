@@ -1,8 +1,8 @@
 FROM node:22-alpine
 
 RUN apk add --no-cache build-base cairo-dev g++ giflib-dev jpeg-dev librsvg-dev pango-dev \
-    && addgroup -S nonroot \
-    && adduser -S nonroot -G nonroot
+    && addgroup -g 1001 nonroot \
+    && adduser -u 1001 -G nonroot -D nonroot
 
 WORKDIR /app
 
@@ -21,15 +21,17 @@ COPY next-env.d.ts ./
 COPY tsconfig.json ./
 COPY postcss.config.mjs ./
 COPY prisma.config.ts ./
+COPY instrumentation.ts ./
 
 ARG DATABASE_URL=postgresql://postgres:postgres@db:5432/sample_database?schema=public
 ENV DATABASE_URL=${DATABASE_URL}
+ENV NEXT_CACHE_DIR=/tmp/next-cache
 
 RUN npm run prisma:generate && npm run build \
     && mkdir -p /data/uploads/collaboration-requests \
-    && mkdir -p /app/.next/cache/images \
     && chown -R nonroot:nonroot /app /data \
-    && chmod -R 775 /app/.next
+    && mkdir -p /tmp/next-cache \
+    && chown -R nonroot:nonroot /tmp/next-cache
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1

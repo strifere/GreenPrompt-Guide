@@ -9,7 +9,7 @@ GlobalWorkerOptions.workerSrc = new URL(
 export async function extractTextFromPdf(absolutePath: string): Promise<string[]> {
     return await pdfToImg(absolutePath, {
       imgType: "jpg",
-      scale: 4,
+      scale: 3,
       background: "white",
     });
 }

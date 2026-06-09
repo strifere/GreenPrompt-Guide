@@ -26,6 +26,9 @@ export function RequestPracticeForm({
 	references,
  }: Readonly<RequestedPracticeFormProps>) {
   const [llmDraft, setLlmDraft] = useState<OllamaExtractionResult | null>(null);
+  
+  // 1. ADD THIS: State to track when the client has finished checking storage
+  const [isClientLoaded, setIsClientLoaded] = useState(false);
 
   useEffect(() => {
     const raw = sessionStorage.getItem(`llm-draft-${requestId}`);
@@ -37,7 +40,15 @@ export function RequestPracticeForm({
         // ignore malformed data
       }
     }
+    // 2. ADD THIS: Mark as loaded whether we found a draft or not
+    setIsClientLoaded(true);
   }, [requestId]);
+
+  // 3. ADD THIS: Prevent rendering the form before the data is evaluated
+  // This guarantees PracticeForm gets the correct initialValues on its very first mount
+  if (!isClientLoaded) {
+    return null; // You can replace this with a loading spinner if you prefer
+  }
 
   // Build initialValues, merging LLM draft over request data
   const initialValues = llmDraft
@@ -81,6 +92,7 @@ export function RequestPracticeForm({
         description: requestDescription,
         examples: requestExamples,
       }}
+      llmExtraction={llmDraft}
     />
   );
 }

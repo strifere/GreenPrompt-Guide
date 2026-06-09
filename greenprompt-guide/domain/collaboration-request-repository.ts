@@ -307,3 +307,10 @@ export async function listAllCollaborationRequests() {
 		select: collaborationRequestListSelect,
 	});
 }
+
+export async function findExistingJob(requestId: number) {
+  return prisma.analysisJob.findUnique({
+	where: { requestId: requestId },
+	select: { status: true, result: true, error: true },
+	});
+}
