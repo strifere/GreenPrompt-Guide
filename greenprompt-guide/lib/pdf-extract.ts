@@ -1,8 +1,16 @@
-"use server";
+import { pdfToImg } from "pdftoimg-js";
+import { GlobalWorkerOptions } from "pdfjs-dist/legacy/build/pdf.mjs";
 
-import { Pdf, pdf } from 'pdf-to-img';
+GlobalWorkerOptions.workerSrc = new URL(
+    'pdfjs-dist/legacy/build/pdf.worker.mjs',
+    import.meta.url
+).toString();
 
-export async function extractTextFromPdf(absolutePath: string): Promise<Pdf> {
-    return await pdf(absolutePath);
+export async function extractTextFromPdf(absolutePath: string): Promise<string[]> {
+    return await pdfToImg(absolutePath, {
+      imgType: "jpg",
+      scale: 4,
+      background: "white",
+    });
 }
 

@@ -35,11 +35,15 @@ export async function POST(_request: Request, context: AnalyzeRouteContext) {
       collaborationRequest.supportingPdfPath,
     );
 
-    const pdfImages = await extractTextFromPdf(absolutePath);
+    const pdfImages = await extractTextFromPdf(absolutePath); //encoded in base64 strings
 
-    const firstPageImage = (await pdfImages.getPage(0)).toString("base64"); // base64-encoded image of the first page
+    let base64Data: string[] = [];
+    for (const [, img] of pdfImages.entries()) {
+      const urlRemoved = img.replace(/^data:image\/[a-z]+;base64,/, ""); // Remove the data URL prefix if it exists
+      base64Data.push(urlRemoved);
+    }
 
-    const extraction = await analyzeRequestWithOllama(firstPageImage);
+    const extraction = await analyzeRequestWithOllama(base64Data); // For now, just analyze the first page
 
     return NextResponse.json({ extraction }, { status: 200 });
   } catch (error) {
