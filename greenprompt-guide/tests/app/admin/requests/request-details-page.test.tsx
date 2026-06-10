@@ -59,9 +59,8 @@ describe("AdminRequestDetailsPage", () => {
     getSessionMock.mockResolvedValueOnce("admin");
 
     try {
-      // @ts-expect-error
       await AdminRequestDetailsPage({
-        params: { requestId: "999" },
+        params: Promise.resolve({ requestId: "999" }),
       });
     } catch (e) {
       if (e instanceof Error && e.message === "notFound") {
@@ -95,7 +94,7 @@ describe("AdminRequestDetailsPage", () => {
     render(element);
 
     const clientElement = screen.getByTestId("request-details-client");
-    const props = JSON.parse(clientElement.getAttribute("data-props") || "{}");
+    const props = JSON.parse(clientElement.dataset.props || "{}");
     expect(props.request.practiceName).toBe("Test Practice");
   });
 
@@ -170,7 +169,7 @@ describe("AdminRequestDetailsPage", () => {
     render(element);
 
     const clientElement = screen.getByTestId("request-details-client");
-    const props = JSON.parse(clientElement.getAttribute("data-props") || "{}");
+    const props = JSON.parse(clientElement.dataset.props || "{}");
     expect(props.request.summary).toBe("This is the request summary");
   });
 
@@ -196,7 +195,7 @@ describe("AdminRequestDetailsPage", () => {
     render(element);
 
     const clientElement = screen.getByTestId("request-details-client");
-    const props = JSON.parse(clientElement.getAttribute("data-props") || "{}");
+    const props = JSON.parse(clientElement.dataset.props || "{}");
     expect(props.request.requesterUsername).toBe("john_doe");
   });
 
@@ -270,7 +269,7 @@ describe("AdminRequestDetailsPage", () => {
     render(element);
 
     const clientElement = screen.getByTestId("request-details-client");
-    const props = JSON.parse(clientElement.getAttribute("data-props") || "{}");
+    const props = JSON.parse(clientElement.dataset.props || "{}");
     expect(props.request.status).toBe("APPROVED");
   });
 
@@ -289,9 +288,8 @@ describe("AdminRequestDetailsPage", () => {
     });
     findExistingJobMock.mockResolvedValue(null);
 
-    // @ts-expect-error
     await AdminRequestDetailsPage({
-      params: { requestId: "123" },
+      params: Promise.resolve({ requestId: "123" }),
     });
 
     expect(getCollaborationRequestDetailsById).toHaveBeenCalledWith(123);

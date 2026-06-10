@@ -10,8 +10,11 @@ import {
   deleteCollaborationRequestById,
   listCollaborationRequestsByRequesterUsername,
   listAllCollaborationRequests,
+  findExistingJob,
+  setAnalysisStep,
 } from "@/domain/collaboration-request-repository";
 import { describe, it, expect, vi } from "vitest";
+import { AnalysisStep } from "@prisma/client";
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
@@ -26,6 +29,10 @@ vi.mock("@/lib/prisma", () => ({
       create: vi.fn(),
       update: vi.fn(),
     },
+    analysisJob: {
+        findUnique: vi.fn(),
+        update: vi.fn(),
+    }
   },
 }));
 
@@ -233,5 +240,39 @@ describe("collaboration-request-repository", () => {
     findManyMock.mockResolvedValue([mockRequest]);
     await listAllCollaborationRequests();
     expect(prisma.collaborationRequest.findMany).toHaveBeenCalled();
+  });
+
+  describe("findExistingJob", () => {
+    it("should find an existing analysis job", async () => {
+      const findUniqueMock = prisma.analysisJob.findUnique as jest.Mock;
+      findUniqueMock.mockResolvedValue({ status: "PENDING" });
+      await findExistingJob(1);
+      expect(prisma.analysisJob.findUnique).toHaveBeenCalledWith({
+        where: { requestId: 1 },
+        select: { status: true, result: true, error: true },
+      });
+    });
+  });
+
+  describe("setAnalysisStep", () => {
+    it.each([
+      [1, AnalysisStep.FIRST_PROMPT],
+      [2, AnalysisStep.SECOND_PROMPT],
+      [3, AnalysisStep.THIRD_PROMPT],
+      [4, AnalysisStep.FOURTH_PROMPT],
+      [5, AnalysisStep.FINISHED],
+      ["end", AnalysisStep.FINISHED],
+    ])("should set analysis step for step %s", async (step, expected) => {
+      const updateMock = prisma.analysisJob.update as jest.Mock;
+      await setAnalysisStep(1, step);
+      expect(updateMock).toHaveBeenCalledWith({
+        where: { requestId: 1 },
+        data: { step: expected },
+      });
+    });
+
+    it("should throw an error for an unsupported step", async () => {
+        await expect(setAnalysisStep(1, 99)).rejects.toThrow("Unsupported analysis step: 99");
+    });
   });
 });

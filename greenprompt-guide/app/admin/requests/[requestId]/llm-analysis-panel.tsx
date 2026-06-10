@@ -51,6 +51,15 @@ export function LlmAnalysisPanel({ requestId, existingJob }: Readonly<LlmAnalysi
   useEffect(() => {
     if (state.kind !== "polling") return;
 
+    // Extracted to flatten nesting depth (Max Level: 4)
+    const advancePollingState = () => {
+      setState((prev) =>
+        prev.kind === "polling"
+          ? { kind: "polling", attempt: prev.attempt + 1 }
+          : prev,
+      );
+    };
+
     const poll = async () => {
       try {
         const res = await fetch(`/api/admin/requests/${requestId}/analyze`);
@@ -67,13 +76,8 @@ export function LlmAnalysisPanel({ requestId, existingJob }: Readonly<LlmAnalysi
           setState({ kind: "error", message: data.error ?? "Analysis failed" });
         } else {
           const next = getNextInterval(state.attempt);
-          timeoutRef.current = setTimeout(() => {
-            setState((prev) =>
-              prev.kind === "polling"
-                ? { kind: "polling", attempt: prev.attempt + 1 }
-                : prev,
-            );
-          }, next);
+          // Pass the named function directly to setTimeout
+          timeoutRef.current = setTimeout(advancePollingState, next);
         }
 
         switch (data.step) {
@@ -90,7 +94,6 @@ export function LlmAnalysisPanel({ requestId, existingJob }: Readonly<LlmAnalysi
             setStep("Phase 4/4: Extracting metrics...");
             break;
           case "FINISHED":
-            // This means the worker marked the analysis as finished, but we haven't received the DONE status yet. Continue polling as normal.
             setStep("Analysis complete.");
             break;
         }
@@ -241,18 +244,18 @@ function ExtractionPreview({
 
       {result.metrics && (
         <Section title={`Metrics (${result.metrics.genericMetrics.length + result.metrics.energyMetrics.length + result.metrics.accuracyMetrics.length})`}>
-          {result.metrics.genericMetrics.map((m, i) => (
-            <div key={i} style={{ fontSize: "0.88rem", color: "var(--text-muted)", marginBottom: "4px" }}>
+          {result.metrics.genericMetrics.map((m) => (
+            <div key={m.title} style={{ fontSize: "0.88rem", color: "var(--text-muted)", marginBottom: "4px" }}>
               <strong>{m.title}</strong>: {m.value} — {m.description}
             </div>
           ))}
-          {result.metrics.energyMetrics.map((m, i) => (
-            <div key={i} style={{ fontSize: "0.88rem", color: "var(--text-muted)", marginBottom: "4px" }}>
+          {result.metrics.energyMetrics.map((m) => (
+            <div key={m.title} style={{ fontSize: "0.88rem", color: "var(--text-muted)", marginBottom: "4px" }}>
               <strong>{m.title}</strong>: {m.value} — {m.description}
             </div>
           ))}
-          {result.metrics.accuracyMetrics.map((m, i) => (
-            <div key={i} style={{ fontSize: "0.88rem", color: "var(--text-muted)", marginBottom: "4px" }}>
+          {result.metrics.accuracyMetrics.map((m) => (
+            <div key={m.title} style={{ fontSize: "0.88rem", color: "var(--text-muted)", marginBottom: "4px" }}>
               <strong>{m.title}</strong>: {m.value} — {m.description}
             </div>
           ))}
@@ -267,8 +270,8 @@ function ExtractionPreview({
 
       {result.hyperparameters.length > 0 && (
         <Section title={`Hyperparameters (${result.hyperparameters.length})`}>
-          {result.hyperparameters.map((h, i) => (
-            <div key={i} style={{ fontSize: "0.88rem", color: "var(--text-muted)" }}>
+          {result.hyperparameters.map((h) => (
+            <div key={h.name} style={{ fontSize: "0.88rem", color: "var(--text-muted)" }}>
               {h.name}: {h.value} ({h.dataType})
             </div>
           ))}
@@ -277,8 +280,8 @@ function ExtractionPreview({
 
       {result.examples.length > 0 && (
         <Section title={`Examples (${result.examples.length})`}>
-          {result.examples.map((e, i) => (
-            <div key={i} style={{ fontSize: "0.88rem", color: "var(--text-muted)", marginBottom: "6px", display: "flex", flexDirection: "column", gap: "4px" }}>
+          {result.examples.map((e) => (
+            <div key={e.scenario} style={{ fontSize: "0.88rem", color: "var(--text-muted)", marginBottom: "6px", display: "flex", flexDirection: "column", gap: "4px" }}>
               <strong>Scenario:</strong> {e.scenario}
               <strong>Original prompts:</strong> {e.originalPrompts}
               <strong>Improved prompts:</strong> {e.improvedPrompts}

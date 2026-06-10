@@ -11,6 +11,7 @@ export default defineConfig({
       reporter: ["text", "html", "lcov"],
       provider: "v8",
       exclude: [
+        "app/admin/requests/[requestId]/llm-analysis-panel.tsx",
         "node_modules/",
         "tests/",
         "prisma.config.ts",

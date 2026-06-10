@@ -486,8 +486,8 @@ export function PracticeForm({
 							<div style={{ marginBottom: "1rem" }}>
 							<strong style={{ color: "var(--text-main)" }}>Models:</strong>
 							<ul style={{ paddingLeft: "20px", marginTop: "4px" }}>
-								{llmExtraction.models.map((m, i) => (
-								<li key={i}>{m.name} {m.parameters ? `(${m.parameters})` : ""}</li>
+								{llmExtraction.models.map((m) => (
+								<li key={m.name}>{m.name} {m.parameters ? `(${m.parameters})` : ""}</li>
 								))}
 							</ul>
 							</div>
@@ -498,8 +498,8 @@ export function PracticeForm({
 							<div style={{ marginBottom: "1rem" }}>
 							<strong style={{ color: "var(--text-main)" }}>Datasets:</strong>
 							<ul style={{ paddingLeft: "20px", marginTop: "4px" }}>
-								{llmExtraction.datasets.map((d, i) => (
-								<li key={i}>{d.name} {d.size ? `(${d.size})` : ""}</li>
+								{llmExtraction.datasets.map((d) => (
+								<li key={d.name}>{d.name} {d.size ? `(${d.size})` : ""}</li>
 								))}
 							</ul>
 							</div>
@@ -510,8 +510,8 @@ export function PracticeForm({
 							<div style={{ marginBottom: "1rem" }}>
 							<strong style={{ color: "var(--text-main)" }}>Prompt Techniques:</strong>
 							<ul style={{ paddingLeft: "20px", marginTop: "4px" }}>
-								{llmExtraction.promptTechniques.map((pt, i) => (
-								<li key={i}><strong>{pt.name}:</strong> {pt.description}</li>
+								{llmExtraction.promptTechniques.map((pt) => (
+								<li key={pt.name}><strong>{pt.name}:</strong> {pt.description}</li>
 								))}
 							</ul>
 							</div>
@@ -522,8 +522,8 @@ export function PracticeForm({
 							<div style={{ marginBottom: "1rem" }}>
 							<strong style={{ color: "var(--text-main)" }}>Hyperparameters:</strong>
 							<ul style={{ paddingLeft: "20px", marginTop: "4px" }}>
-								{llmExtraction.hyperparameters.map((h, i) => (
-								<li key={i}>{h.name}: {h.value}</li>
+								{llmExtraction.hyperparameters.map((h) => (
+								<li key={h.name}>{h.name}: {h.value}</li>
 								))}
 							</ul>
 							</div>
@@ -536,14 +536,14 @@ export function PracticeForm({
 							<div style={{ marginBottom: "1rem" }}>
 							<strong style={{ color: "var(--text-main)" }}>Key Metrics:</strong>
 							<ul style={{ paddingLeft: "20px", marginTop: "4px" }}>
-								{llmExtraction.metrics.genericMetrics.map((m, i) => (
-								<li key={`gen-${i}`}>[Generic] <strong>{m.title}</strong>: {m.value}</li>
+								{llmExtraction.metrics.genericMetrics.map((m) => (
+								<li key={`gen-${m.title}`}>[Generic] <strong>{m.title}</strong>: {m.value}</li>
 								))}
-								{llmExtraction.metrics.energyMetrics.map((m, i) => (
-								<li key={`ene-${i}`}>[Energy] <strong>{m.title}</strong>: {m.value} ({m.type})</li>
+								{llmExtraction.metrics.energyMetrics.map((m) => (
+								<li key={`ene-${m.title}`}>[Energy] <strong>{m.title}</strong>: {m.value} ({m.type})</li>
 								))}
-								{llmExtraction.metrics.accuracyMetrics.map((m, i) => (
-								<li key={`acc-${i}`}>[Accuracy] <strong>{m.title}</strong>: {m.value} ({m.level})</li>
+								{llmExtraction.metrics.accuracyMetrics.map((m) => (
+								<li key={`acc-${m.title}`}>[Accuracy] <strong>{m.title}</strong>: {m.value} ({m.level})</li>
 								))}
 							</ul>
 							</div>
