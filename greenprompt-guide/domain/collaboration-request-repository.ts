@@ -5,6 +5,7 @@ import type {
 	UserRole,
 } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { AnalysisStep } from "@prisma/client";
 
 const collaborationRequestListSelect = {
 	id: true,
@@ -306,4 +307,38 @@ export async function listAllCollaborationRequests() {
 		orderBy: [{ createdAt: "desc" }, { updatedAt: "desc" }],
 		select: collaborationRequestListSelect,
 	});
+}
+
+export async function findExistingJob(requestId: number) {
+  return prisma.analysisJob.findUnique({
+	where: { requestId: requestId },
+	select: { status: true, result: true, error: true },
+	});
+}
+
+function parseStep(step: number | string): AnalysisStep {
+  switch (step) {
+	case 1:
+		return AnalysisStep.FIRST_PROMPT;
+	case 2:
+		return AnalysisStep.SECOND_PROMPT;
+	case 3:
+		return AnalysisStep.THIRD_PROMPT;
+	case 4:
+		return AnalysisStep.FOURTH_PROMPT;
+	case 5:
+		return AnalysisStep.FINISHED;
+	case "end":
+		return AnalysisStep.FINISHED;
+	default:
+		throw new Error(`Unsupported analysis step: ${step}`);
+  }
+}
+
+export async function setAnalysisStep(requestId: number, step: number | string): Promise<void> {
+  const parsedStep = parseStep(step);
+  await prisma.analysisJob.update({
+	where: { requestId: requestId },
+	data: { step: parsedStep },
+  });
 }

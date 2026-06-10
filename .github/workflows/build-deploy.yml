@@ -127,6 +127,9 @@ jobs:
           EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
           EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
           COOKIE_SECURE: ${{ secrets.COOKIE_SECURE }}
+          COLLABORATION_PDF_STORAGE_DIR: ${{ secrets.COLLABORATION_PDF_STORAGE_DIR }}
+          OLLAMA_URL: ${{ secrets.OLLAMA_URL }}
+          OLLAMA_MODEL: ${{ secrets.OLLAMA_MODEL }}
         run: |
           set -e
 
@@ -209,6 +212,9 @@ jobs:
           EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
           EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
           COOKIE_SECURE: ${{ secrets.COOKIE_SECURE }}
+          COLLABORATION_PDF_STORAGE_DIR: ${{ secrets.COLLABORATION_PDF_STORAGE_DIR }}
+          OLLAMA_URL: ${{ secrets.OLLAMA_URL }}
+          OLLAMA_MODEL: ${{ secrets.OLLAMA_MODEL }}
           DOCKER_CONFIG: ${{ runner.temp }}/.docker
         run: |
           set -e

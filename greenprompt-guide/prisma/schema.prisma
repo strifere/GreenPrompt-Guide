@@ -62,6 +62,21 @@ enum CollaborationRequestMessageType {
   NOTE
 }
 
+enum AnalysisJobStatus {
+  PENDING
+  RUNNING
+  DONE
+  FAILED
+}
+
+enum AnalysisStep {
+  FIRST_PROMPT
+  SECOND_PROMPT
+  THIRD_PROMPT
+  FOURTH_PROMPT
+  FINISHED
+}
+
 // ============= MAIN ENTITIES =============
 
 model User {
@@ -144,6 +159,8 @@ model CollaborationRequest {
 
   messages CollaborationRequestMessage[]
 
+  analysisJob AnalysisJob?
+
   @@index([requesterUsername])
   @@index([status])
   @@map("collaboration_requests")
@@ -166,6 +183,23 @@ model CollaborationRequestMessage {
   @@index([authorUsername])
   @@index([requestId, readAt])
   @@map("collaboration_request_messages")
+}
+
+model AnalysisJob {
+  id          Int               @id @default(autoincrement())
+  requestId   Int               @unique
+  status      AnalysisJobStatus @default(PENDING)
+  step        AnalysisStep      @default(FIRST_PROMPT)
+  result      Json?
+  error       String?
+  startedAt   DateTime?
+  completedAt DateTime?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  request CollaborationRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@map("analysis_jobs")
 }
 
 model PracticeExample {

@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, type ChangeEvent, type ReactNode, type SyntheticEvent } from "react";
 import styles from "../admin.module.css";
+import type { OllamaExtractionResult } from "@/lib/ollama-client";
 
 export type CategoryOption = {
 	name: string;
@@ -127,6 +128,7 @@ type PracticeFormProps = {
 	models?: NamedOption[];
 	references?: ReferenceOption[];
 	hyperparameters?: HyperparameterOption[];
+	llmExtraction?: OllamaExtractionResult | null;
 };
 
 type PracticeCreateFormBody = {
@@ -268,6 +270,7 @@ export function PracticeForm({
 	models = [],
 	references = [],
 	hyperparameters = [],
+	llmExtraction,
 }: Readonly<PracticeFormProps>) {
 	const router = useRouter();
 	const isEditMode = mode === "edit";
@@ -456,20 +459,104 @@ export function PracticeForm({
 
 	return (
 		<form className={styles.creationForm} onSubmit={handleSubmit}>
-			{source ? (
-				<div className={styles.creationIntroCard}>
-					<p className={styles.creationIntroKicker}>Requested practice</p>
-					<h3 className={styles.creationIntroTitle}>{source.title}</h3>
-					<p className={styles.creationIntroCopy}>{source.summary}</p>
-					<p className={styles.creationIntroCopy}>{source.description}</p>
-					{source.examples?.trim() ? (
-						<div className={styles.creationSourceBox}>
-							<span className={styles.creationSourceLabel}>Request examples</span>
-							<p>{source.examples}</p>
+			{source && (
+				<section className={styles.sourceCard}>
+					<div className={styles.creationIntroCard}>
+						<p className={styles.creationIntroKicker}>Requested practice</p>
+						<h3 className={styles.creationIntroTitle}>{source.title}</h3>
+						<p className={styles.creationIntroCopy}>{source.summary}</p>
+						<p className={styles.creationIntroCopy}>{source.description}</p>
+						{source.examples?.trim() ? (
+							<div className={styles.creationSourceBox}>
+								<span className={styles.creationSourceLabel}>Request examples</span>
+								<p>{source.examples}</p>
+							</div>
+						) : null}
+					</div>
+					{llmExtraction && (
+					<details className={styles.llmExtractionDetails}>
+						<summary style={{ cursor: "pointer", fontWeight: "600", color: "var(--primary-color)" }}>
+						✨ View Full AI Extraction Details (Read-Only)
+						</summary>
+						
+						<div style={{ marginTop: "1rem", fontSize: "0.9rem", color: "var(--text-muted)" }}>
+						
+						{/* Models */}
+						{llmExtraction.models.length > 0 && (
+							<div style={{ marginBottom: "1rem" }}>
+							<strong style={{ color: "var(--text-main)" }}>Models:</strong>
+							<ul style={{ paddingLeft: "20px", marginTop: "4px" }}>
+								{llmExtraction.models.map((m) => (
+								<li key={m.name}>{m.name} {m.parameters ? `(${m.parameters})` : ""}</li>
+								))}
+							</ul>
+							</div>
+						)}
+
+						{/* Datasets */}
+						{llmExtraction.datasets.length > 0 && (
+							<div style={{ marginBottom: "1rem" }}>
+							<strong style={{ color: "var(--text-main)" }}>Datasets:</strong>
+							<ul style={{ paddingLeft: "20px", marginTop: "4px" }}>
+								{llmExtraction.datasets.map((d) => (
+								<li key={d.name}>{d.name} {d.size ? `(${d.size})` : ""}</li>
+								))}
+							</ul>
+							</div>
+						)}
+
+						{/* Prompt Techniques */}
+						{llmExtraction.promptTechniques.length > 0 && (
+							<div style={{ marginBottom: "1rem" }}>
+							<strong style={{ color: "var(--text-main)" }}>Prompt Techniques:</strong>
+							<ul style={{ paddingLeft: "20px", marginTop: "4px" }}>
+								{llmExtraction.promptTechniques.map((pt) => (
+								<li key={pt.name}><strong>{pt.name}:</strong> {pt.description}</li>
+								))}
+							</ul>
+							</div>
+						)}
+
+						{/* Hyperparameters */}
+						{llmExtraction.hyperparameters.length > 0 && (
+							<div style={{ marginBottom: "1rem" }}>
+							<strong style={{ color: "var(--text-main)" }}>Hyperparameters:</strong>
+							<ul style={{ paddingLeft: "20px", marginTop: "4px" }}>
+								{llmExtraction.hyperparameters.map((h) => (
+								<li key={h.name}>{h.name}: {h.value}</li>
+								))}
+							</ul>
+							</div>
+						)}
+
+						{/* Metrics */}
+						{(llmExtraction.metrics.genericMetrics.length > 0 || 
+							llmExtraction.metrics.energyMetrics.length > 0 || 
+							llmExtraction.metrics.accuracyMetrics.length > 0) && (
+							<div style={{ marginBottom: "1rem" }}>
+							<strong style={{ color: "var(--text-main)" }}>Key Metrics:</strong>
+							<ul style={{ paddingLeft: "20px", marginTop: "4px" }}>
+								{llmExtraction.metrics.genericMetrics.map((m) => (
+								<li key={`gen-${m.title}`}>[Generic] <strong>{m.title}</strong>: {m.value}</li>
+								))}
+								{llmExtraction.metrics.energyMetrics.map((m) => (
+								<li key={`ene-${m.title}`}>[Energy] <strong>{m.title}</strong>: {m.value} ({m.type})</li>
+								))}
+								{llmExtraction.metrics.accuracyMetrics.map((m) => (
+								<li key={`acc-${m.title}`}>[Accuracy] <strong>{m.title}</strong>: {m.value} ({m.level})</li>
+								))}
+							</ul>
+							</div>
+						)}
 						</div>
-					) : null}
-				</div>
-			) : null}
+					</details>
+					)}
+				</section>
+			)}
+
+			{llmExtraction && (
+				<div className={styles.llmMessage}>Fields filled with LLM extracted data</div>
+			)}
 
 			<section className={styles.creationSection}>
 				<h3 className={styles.creationSectionTitle}>Practice details</h3>

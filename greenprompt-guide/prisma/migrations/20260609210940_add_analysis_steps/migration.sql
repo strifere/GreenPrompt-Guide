@@ -1,0 +1,5 @@
+-- CreateEnum
+CREATE TYPE "AnalysisStep" AS ENUM ('FIRST_PROMPT', 'SECOND_PROMPT', 'THIRD_PROMPT', 'FOURTH_PROMPT', 'FINISHED');
+
+-- AlterTable
+ALTER TABLE "analysis_jobs" ADD COLUMN     "step" "AnalysisStep" NOT NULL DEFAULT 'FIRST_PROMPT';
