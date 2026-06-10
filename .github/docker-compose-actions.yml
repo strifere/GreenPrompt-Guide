@@ -2,14 +2,21 @@ services:
   db:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-pure_prompt}
+      POSTGRES_DB: ${POSTGRES_DB:-greenprompt_guide}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-pure_prompt}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-greenprompt_guide}"]
       interval: 5s
       timeout: 3s
       retries: 20
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: greenprompt-guide-ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
 
   app:
     image: temp-image:test
@@ -17,11 +24,21 @@ services:
       db:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-pure_prompt}?schema=public
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-greenprompt_guide}?schema=public
       NODE_ENV: production
       NEXT_TELEMETRY_DISABLED: "1"
-      RESEND_API_KEY: ${RESEND_API_KEY:-}
-      RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL:-Pure Prompt <onboarding@resend.dev>}
+      EMAIL_HOST: ${EMAIL_HOST:-smtp.gmail.com}
+      EMAIL_PORT: ${EMAIL_PORT:-465}
+      EMAIL_SECURE: ${EMAIL_SECURE:-true}
+      EMAIL_USER: ${EMAIL_USER:-greenprompt.guide@gmail.com}
+      EMAIL_PASS: ${EMAIL_PASS:-}
+      EMAIL_FROM: ${EMAIL_FROM:-GreenPrompt Guide <greenprompt.guide@gmail.com>}
       COOKIE_SECURE: ${COOKIE_SECURE:-true}
+      COLLABORATION_PDF_STORAGE_DIR: ${COLLABORATION_PDF_STORAGE_DIR:-/data/uploads/collaboration-requests}
+      OLLAMA_URL: ${OLLAMA_URL:-http://ollama:11434}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-gemma4:latest}
     ports:
       - "38080:3000"
+    volumes:
+      - ./storage/collaboration-requests:/data/uploads/collaboration-requests
+    command: ["npm", "run", "start"]

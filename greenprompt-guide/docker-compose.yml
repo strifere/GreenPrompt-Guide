@@ -1,0 +1,77 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: greenprompt-guide-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-greenprompt_guide}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-greenprompt_guide}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: greenprompt-guide-ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: greenprompt-guide-app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-greenprompt_guide}?schema=public
+      NODE_ENV: production
+      NEXT_TELEMETRY_DISABLED: "1"
+      EMAIL_HOST: ${EMAIL_HOST:-smtp.gmail.com}
+      EMAIL_PORT: ${EMAIL_PORT:-465}
+      EMAIL_SECURE: ${EMAIL_SECURE:-true}
+      EMAIL_USER: ${EMAIL_USER:-greenprompt.guide@gmail.com}
+      EMAIL_PASS: ${EMAIL_PASS:-your_google_app_password}
+      EMAIL_FROM: ${EMAIL_FROM:-GreenPrompt Guide <greenprompt.guide@gmail.com>}
+      COOKIE_SECURE: ${COOKIE_SECURE:-true}
+      COLLABORATION_PDF_STORAGE_DIR: ${COLLABORATION_PDF_STORAGE_DIR:-/data/uploads/collaboration-requests}
+      OLLAMA_URL: ${OLLAMA_URL:-http://ollama:11434}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-gemma4:latest}
+    ports:
+      - "3000:3000"
+      - "5555:5555" # Expose Prisma Studio port for local access
+    volumes:
+      - ./storage/collaboration-requests:/data/uploads/collaboration-requests
+    command: ["npm", "run", "start"]
+
+  prisma-studio:
+    profiles: ["tools"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: greenprompt-guide-prisma-studio
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-greenprompt_guide}?schema=public
+    command: ["npm", "run", "prisma:studio"]
+    ports:
+      - "127.0.0.1:5555:5555"
+
+volumes:
+  pgdata:
+  ollama_data:

@@ -1,0 +1,57 @@
+{
+  "name": "greenprompt-guide",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "test": "vitest run",
+    "prisma:generate": "prisma generate",
+    "prisma:push": "prisma db push",
+    "prisma:pull": "prisma db pull",
+    "prisma:studio": "prisma studio --port 5555 --browser none"
+  },
+  "dependencies": {
+    "@napi-rs/canvas": "^1.0.0",
+    "@prisma/adapter-pg": "^7.6.0",
+    "@prisma/client": "^7.6.0",
+    "@ungap/with-resolvers": "^0.1.0",
+    "bcryptjs": "^2.4.3",
+    "lucide-react": "^1.8.0",
+    "next": "^16.2.6",
+    "nodemailer": "^8.0.7",
+    "ollama": "^0.6.3",
+    "pdf-parse": "^2.4.5",
+    "pdftoimg-js": "^0.2.5",
+    "pg": "^8.20.0",
+    "react": "19.2.5",
+    "react-dom": "19.2.5",
+    "react-websitecarbon-badge": "^1.0.6"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^20",
+    "@types/nodemailer": "^8.0.0",
+    "@types/pdf-parse": "^1.1.5",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "@vitest/coverage-v8": "^4.1.8",
+    "eslint": "^9",
+    "eslint-config-next": "^16.2.6",
+    "jsdom": "^27.0.1",
+    "prisma": "^7.6.0",
+    "tailwindcss": "^4",
+    "typescript": "^5",
+    "vitest": "^4.1.8"
+  },
+  "overrides": {
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3"
+  }
+}
