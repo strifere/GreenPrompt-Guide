@@ -7,13 +7,15 @@ vi.mock("next/link", () => ({
 	default: ({ children, href }: any) => <a href={href}>{children}</a>,
 }));
 
+const notFoundMock = vi.hoisted(() => vi.fn(() => {
+	throw new Error("notFound");
+}));
+const redirectMock = vi.hoisted(() => vi.fn(() => {
+	throw new Error("redirect");
+}));
 vi.mock("next/navigation", () => ({
-	notFound: vi.fn(() => {
-		throw new Error("notFound");
-	}),
-	redirect: vi.fn(() => {
-		throw new Error("redirect");
-	}),
+	notFound: notFoundMock,
+	redirect: redirectMock,
 }));
 
 // Mock lucide-react
@@ -22,13 +24,25 @@ vi.mock("lucide-react", () => ({
 }));
 
 // Mock session
+const getSessionMock = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/session", () => ({
-	getSession: vi.fn(),
+	getSession: getSessionMock,
 }));
 
 // Mock repository
+const getCollaborationRequestDetailsByIdMock = vi.hoisted(() => vi.fn());
+const findExistingJobMock = vi.hoisted(() => vi.fn());
 vi.mock("@/domain/collaboration-request-repository", () => ({
-	getCollaborationRequestDetailsById: vi.fn(),
+	getCollaborationRequestDetailsById: getCollaborationRequestDetailsByIdMock,
+	findExistingJob: findExistingJobMock,
+}));
+
+vi.mock("@/app/admin/requests/[requestId]/llm-analysis-panel", () => ({
+	LlmAnalysisPanel: (props: any) => (
+		<div data-testid="llm-analysis-panel" data-props={JSON.stringify(props)}>
+			LlmAnalysisPanel
+		</div>
+	),
 }));
 
 // Mock RequestDetailsClient
@@ -61,82 +75,51 @@ describe("AdminRequestDetailsPage", () => {
 	});
 
 	it("redirects to home when user is not authenticated", async () => {
-		const { getSession } = await import("@/lib/session");
-		const { redirect } = await import("next/navigation");
+		getSessionMock.mockResolvedValueOnce(null);
 
-		(getSession as any).mockResolvedValueOnce(null);
+		const pagePromise = AdminRequestDetailsPage({
+			params: Promise.resolve({ requestId: "1" }),
+		});
 
-		const page = AdminRequestDetailsPage({ params: Promise.resolve({ requestId: "1" }) });
-
-		try {
-			await page;
-		} catch (e: any) {
-			if (e.message !== "redirect") {
-				expect((redirect as any).mock.calls.length).toBeGreaterThan(0);
-			}
-			expect((redirect as any).mock.calls[0][0]).toBe("/");
-		}
+		await expect(pagePromise).rejects.toThrow("redirect");
+		expect(redirectMock).toHaveBeenCalledWith("/");
 	});
 
 	it("shows notFound when request ID is invalid", async () => {
-		const { getSession } = await import("@/lib/session");
-		const { notFound } = await import("next/navigation");
+		getSessionMock.mockResolvedValueOnce("admin");
 
-		(getSession as any).mockResolvedValueOnce("admin");
+		const pagePromise = AdminRequestDetailsPage({
+			params: Promise.resolve({ requestId: "invalid" }),
+		});
 
-		const page = AdminRequestDetailsPage({ params: Promise.resolve({ requestId: "invalid" }) });
-
-		try {
-			await page;
-		} catch (e: any) {
-			if (e.message !== "notFound") {
-				expect((notFound as any).mock.calls.length).toBeGreaterThan(0);
-			}
-		}
+		await expect(pagePromise).rejects.toThrow("notFound");
 	});
 
 	it("shows notFound when request ID is zero", async () => {
-		const { getSession } = await import("@/lib/session");
-		const { notFound } = await import("next/navigation");
+		getSessionMock.mockResolvedValueOnce("admin");
 
-		(getSession as any).mockResolvedValueOnce("admin");
+		const pagePromise = AdminRequestDetailsPage({
+			params: Promise.resolve({ requestId: "0" }),
+		});
 
-		const page = AdminRequestDetailsPage({ params: Promise.resolve({ requestId: "0" }) });
-
-		try {
-			await page;
-		} catch (e: any) {
-			if (e.message !== "notFound") {
-				expect((notFound as any).mock.calls.length).toBeGreaterThan(0);
-			}
-		}
+		await expect(pagePromise).rejects.toThrow("notFound");
 	});
 
 	it("shows notFound when request does not exist", async () => {
-		const { getSession } = await import("@/lib/session");
-		const { getCollaborationRequestDetailsById } = await import("@/domain/collaboration-request-repository");
-		const { notFound } = await import("next/navigation");
+		getSessionMock.mockResolvedValueOnce("admin");
+		getCollaborationRequestDetailsByIdMock.mockResolvedValueOnce(null);
 
-		(getSession as any).mockResolvedValueOnce("admin");
-		(getCollaborationRequestDetailsById as any).mockResolvedValueOnce(null);
+		const pagePromise = AdminRequestDetailsPage({
+			params: Promise.resolve({ requestId: "999" }),
+		});
 
-		const page = AdminRequestDetailsPage({ params: Promise.resolve({ requestId: "999" }) });
-
-		try {
-			await page;
-		} catch (e: any) {
-			if (e.message !== "notFound") {
-				expect((notFound as any).mock.calls.length).toBeGreaterThan(0);
-			}
-		}
+		await expect(pagePromise).rejects.toThrow("notFound");
 	});
 
 	it("renders page structure with practice details shell", async () => {
-		const { getSession } = await import("@/lib/session");
-		const { getCollaborationRequestDetailsById } = await import("@/domain/collaboration-request-repository");
-
-		(getSession as any).mockResolvedValueOnce("admin");
-		(getCollaborationRequestDetailsById as any).mockResolvedValueOnce(createMockRequest());
+		getSessionMock.mockResolvedValueOnce("admin");
+		getCollaborationRequestDetailsByIdMock.mockResolvedValueOnce(createMockRequest());
+		findExistingJobMock.mockResolvedValue(null);
 
 		render(await AdminRequestDetailsPage({ params: Promise.resolve({ requestId: "1" }) }));
 
@@ -145,11 +128,9 @@ describe("AdminRequestDetailsPage", () => {
 	});
 
 	it("renders back link to all requests", async () => {
-		const { getSession } = await import("@/lib/session");
-		const { getCollaborationRequestDetailsById } = await import("@/domain/collaboration-request-repository");
-
-		(getSession as any).mockResolvedValueOnce("admin");
-		(getCollaborationRequestDetailsById as any).mockResolvedValueOnce(createMockRequest());
+		getSessionMock.mockResolvedValueOnce("admin");
+		getCollaborationRequestDetailsByIdMock.mockResolvedValueOnce(createMockRequest());
+		findExistingJobMock.mockResolvedValue(null);
 
 		render(await AdminRequestDetailsPage({ params: Promise.resolve({ requestId: "1" }) }));
 
@@ -159,13 +140,11 @@ describe("AdminRequestDetailsPage", () => {
 	});
 
 	it("displays status pill with correct class", async () => {
-		const { getSession } = await import("@/lib/session");
-		const { getCollaborationRequestDetailsById } = await import("@/domain/collaboration-request-repository");
-
-		(getSession as any).mockResolvedValueOnce("admin");
-		(getCollaborationRequestDetailsById as any).mockResolvedValueOnce(
+		getSessionMock.mockResolvedValueOnce("admin");
+		getCollaborationRequestDetailsByIdMock.mockResolvedValueOnce(
 			createMockRequest({ status: "PENDING" })
 		);
+		findExistingJobMock.mockResolvedValue(null);
 
 		render(await AdminRequestDetailsPage({ params: Promise.resolve({ requestId: "1" }) }));
 
@@ -175,13 +154,11 @@ describe("AdminRequestDetailsPage", () => {
 	});
 
 	it("formats status APPROVED correctly", async () => {
-		const { getSession } = await import("@/lib/session");
-		const { getCollaborationRequestDetailsById } = await import("@/domain/collaboration-request-repository");
-
-		(getSession as any).mockResolvedValueOnce("admin");
-		(getCollaborationRequestDetailsById as any).mockResolvedValueOnce(
+		getSessionMock.mockResolvedValueOnce("admin");
+		getCollaborationRequestDetailsByIdMock.mockResolvedValueOnce(
 			createMockRequest({ status: "APPROVED" })
 		);
+		findExistingJobMock.mockResolvedValue(null);
 
 		render(await AdminRequestDetailsPage({ params: Promise.resolve({ requestId: "1" }) }));
 
@@ -189,13 +166,11 @@ describe("AdminRequestDetailsPage", () => {
 	});
 
 	it("formats status DENIED correctly", async () => {
-		const { getSession } = await import("@/lib/session");
-		const { getCollaborationRequestDetailsById } = await import("@/domain/collaboration-request-repository");
-
-		(getSession as any).mockResolvedValueOnce("admin");
-		(getCollaborationRequestDetailsById as any).mockResolvedValueOnce(
+		getSessionMock.mockResolvedValueOnce("admin");
+		getCollaborationRequestDetailsByIdMock.mockResolvedValueOnce(
 			createMockRequest({ status: "DENIED" })
 		);
+		findExistingJobMock.mockResolvedValue(null);
 
 		render(await AdminRequestDetailsPage({ params: Promise.resolve({ requestId: "1" }) }));
 
@@ -203,17 +178,15 @@ describe("AdminRequestDetailsPage", () => {
 	});
 
 	it("passes request to RequestDetailsClient component", async () => {
-		const { getSession } = await import("@/lib/session");
-		const { getCollaborationRequestDetailsById } = await import("@/domain/collaboration-request-repository");
-
 		const mockRequest = createMockRequest({
 			id: 42,
 			practiceTitle: "Test Practice",
 			requesterUsername: "john_doe",
 		});
 
-		(getSession as any).mockResolvedValueOnce("admin");
-		(getCollaborationRequestDetailsById as any).mockResolvedValueOnce(mockRequest);
+		getSessionMock.mockResolvedValueOnce("admin");
+		getCollaborationRequestDetailsByIdMock.mockResolvedValueOnce(mockRequest);
+		findExistingJobMock.mockResolvedValue(null);
 
 		render(await AdminRequestDetailsPage({ params: Promise.resolve({ requestId: "42" }) }));
 
@@ -222,19 +195,18 @@ describe("AdminRequestDetailsPage", () => {
 
 		expect(props.currentUserRole).toBe("ADMIN");
 		expect(props.currentUsername).toBe("admin");
+		expect(props.request.id).toBe(42);
 	});
 
 	it("formats dates before passing to client", async () => {
-		const { getSession } = await import("@/lib/session");
-		const { getCollaborationRequestDetailsById } = await import("@/domain/collaboration-request-repository");
-
 		const mockRequest = createMockRequest({
 			createdAt: new Date("2024-06-15T10:30:00"),
 			updatedAt: new Date("2024-06-20T14:45:00"),
 		});
 
-		(getSession as any).mockResolvedValueOnce("admin");
-		(getCollaborationRequestDetailsById as any).mockResolvedValueOnce(mockRequest);
+		getSessionMock.mockResolvedValueOnce("admin");
+		getCollaborationRequestDetailsByIdMock.mockResolvedValueOnce(mockRequest);
+		findExistingJobMock.mockResolvedValue(null);
 
 		render(await AdminRequestDetailsPage({ params: Promise.resolve({ requestId: "1" }) }));
 
@@ -249,13 +221,11 @@ describe("AdminRequestDetailsPage", () => {
 	});
 
 	it("handles null requestedMoreInfoAt date", async () => {
-		const { getSession } = await import("@/lib/session");
-		const { getCollaborationRequestDetailsById } = await import("@/domain/collaboration-request-repository");
-
 		const mockRequest = createMockRequest({ requestedMoreInfoAt: null });
 
-		(getSession as any).mockResolvedValueOnce("admin");
-		(getCollaborationRequestDetailsById as any).mockResolvedValueOnce(mockRequest);
+		getSessionMock.mockResolvedValueOnce("admin");
+		getCollaborationRequestDetailsByIdMock.mockResolvedValueOnce(mockRequest);
+		findExistingJobMock.mockResolvedValue(null);
 
 		render(await AdminRequestDetailsPage({ params: Promise.resolve({ requestId: "1" }) }));
 
@@ -266,13 +236,11 @@ describe("AdminRequestDetailsPage", () => {
 	});
 
 	it("handles null reviewedAt date", async () => {
-		const { getSession } = await import("@/lib/session");
-		const { getCollaborationRequestDetailsById } = await import("@/domain/collaboration-request-repository");
-
 		const mockRequest = createMockRequest({ reviewedAt: null });
 
-		(getSession as any).mockResolvedValueOnce("admin");
-		(getCollaborationRequestDetailsById as any).mockResolvedValueOnce(mockRequest);
+		getSessionMock.mockResolvedValueOnce("admin");
+		getCollaborationRequestDetailsByIdMock.mockResolvedValueOnce(mockRequest);
+		findExistingJobMock.mockResolvedValue(null);
 
 		render(await AdminRequestDetailsPage({ params: Promise.resolve({ requestId: "1" }) }));
 
@@ -283,9 +251,6 @@ describe("AdminRequestDetailsPage", () => {
 	});
 
 	it("formats dates in messages before passing to client", async () => {
-		const { getSession } = await import("@/lib/session");
-		const { getCollaborationRequestDetailsById } = await import("@/domain/collaboration-request-repository");
-
 		const mockRequest = createMockRequest({
 			messages: [
 				{
@@ -298,8 +263,9 @@ describe("AdminRequestDetailsPage", () => {
 			],
 		});
 
-		(getSession as any).mockResolvedValueOnce("admin");
-		(getCollaborationRequestDetailsById as any).mockResolvedValueOnce(mockRequest);
+		getSessionMock.mockResolvedValueOnce("admin");
+		getCollaborationRequestDetailsByIdMock.mockResolvedValueOnce(mockRequest);
+		findExistingJobMock.mockResolvedValue(null);
 
 		render(await AdminRequestDetailsPage({ params: Promise.resolve({ requestId: "1" }) }));
 
@@ -311,9 +277,6 @@ describe("AdminRequestDetailsPage", () => {
 	});
 
 	it("handles messages with null readAt", async () => {
-		const { getSession } = await import("@/lib/session");
-		const { getCollaborationRequestDetailsById } = await import("@/domain/collaboration-request-repository");
-
 		const mockRequest = createMockRequest({
 			messages: [
 				{
@@ -326,8 +289,9 @@ describe("AdminRequestDetailsPage", () => {
 			],
 		});
 
-		(getSession as any).mockResolvedValueOnce("admin");
-		(getCollaborationRequestDetailsById as any).mockResolvedValueOnce(mockRequest);
+		getSessionMock.mockResolvedValueOnce("admin");
+		getCollaborationRequestDetailsByIdMock.mockResolvedValueOnce(mockRequest);
+		findExistingJobMock.mockResolvedValue(null);
 
 		render(await AdminRequestDetailsPage({ params: Promise.resolve({ requestId: "1" }) }));
 
@@ -338,9 +302,6 @@ describe("AdminRequestDetailsPage", () => {
 	});
 
 	it("passes multiple messages correctly formatted", async () => {
-		const { getSession } = await import("@/lib/session");
-		const { getCollaborationRequestDetailsById } = await import("@/domain/collaboration-request-repository");
-
 		const mockRequest = createMockRequest({
 			messages: [
 				{
@@ -360,8 +321,9 @@ describe("AdminRequestDetailsPage", () => {
 			],
 		});
 
-		(getSession as any).mockResolvedValueOnce("admin");
-		(getCollaborationRequestDetailsById as any).mockResolvedValueOnce(mockRequest);
+		getSessionMock.mockResolvedValueOnce("admin");
+		getCollaborationRequestDetailsByIdMock.mockResolvedValueOnce(mockRequest);
+		findExistingJobMock.mockResolvedValue(null);
 
 		render(await AdminRequestDetailsPage({ params: Promise.resolve({ requestId: "1" }) }));
 
@@ -374,23 +336,19 @@ describe("AdminRequestDetailsPage", () => {
 	});
 
 	it("parses request ID from params correctly", async () => {
-		const { getSession } = await import("@/lib/session");
-		const { getCollaborationRequestDetailsById } = await import("@/domain/collaboration-request-repository");
-
-		(getSession as any).mockResolvedValueOnce("admin");
-		(getCollaborationRequestDetailsById as any).mockResolvedValueOnce(createMockRequest());
+		getSessionMock.mockResolvedValueOnce("admin");
+		getCollaborationRequestDetailsByIdMock.mockResolvedValueOnce(createMockRequest());
+		findExistingJobMock.mockResolvedValue(null);
 
 		render(await AdminRequestDetailsPage({ params: Promise.resolve({ requestId: "123" }) }));
 
-		expect(getCollaborationRequestDetailsById).toHaveBeenCalledWith(123);
+		expect(getCollaborationRequestDetailsByIdMock).toHaveBeenCalledWith(123);
 	});
 
 	it("renders RequestDetailsClient with ADMIN role", async () => {
-		const { getSession } = await import("@/lib/session");
-		const { getCollaborationRequestDetailsById } = await import("@/domain/collaboration-request-repository");
-
-		(getSession as any).mockResolvedValueOnce("admin_user");
-		(getCollaborationRequestDetailsById as any).mockResolvedValueOnce(createMockRequest());
+		getSessionMock.mockResolvedValueOnce("admin_user");
+		getCollaborationRequestDetailsByIdMock.mockResolvedValueOnce(createMockRequest());
+		findExistingJobMock.mockResolvedValue(null);
 
 		render(await AdminRequestDetailsPage({ params: Promise.resolve({ requestId: "1" }) }));
 
@@ -400,39 +358,10 @@ describe("AdminRequestDetailsPage", () => {
 		expect(props.currentUserRole).toBe("ADMIN");
 	});
 
-	it("keeps request data intact when passing to client", async () => {
-		const { getSession } = await import("@/lib/session");
-		const { getCollaborationRequestDetailsById } = await import("@/domain/collaboration-request-repository");
-
-		const mockRequest = createMockRequest({
-			id: 99,
-			practiceTitle: "Complex Practice Name",
-			practiceSummary: "Complex Summary",
-			practiceDescription: "Complex Description",
-			requesterUsername: "complex_user",
-			status: "REQUESTED_MORE_INFO",
-		});
-
-		(getSession as any).mockResolvedValueOnce("admin");
-		(getCollaborationRequestDetailsById as any).mockResolvedValueOnce(mockRequest);
-
-		render(await AdminRequestDetailsPage({ params: Promise.resolve({ requestId: "99" }) }));
-
-		const client = screen.getByTestId("request-details-client");
-		const props = JSON.parse(client.dataset.props || "{}");
-
-		expect(props.request.id).toBe(99);
-		expect(props.request.practiceTitle).toBe("Complex Practice Name");
-		expect(props.request.requesterUsername).toBe("complex_user");
-		expect(props.request.status).toBe("REQUESTED_MORE_INFO");
-	});
-
 	it("renders arrow icon in back link", async () => {
-		const { getSession } = await import("@/lib/session");
-		const { getCollaborationRequestDetailsById } = await import("@/domain/collaboration-request-repository");
-
-		(getSession as any).mockResolvedValueOnce("admin");
-		(getCollaborationRequestDetailsById as any).mockResolvedValueOnce(createMockRequest());
+		getSessionMock.mockResolvedValueOnce("admin");
+		getCollaborationRequestDetailsByIdMock.mockResolvedValueOnce(createMockRequest());
+		findExistingJobMock.mockResolvedValue(null);
 
 		render(await AdminRequestDetailsPage({ params: Promise.resolve({ requestId: "1" }) }));
 
@@ -443,16 +372,14 @@ describe("AdminRequestDetailsPage", () => {
 	});
 
 	it("handles request with long text content", async () => {
-		const { getSession } = await import("@/lib/session");
-		const { getCollaborationRequestDetailsById } = await import("@/domain/collaboration-request-repository");
-
 		const longText = "A".repeat(2000);
 		const mockRequest = createMockRequest({
 			practiceDescription: longText,
 		});
 
-		(getSession as any).mockResolvedValueOnce("admin");
-		(getCollaborationRequestDetailsById as any).mockResolvedValueOnce(mockRequest);
+		getSessionMock.mockResolvedValueOnce("admin");
+		getCollaborationRequestDetailsByIdMock.mockResolvedValueOnce(mockRequest);
+		findExistingJobMock.mockResolvedValue(null);
 
 		render(await AdminRequestDetailsPage({ params: Promise.resolve({ requestId: "1" }) }));
 
@@ -463,31 +390,43 @@ describe("AdminRequestDetailsPage", () => {
 	});
 
 	it("loads request details on page render", async () => {
-		const { getSession } = await import("@/lib/session");
-		const { getCollaborationRequestDetailsById } = await import("@/domain/collaboration-request-repository");
-
-		(getSession as any).mockResolvedValueOnce("admin");
-		(getCollaborationRequestDetailsById as any).mockResolvedValueOnce(createMockRequest());
+		getSessionMock.mockResolvedValueOnce("admin");
+		getCollaborationRequestDetailsByIdMock.mockResolvedValueOnce(createMockRequest());
+		findExistingJobMock.mockResolvedValue(null);
 
 		render(await AdminRequestDetailsPage({ params: Promise.resolve({ requestId: "1" }) }));
 
-		expect(getCollaborationRequestDetailsById).toHaveBeenCalled();
+		expect(getCollaborationRequestDetailsByIdMock).toHaveBeenCalled();
 	});
 
 	it("handles negative request IDs", async () => {
-		const { getSession } = await import("@/lib/session");
-		const { notFound } = await import("next/navigation");
-
-		(getSession as any).mockResolvedValueOnce("admin");
+		getSessionMock.mockResolvedValueOnce("admin");
 
 		const page = AdminRequestDetailsPage({ params: Promise.resolve({ requestId: "-5" }) });
 
-		try {
-			await page;
-		} catch (e: any) {
-			if (e.message !== "notFound") {
-				expect((notFound as any).mock.calls.length).toBeGreaterThan(0);
-			}
-		}
+		await expect(page).rejects.toThrow("notFound");
+	});
+
+	it("renders LlmAnalysisPanel when request is not approved", async () => {
+		getSessionMock.mockResolvedValueOnce("admin");
+		const mockRequest = createMockRequest({ status: "PENDING" });
+		getCollaborationRequestDetailsByIdMock.mockResolvedValueOnce(mockRequest);
+		findExistingJobMock.mockResolvedValueOnce(null)
+
+		render(await AdminRequestDetailsPage({ params: Promise.resolve({ requestId: "1" }) }));
+
+		expect(screen.getByTestId("llm-analysis-panel")).toBeInTheDocument();
+	});
+
+	it("does not render LlmAnalysisPanel when request is approved", async () => {
+		getSessionMock.mockResolvedValueOnce("admin");
+		const mockRequest = createMockRequest({ status: "APPROVED" });
+		getCollaborationRequestDetailsByIdMock.mockResolvedValueOnce(mockRequest);
+		findExistingJobMock.mockResolvedValueOnce(null)
+
+		render(await AdminRequestDetailsPage({ params: Promise.resolve({ requestId: "1" }) }));
+
+		expect(screen.queryByTestId("llm-analysis-panel")).not.toBeInTheDocument();
 	});
 });
+

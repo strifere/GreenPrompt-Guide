@@ -69,6 +69,14 @@ enum AnalysisJobStatus {
   FAILED
 }
 
+enum AnalysisStep {
+  FIRST_PROMPT
+  SECOND_PROMPT
+  THIRD_PROMPT
+  FOURTH_PROMPT
+  FINISHED
+}
+
 // ============= MAIN ENTITIES =============
 
 model User {
@@ -181,6 +189,7 @@ model AnalysisJob {
   id          Int               @id @default(autoincrement())
   requestId   Int               @unique
   status      AnalysisJobStatus @default(PENDING)
+  step        AnalysisStep      @default(FIRST_PROMPT)
   result      Json?
   error       String?
   startedAt   DateTime?

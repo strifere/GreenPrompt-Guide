@@ -1,3 +1,4 @@
+import { setAnalysisStep } from '@/domain/collaboration-request-repository';
 import { Ollama } from 'ollama';
 
 const OLLAMA_BASE_URL = process.env.OLLAMA_URL ?? "http://localhost:11434";
@@ -213,6 +214,7 @@ const SUFFIX = `Rules for Extraction:
 4. Ensure all strings are properly escaped.`;
 
 export async function analyzeRequestWithOllama(
+  requestId: number,
   base64Pdf: string[],
 ): Promise<OllamaExtractionResult> {
   const ollama = new Ollama({ host: OLLAMA_BASE_URL });
@@ -230,6 +232,7 @@ export async function analyzeRequestWithOllama(
         num_predict: 2048,   // Increases the max tokens the model is allowed to generate
         num_ctx: 8192,       // Expands the context window to fit the image + prompt + large JSON
       },
+      keep_alive: "3h",
     });
 
     if (!response.done) {
@@ -243,15 +246,19 @@ export async function analyzeRequestWithOllama(
 
   // Run all 4 extractions sequentially to protect system resources
   console.log("[Ollama Workflow] Starting block 1/4: Practices & Techniques");
+  setAnalysisStep(requestId, 1);
   const dataBlock1 = await queryModel(PRACTICE_EXTRACTION_PROMPT);
-
+  
   console.log("[Ollama Workflow] Starting block 2/4: Reference Metadata");
+  setAnalysisStep(requestId, 2);
   const dataBlock2 = await queryModel(REFERENCE_EXTRACTION_PROMPT);
-
+  
   console.log("[Ollama Workflow] Starting block 3/4: Hardware Models, Datasets & Constants");
+  setAnalysisStep(requestId, 3);
   const dataBlock3 = await queryModel(OTHERS_EXCTRACTION_PROMPT);
-
+  
   console.log("[Ollama Workflow] Starting block 4/4: Quantitative Metrics");
+  setAnalysisStep(requestId, 4);
   const dataBlock4 = await queryModel(METRICS_EXTRACTION_PROMPT);
 
   // Compile and map responses safely to guarantee perfect type safety alignment

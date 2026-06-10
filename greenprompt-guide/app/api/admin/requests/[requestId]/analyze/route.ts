@@ -53,7 +53,7 @@ export async function GET(_req: Request, { params }: RouteParams) {
 
   const job = await prisma.analysisJob.findUnique({
     where: { requestId: parsedId },
-    select: { id: true, status: true, result: true, error: true, createdAt: true },
+    select: { id: true, status: true, step: true, result: true, error: true, createdAt: true },
   });
 
   if (!job) {
@@ -67,5 +67,5 @@ export async function GET(_req: Request, { params }: RouteParams) {
     });
   }
 
-  return NextResponse.json({ status: job.status, error: job.error ?? null });
+  return NextResponse.json({ status: job.status, step: job.step, error: job.error ?? null });
 }

@@ -1,8 +1,9 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import AdminRequestDetailsPage from "@/app/admin/requests/[requestId]/page";
 
 const getCollaborationRequestDetailsById = vi.hoisted(() => vi.fn());
+const findExistingJobMock = vi.hoisted(() => vi.fn());
 const getSessionMock = vi.hoisted(() => vi.fn());
 const notFoundMock = vi.hoisted(() =>
   vi.fn(() => {
@@ -11,7 +12,8 @@ const notFoundMock = vi.hoisted(() =>
 );
 
 vi.mock("@/domain/collaboration-request-repository", () => ({
-  getCollaborationRequestDetailsById: getCollaborationRequestDetailsById,
+  getCollaborationRequestDetailsById,
+  findExistingJob: findExistingJobMock,
 }));
 
 vi.mock("@/lib/session", () => ({
@@ -20,6 +22,7 @@ vi.mock("@/lib/session", () => ({
 
 vi.mock("next/navigation", () => ({
   notFound: notFoundMock,
+  redirect: vi.fn(),
 }));
 
 vi.mock("next/link", () => ({
@@ -30,10 +33,10 @@ vi.mock("next/link", () => ({
   ),
 }));
 
-vi.mock("@/app/admin/requests/admin-request-actions", () => ({
-  AdminRequestActions: (props: any) => (
-    <div data-testid="admin-request-actions" data-props={JSON.stringify(props)}>
-      Actions
+vi.mock("@/app/admin/requests/[requestId]/llm-analysis-panel", () => ({
+  LlmAnalysisPanel: (props: any) => (
+    <div data-testid="llm-analysis-panel" data-props={JSON.stringify(props)}>
+      LlmAnalysisPanel
     </div>
   ),
 }));
@@ -47,13 +50,18 @@ vi.mock("@/app/collaboration/my-requests/[username]/[requestId]/request-details-
 }));
 
 describe("AdminRequestDetailsPage", () => {
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
   it("calls notFound when request does not exist", async () => {
     getCollaborationRequestDetailsById.mockResolvedValueOnce(null);
     getSessionMock.mockResolvedValueOnce("admin");
 
     try {
+      // @ts-expect-error
       await AdminRequestDetailsPage({
-        params: Promise.resolve({ requestId: "999" }),
+        params: { requestId: "999" },
       });
     } catch (e) {
       if (e instanceof Error && e.message === "notFound") {
@@ -62,7 +70,6 @@ describe("AdminRequestDetailsPage", () => {
         throw e; // Unexpected error, rethrow
       }
     }
-
     expect(notFoundMock).toHaveBeenCalled();
   });
 
@@ -75,16 +82,18 @@ describe("AdminRequestDetailsPage", () => {
       status: "PENDING",
       requesterUsername: "john_doe",
       createdAt: new Date("2024-01-01"),
+      updatedAt: new Date("2024-01-01"),
       reviewedAt: null,
       messages: [],
     });
+    findExistingJobMock.mockResolvedValue(null);
 
     const element = await AdminRequestDetailsPage({
-      params: Promise.resolve({ requestId: "1" }),
+      // @ts-expect-error
+      params: { requestId: "1" },
     });
     render(element);
 
-    // The practice name is passed to the client component via data-props
     const clientElement = screen.getByTestId("request-details-client");
     const props = JSON.parse(clientElement.getAttribute("data-props") || "{}");
     expect(props.request.practiceName).toBe("Test Practice");
@@ -99,12 +108,15 @@ describe("AdminRequestDetailsPage", () => {
       status: "PENDING",
       requesterUsername: "user",
       createdAt: new Date(),
+      updatedAt: new Date(),
       reviewedAt: null,
       messages: [],
     });
+    findExistingJobMock.mockResolvedValue(null);
 
     const element = await AdminRequestDetailsPage({
-      params: Promise.resolve({ requestId: "1" }),
+      // @ts-expect-error
+      params: { requestId: "1" },
     });
     render(element);
 
@@ -121,16 +133,18 @@ describe("AdminRequestDetailsPage", () => {
       status: "PENDING",
       requesterUsername: "user",
       createdAt: new Date(),
+      updatedAt: new Date(),
       reviewedAt: null,
       messages: [],
     });
+    findExistingJobMock.mockResolvedValue(null);
 
     const element = await AdminRequestDetailsPage({
-      params: Promise.resolve({ requestId: "1" }),
+      // @ts-expect-error
+      params: { requestId: "1" },
     });
     render(element);
 
-    // Status is displayed as capitalized "Pending" in the pill
     expect(screen.getByText("Pending")).toBeInTheDocument();
   });
 
@@ -143,16 +157,18 @@ describe("AdminRequestDetailsPage", () => {
       status: "PENDING",
       requesterUsername: "user",
       createdAt: new Date(),
+      updatedAt: new Date(),
       reviewedAt: null,
       messages: [],
     });
+    findExistingJobMock.mockResolvedValue(null);
 
     const element = await AdminRequestDetailsPage({
-      params: Promise.resolve({ requestId: "1" }),
+      // @ts-expect-error
+      params: { requestId: "1" },
     });
     render(element);
 
-    // Summary is passed to the client component via data-props
     const clientElement = screen.getByTestId("request-details-client");
     const props = JSON.parse(clientElement.getAttribute("data-props") || "{}");
     expect(props.request.summary).toBe("This is the request summary");
@@ -167,22 +183,24 @@ describe("AdminRequestDetailsPage", () => {
       status: "PENDING",
       requesterUsername: "john_doe",
       createdAt: new Date("2024-01-01"),
+      updatedAt: new Date("2024-01-01"),
       reviewedAt: null,
       messages: [],
     });
+    findExistingJobMock.mockResolvedValue(null);
 
     const element = await AdminRequestDetailsPage({
-      params: Promise.resolve({ requestId: "1" }),
+      // @ts-expect-error
+      params: { requestId: "1" },
     });
     render(element);
 
-    // Requester username is passed to the client component via data-props
     const clientElement = screen.getByTestId("request-details-client");
     const props = JSON.parse(clientElement.getAttribute("data-props") || "{}");
     expect(props.request.requesterUsername).toBe("john_doe");
   });
 
-  it("renders admin request actions component", async () => {
+  it("renders LlmAnalysisPanel when request is not approved", async () => {
     getSessionMock.mockResolvedValueOnce("admin");
     getCollaborationRequestDetailsById.mockResolvedValueOnce({
       id: 42,
@@ -191,19 +209,46 @@ describe("AdminRequestDetailsPage", () => {
       status: "PENDING",
       requesterUsername: "user",
       createdAt: new Date(),
+      updatedAt: new Date(),
       reviewedAt: null,
       messages: [],
     });
+    findExistingJobMock.mockResolvedValue(null);
 
     const element = await AdminRequestDetailsPage({
-      params: Promise.resolve({ requestId: "42" }),
+      // @ts-expect-error
+      params: { requestId: "42" },
     });
     render(element);
 
-  expect(screen.getByTestId("request-details-client")).toBeInTheDocument();
+    expect(screen.getByTestId("llm-analysis-panel")).toBeInTheDocument();
   });
 
-  it("passes correct status to actions component", async () => {
+  it("does not render LlmAnalysisPanel when request is approved", async () => {
+    getSessionMock.mockResolvedValueOnce("admin");
+    getCollaborationRequestDetailsById.mockResolvedValueOnce({
+      id: 42,
+      practiceName: "Test",
+      summary: "Summary",
+      status: "APPROVED",
+      requesterUsername: "user",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      reviewedAt: null,
+      messages: [],
+    });
+    findExistingJobMock.mockResolvedValue(null);
+
+    const element = await AdminRequestDetailsPage({
+      // @ts-expect-error
+      params: { requestId: "42" },
+    });
+    render(element);
+
+    expect(screen.queryByTestId("llm-analysis-panel")).not.toBeInTheDocument();
+  });
+
+  it("passes correct status to request details client component", async () => {
     getSessionMock.mockResolvedValueOnce("admin");
     getCollaborationRequestDetailsById.mockResolvedValueOnce({
       id: 1,
@@ -212,18 +257,21 @@ describe("AdminRequestDetailsPage", () => {
       status: "APPROVED",
       requesterUsername: "user",
       createdAt: new Date(),
+      updatedAt: new Date(),
       reviewedAt: null,
       messages: [],
     });
+    findExistingJobMock.mockResolvedValue(null);
 
     const element = await AdminRequestDetailsPage({
-      params: Promise.resolve({ requestId: "1" }),
+      // @ts-expect-error
+      params: { requestId: "1" },
     });
     render(element);
 
-  const clientElement = screen.getByTestId("request-details-client");
-  const props = JSON.parse(clientElement.getAttribute("data-props") || "{}");
-  expect(props.request.status).toBe("APPROVED");
+    const clientElement = screen.getByTestId("request-details-client");
+    const props = JSON.parse(clientElement.getAttribute("data-props") || "{}");
+    expect(props.request.status).toBe("APPROVED");
   });
 
   it("parses request ID from URL params", async () => {
@@ -235,12 +283,15 @@ describe("AdminRequestDetailsPage", () => {
       status: "PENDING",
       requesterUsername: "user",
       createdAt: new Date(),
+      updatedAt: new Date(),
       reviewedAt: null,
       messages: [],
     });
+    findExistingJobMock.mockResolvedValue(null);
 
+    // @ts-expect-error
     await AdminRequestDetailsPage({
-      params: Promise.resolve({ requestId: "123" }),
+      params: { requestId: "123" },
     });
 
     expect(getCollaborationRequestDetailsById).toHaveBeenCalledWith(123);

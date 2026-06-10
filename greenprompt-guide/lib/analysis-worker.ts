@@ -1,8 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { analyzeRequestWithOllama } from "@/lib/ollama-client";
-import { readCollaborationRequestFile } from "@/lib/collaboration-request-fs";
 import { getCollaborationPdfStoragePath } from "@/lib/collaboration-request-storage";
 import { extractTextFromPdf } from "@/lib/pdf-extract";
+import { setAnalysisStep } from "@/domain/collaboration-request-repository";
 
 const POLL_INTERVAL_MS = 5000;
 
@@ -40,7 +40,29 @@ async function claimAndRunNextJob(): Promise<void> {
       base64Data.push(urlRemoved);
     }
 
-    const result = await analyzeRequestWithOllama(base64Data);
+    
+    let result;
+    const maxAttempts = 3;
+    
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        console.log(`[AnalysisWorker] Running LLM analysis (Attempt ${attempt}/${maxAttempts})...`);
+        result = await analyzeRequestWithOllama(job.requestId, base64Data);
+        break; // Success! Break out of the retry loop.
+      } catch (error) {
+        if (attempt === maxAttempts) {
+          throw error; // Out of attempts, pass error to main catch block
+        }
+        
+        console.warn(
+          `[AnalysisWorker] Attempt ${attempt} failed. Ollama might be cold-starting. Retrying in 15 seconds...`
+        );
+        // Wait 15 seconds to give Ollama a realistic window to finish loading weights into VRAM
+        await new Promise((resolve) => setTimeout(resolve, 15000));
+      }
+    }
+
+    setAnalysisStep(job.requestId, "end"); // Mark step 5 complete
 
     await prisma.analysisJob.update({
       where: { id: job.id },

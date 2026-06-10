@@ -45,6 +45,7 @@ function deriveInitialState(existingJob: ExistingJob): AnalysisState {
 export function LlmAnalysisPanel({ requestId, existingJob }: Readonly<LlmAnalysisPanelProps>) {
   const router = useRouter();
   const [state, setState] = useState<AnalysisState>(() => deriveInitialState(existingJob));
+  const [step, setStep] = useState<string | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -55,6 +56,7 @@ export function LlmAnalysisPanel({ requestId, existingJob }: Readonly<LlmAnalysi
         const res = await fetch(`/api/admin/requests/${requestId}/analyze`);
         const data = await res.json() as {
           status: "NONE" | "PENDING" | "RUNNING" | "DONE" | "FAILED";
+          step: "FIRST_PROMPT" | "SECOND_PROMPT" | "THIRD_PROMPT" | "FOURTH_PROMPT" | "FINISHED";
           extraction?: OllamaExtractionResult;
           error?: string;
         };
@@ -72,6 +74,25 @@ export function LlmAnalysisPanel({ requestId, existingJob }: Readonly<LlmAnalysi
                 : prev,
             );
           }, next);
+        }
+
+        switch (data.step) {
+          case "FIRST_PROMPT":
+            setStep("Phase 1/4: Extracting the practice, examples and prompt techniques...");
+            break;
+          case "SECOND_PROMPT":
+            setStep("Phase 2/4: Extracting reference data from the PDF...");
+            break;
+          case "THIRD_PROMPT":
+            setStep("Phase 3/4: Extracting models, datasets and hyperparameters...");
+            break;
+          case "FOURTH_PROMPT":
+            setStep("Phase 4/4: Extracting metrics...");
+            break;
+          case "FINISHED":
+            // This means the worker marked the analysis as finished, but we haven't received the DONE status yet. Continue polling as normal.
+            setStep("Analysis complete.");
+            break;
         }
       } catch {
         setState({ kind: "error", message: "Network error while polling" });
@@ -129,7 +150,7 @@ export function LlmAnalysisPanel({ requestId, existingJob }: Readonly<LlmAnalysi
 
       {state.kind === "polling" && (
         <p style={{ color: "var(--text-muted)" }}>
-          Analyzing PDF… this can take 1–2 minutes.
+          {step}
         </p>
       )}
 
