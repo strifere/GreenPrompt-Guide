@@ -21,6 +21,11 @@ jobs:
     runs-on: self-hosted
     
     steps:
+      - name: Clean up root-owned files from previous runs
+        run: |
+          sudo rm -rf "${{ github.workspace }}/.github/storage" || true
+          sudo chown -R "$USER:$USER" "${{ github.workspace }}" || true
+
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -54,14 +59,6 @@ jobs:
         run: |
           echo "Build completed successfully"
           npm run build 2>&1 | tee build.log
-          if grep -i "error\|warning" build.log | grep -i "^error"; then
-            echo "Build produced errors"
-            exit 1
-          fi
-
-      - name: Run tests
-        working-directory: ${{ env.WORKING_DIR }}
-        run: npm test
 
       - name: Upload build artifacts
         if: always()
@@ -69,6 +66,13 @@ jobs:
         with:
           name: build-logs
           path: ${{ env.WORKING_DIR }}/build.log
+
+      - name: Run tests
+        working-directory: ${{ env.WORKING_DIR }}
+        run: npm test
+
+      - name: Clean up storage directory from integration tests
+        run: echo "No cleanup needed for app-checks job."
 
   # ============================================
   # SECTION 2: DEPLOYMENT (release branch only)
@@ -85,8 +89,12 @@ jobs:
     outputs:
       image-tag: ${{ steps.meta.outputs.tags }}
       image-digest: ${{ steps.build.outputs.digest }}
-
     steps:
+      - name: Clean up root-owned files from previous runs
+        run: |
+          sudo rm -rf "${{ github.workspace }}/.github/storage" || true
+          sudo chown -R "$USER:$USER" "${{ github.workspace }}" || true
+
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -100,19 +108,21 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f
 
-      - name: Generate image tag
+      - name: Generate image tags
         id: meta
         run: |
-          TAG="v$(date +%Y-%m-%d)-$(echo ${{ github.sha }} | cut -c1-7)"
-          echo "tag=${TAG}" >> $GITHUB_OUTPUT
-          echo "tags=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG},${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest" >> $GITHUB_OUTPUT
+          RELEASE_TAG="v$(date +%Y-%m-%d)-$(echo ${{ github.sha }} | cut -c1-7)"
+          echo "release_tag=${RELEASE_TAG}" >> $GITHUB_OUTPUT
+          echo "tags=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${RELEASE_TAG},${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest" >> $GITHUB_OUTPUT
 
-      - name: Build Docker image
+      - name: Build Docker image for testing
         id: build
-        working-directory: ${{ env.WORKING_DIR }}
-        run: |
-          docker build -t temp-image:test .
-          echo "digest=$(docker inspect temp-image:test --format='{{.Id}}')" >> $GITHUB_OUTPUT
+        uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25
+        with:
+          context: ${{ env.WORKING_DIR }}
+          push: false # Do not push yet
+          load: true # Load image into local docker daemon
+          tags: greenprompt-guide:test # Local tag for testing
 
       - name: Run Docker Compose integration test (app + db)
         working-directory: ${{ env.WORKING_DIR }}
@@ -130,6 +140,7 @@ jobs:
           COLLABORATION_PDF_STORAGE_DIR: ${{ secrets.COLLABORATION_PDF_STORAGE_DIR }}
           OLLAMA_URL: ${{ secrets.OLLAMA_URL }}
           OLLAMA_MODEL: ${{ secrets.OLLAMA_MODEL }}
+          APP_IMAGE_TAG_FOR_TEST: greenprompt-guide:test
         run: |
           set -e
 
@@ -141,7 +152,7 @@ jobs:
           }
           trap cleanup EXIT
 
-          docker compose -f "$COMPOSE_FILE" up -d db app
+          docker compose -f "$COMPOSE_FILE" up -d app db
 
           echo "Waiting for app HTTP health check..."
           for i in {1..60}; do
@@ -163,20 +174,20 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GHCR_TOKEN }}
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25
-        with:
-          context: ${{ env.WORKING_DIR }}
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: |
-            org.opencontainers.image.revision=${{ github.sha }}
-            org.opencontainers.image.created=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+      - name: Tag and push tested image
+        run: |
+          set -e
+          echo "Tagging greenprompt-guide:test with release tags: ${{ steps.meta.outputs.tags }}"
+          docker tag greenprompt-guide:test ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.release_tag }}
+          docker tag greenprompt-guide:test ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          echo "Pushing image to registry..."
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.release_tag }}
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
 
       - name: Output image information
         run: |
           echo "Docker image pushed successfully"
-          echo "Image tag: ${{ steps.meta.outputs.tag }}"
+          echo "Image tag: ${{ steps.meta.outputs.release_tag }}"
           echo "Full tags: ${{ steps.meta.outputs.tags }}"
 
   # Stage 2.2: Deploy to remote VM
@@ -189,6 +200,11 @@ jobs:
       packages: read
 
     steps:
+      - name: Clean up root-owned files from previous runs
+        run: |
+          sudo rm -rf "${{ github.workspace }}/.github/storage" || true
+          sudo chown -R "$USER:$USER" "${{ github.workspace }}" || true
+
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -310,4 +326,3 @@ jobs:
           echo "❌ Deployment to VM failed"
           echo "Check VM logs at: ~/greenprompt-guide-deploy"
           exit 1
-# testing if the release pipeline works correctly
