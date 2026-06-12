@@ -97,6 +97,9 @@ export default async function RootLayout({
             <Link href="/catalog" className="animated-link">
               Catalog
             </Link>
+            <Link href="/glossary" className="animated-link">
+              Glossary
+            </Link>
             <CollaborationButton />
             <Link href="/#about-greenprompt-guide" className="animated-link">
               About

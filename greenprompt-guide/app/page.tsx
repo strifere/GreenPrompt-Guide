@@ -85,6 +85,9 @@ export default function HomePage() {
                 </Link>
               </article>
             </div>
+            <p>
+              Never heard of Prompt Engineering or LLM prompting? Check out our <Link href="/glossary" className="reference-link">glossary</Link> for a comprehensive guide to the key terms and concepts in the world of Green Prompt Engineering.
+            </p>
           </div>
         </section>
 
@@ -173,7 +176,7 @@ export default function HomePage() {
                 </div>
               </div>
               <p>
-                For more information on how to contribute, please visit our <a className="reference-link" href="https://github.com/strifere/GreenPrompt-Guide.git" target="_blank" rel="noopener noreferrer">GitHub</a> repository and check our contribution guidelines.
+                For more information on how to contribute, please visit our <a className="reference-link" href="https://github.com/MLEvol/GreenPrompt-Guide" target="_blank" rel="noopener noreferrer">GitHub</a> repository and check our contribution guidelines.
               </p>
             </article>
           </div>

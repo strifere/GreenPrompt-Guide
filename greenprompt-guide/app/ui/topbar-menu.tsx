@@ -74,6 +74,9 @@ export function TopbarMenu() {
             <Link href="/catalog" className="animated-link" onClick={closeMenu}>
               Catalog
             </Link>
+            <Link href="/glossary" className="animated-link" onClick={closeMenu}>
+              Glossary
+            </Link>
             <CollaborationButton onClick={closeMenu} />
             <Link href="/#about-greenprompt-guide" className="animated-link" onClick={closeMenu}>
               About
