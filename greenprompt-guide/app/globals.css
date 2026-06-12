@@ -3499,6 +3499,20 @@ a {
   outline-offset: 2px;
 }
 
+.practice-example-viewer {
+  display: grid;
+  gap: 16px;
+}
+
+.practice-example-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
 .user-inline-form,
 .user-password-form {
   display: grid;

@@ -2,7 +2,7 @@ import { setAnalysisStep } from '@/domain/collaboration-request-repository';
 import { Ollama } from 'ollama';
 
 const OLLAMA_BASE_URL = process.env.OLLAMA_URL ?? "http://localhost:11434";
-const OLLAMA_MODEL = process.env.OLLAMA_MODEL ?? "gemma4:latest";
+const OLLAMA_MODEL = process.env.OLLAMA_MODEL ?? "gemma4:e4b";
 
 export type Practice = {
   name: string;
@@ -166,7 +166,7 @@ Output exactly this JSON structure:
       "dataType": "<string: MUST be 'float', 'integer', 'string', or 'boolean'>"
     }
   ]
-} 
+}
 `
 
 const METRICS_EXTRACTION_PROMPT = `Extract all evaluation metrics from the paper, categorizing them into generic metrics, energy metrics, and accuracy metrics.
@@ -252,7 +252,7 @@ export async function analyzeRequestWithOllama(
       : {};
 
   // Run all 4 extractions sequentially to protect system resources
-  console.log("[Ollama Workflow] Starting block 1/4: Practices & Techniques");
+  console.log("[Ollama Workflow] Starting block 1/4: Practices & Prompt Techniques");
   setAnalysisStep(requestId, 1);
   const dataBlock1 = await queryModel(PRACTICE_EXTRACTION_PROMPT);
   
@@ -260,13 +260,13 @@ export async function analyzeRequestWithOllama(
   setAnalysisStep(requestId, 2);
   const dataBlock2 = await queryModel(REFERENCE_EXTRACTION_PROMPT);
   
-  console.log("[Ollama Workflow] Starting block 3/4: Hardware Models, Datasets & Constants");
+  console.log("[Ollama Workflow] Starting block 3/4: Quantitative Metrics");
   setAnalysisStep(requestId, 3);
-  const dataBlock3 = await queryModel(OTHERS_EXCTRACTION_PROMPT);
-  
-  console.log("[Ollama Workflow] Starting block 4/4: Quantitative Metrics");
+  const dataBlock3 = await queryModel(METRICS_EXTRACTION_PROMPT);
+
+  console.log("[Ollama Workflow] Starting block 4/4: Language Models, Datasets & Hyperparameters");
   setAnalysisStep(requestId, 4);
-  const dataBlock4 = await queryModel(METRICS_EXTRACTION_PROMPT);
+  const dataBlock4 = await queryModel(OTHERS_EXCTRACTION_PROMPT);
 
   // Compile and map responses safely to guarantee perfect type safety alignment
   const b1 = asRecord(dataBlock1);
@@ -299,13 +299,13 @@ export async function analyzeRequestWithOllama(
       link:             (reference.link             as string|null)  ?? null,
     },
     promptTechniques: (b1.promptTechniques as PromptTechnique[]) ?? [],
-    models:           (b3.models           as Model[])           ?? [],
-    datasets:         (b3.datasets         as Dataset[])         ?? [],
-    hyperparameters:  (b3.hyperparameters  as Hyperparameter[])  ?? [],
+    models:           (b4.models           as Model[])           ?? [],
+    datasets:         (b4.datasets         as Dataset[])         ?? [],
+    hyperparameters:  (b4.hyperparameters  as Hyperparameter[])  ?? [],
     metrics: {
-      genericMetrics:  (b4.genericMetrics  as BaseMetric[])     ?? [],
-      energyMetrics:   (b4.energyMetrics   as EnergyMetric[])   ?? [],
-      accuracyMetrics: (b4.accuracyMetrics as AccuracyMetric[]) ?? [],
+      genericMetrics:  (b3.genericMetrics  as BaseMetric[])     ?? [],
+      energyMetrics:   (b3.energyMetrics   as EnergyMetric[])   ?? [],
+      accuracyMetrics: (b3.accuracyMetrics as AccuracyMetric[]) ?? [],
     },
     examples: b1.practiceExample ? [b1.practiceExample as PracticeExample] : [],
   };

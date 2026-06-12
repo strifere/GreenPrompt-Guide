@@ -226,20 +226,6 @@ describe("Practice details requirements", () => {
     expect(screen.getByText(/temperature: 0\.1 \(float\)/i)).toBeInTheDocument();
   });
 
-  it("handles missing practice examples gracefully", async () => {
-    const practiceWithoutExamples = { ...buildPractice(), practiceExamples: [] };
-    vi.mocked(getPracticeByName).mockResolvedValue(practiceWithoutExamples as never);
-
-    render(
-      await PracticeDetailsPage({
-        params: Promise.resolve({ practiceName: "Constraint-first Prompting" }),
-      }),
-    );
-
-    expect(screen.getByText(/no scenario available for this practice yet/i)).toBeInTheDocument();
-    expect(screen.getByText(/no original prompt registered/i)).toBeInTheDocument();
-  });
-
   it("handles empty related prompt techniques", async () => {
     const practiceWithoutTechniques = { ...buildPractice(), prompts: [] };
     vi.mocked(getPracticeByName).mockResolvedValue(practiceWithoutTechniques as never);

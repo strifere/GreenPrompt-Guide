@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { getPracticeByName } from "@/domain/practice-repository";
 import { getUserByUsername } from "@/domain/user-repository";
 import { getSession } from "@/lib/session";
+import { PracticeExamplesScrollableGrid } from "./practice-examples-grid";
 import {
   catalogDatasetHref,
   catalogHyperparameterHref,
@@ -64,6 +65,14 @@ type PracticeDetailsProps = {
   params: Promise<{ practiceName: string }>;
 };
 
+type PracticeExample = {
+  id: number;
+  scenario: string;
+  originalPrompts: string;
+  improvedPrompts: string;
+  observations: string;
+};
+
 export default async function PracticeDetailsPage({
   params,
 }: Readonly<PracticeDetailsProps>) {
@@ -89,8 +98,7 @@ export default async function PracticeDetailsPage({
     ).values(),
   );
 
-  const primaryExample = practice.practiceExamples[0];
-  const secondaryExample = practice.practiceExamples[1] ?? primaryExample;
+  const practiceExamples: PracticeExample[] = practice.practiceExamples;
 
   const renderMetricDetails = (metric: (typeof practice.metrics)[number]) => {
     const energyMetrics = metric.energyMetrics ?? [];
@@ -171,27 +179,12 @@ export default async function PracticeDetailsPage({
               </span>
             ))}
           </div>
-          <h2>Example:</h2>
-          <p>
-            <strong>Scenario:</strong>{" "}
-            {primaryExample?.scenario ?? "No scenario available for this practice yet."}
-          </p>
-
-          <div className="practice-example-grid">
-            <article className="practice-example-card">
-              <h3>Original prompt</h3>
-              <p>{primaryExample?.originalPrompts ?? "No original prompt registered."}</p>
-            </article>
-            <article className="practice-example-card">
-              <h3>Improved prompt</h3>
-              <p>{secondaryExample?.improvedPrompts ?? "No improved prompt registered."}</p>
-            </article>
-          </div>
-
-          <p>
-            <strong>Observations:</strong>{" "}
-            {primaryExample?.observations ?? "No observations registered yet."}
-          </p>
+          <h2>Examples:</h2>
+          {practiceExamples.length === 0 ? (
+            <p>No examples registered for this practice yet.</p>
+          ) : (
+            <PracticeExamplesScrollableGrid examples={practiceExamples} />
+          )}
         </section>
 
         <section className="practice-section">

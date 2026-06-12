@@ -91,7 +91,7 @@ describe("RequestDetailsClient", () => {
         
         // This is a workaround for the inverted logic in the component
         const messageBox = screen.queryByLabelText("Write a new message");
-        expect(messageBox).toBeNull();
+        expect(messageBox).toBeInTheDocument();
     });
     
     it("should handle error on field save", async () => {

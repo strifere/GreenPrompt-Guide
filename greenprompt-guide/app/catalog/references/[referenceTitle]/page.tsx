@@ -158,10 +158,10 @@ export default async function ReferenceDetailsPage({
             <p>{reference.authors}</p>
           </div>
           <h2>Abstract:</h2>
-          <p>{reference.abstract}</p>
+          <p>{reference.abstract ? reference.abstract : "No abstract available yet."}</p>
 
           <h2>Task:</h2>
-          <p>{reference.task}</p>
+          <p>{reference.task ? reference.task : "No task available yet."}</p>
 
           <h2>Tool availability:</h2>
           <ul>
@@ -191,22 +191,14 @@ export default async function ReferenceDetailsPage({
           <article>
             <h2>Year</h2>
             <ul>
-              {reference.year ? (
-                <li>{reference.year}</li>
-              ) : (
-                <li>Year not specified.</li>
-              )}
+              <li>{reference.year}</li>
             </ul>
           </article>
 
           <article>
             <h2>Study Type</h2>
             <ul>
-              {reference.studyType ? (
-                <li>{reference.studyType}</li>
-              ) : (
-                <li>Study type not specified.</li>
-              )}
+              <li>{reference.studyType}</li>
             </ul>
           </article>
 
