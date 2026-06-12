@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import PracticeDetailsPage from "@/app/catalog/practices/[practiceName]/page";
-import { getPracticeByName } from "@/domain/practice-repository";
+import { getPracticeByName, listPracticeGreenScores } from "@/domain/practice-repository";
 import { getUserByUsername } from "@/domain/user-repository";
 import { getSession } from "@/lib/session";
 import { notFound } from "next/navigation";
@@ -17,6 +17,7 @@ vi.mock("next/link", () => ({
 
 vi.mock("@/domain/practice-repository", () => ({
   getPracticeByName: vi.fn(),
+  listPracticeGreenScores: vi.fn(),
 }));
 
 vi.mock("@/domain/user-repository", () => ({
@@ -32,6 +33,12 @@ vi.mock("next/navigation", () => ({
     throw new Error("NEXT_NOT_FOUND");
   }),
 }));
+
+const DEFAULT_ALL_SCORES = [
+  { name: "Constraint-first Prompting", greenScore: 82 },
+  { name: "Another Practice", greenScore: 60 },
+  { name: "Third Practice", greenScore: 45 },
+];
 
 function buildPractice() {
   return {
@@ -49,7 +56,7 @@ function buildPractice() {
         observations: "Lower token usage and stable quality.",
       },
     ],
-    metrics: [{ id: 10, title: "Energy use", value: "-18%", confidence: 0.92 }],
+    metrics: [{ id: 10, title: "Energy use", value: "-18%", confidence: 0.92, description: null, energyMetrics: [], accuracyMetrics: [] }],
     prompts: [{ promptTechnique: { name: "Few-shot" } }],
     models: [{ model: { name: "GPT-4o-mini" } }],
     hyperparameters: [{ id: 20, name: "temperature", value: "0.1", dataType: "float" }],
@@ -73,6 +80,7 @@ describe("Practice details requirements", () => {
 
   it("US2/FR3/FR5: renders full practice details, metrics, examples and source", async () => {
     vi.mocked(getPracticeByName).mockResolvedValue(buildPractice() as never);
+    vi.mocked(listPracticeGreenScores).mockResolvedValue(DEFAULT_ALL_SCORES);
 
     render(
       await PracticeDetailsPage({
@@ -109,9 +117,9 @@ describe("Practice details requirements", () => {
     expect(referenceLink).toHaveAttribute("href", expect.stringContaining("references"));
   });
 
-  it("US2: falls back to green score card when explicit metrics are missing", async () => {
-    const practiceWithoutMetrics = { ...buildPractice(), metrics: [] };
-    vi.mocked(getPracticeByName).mockResolvedValue(practiceWithoutMetrics as never);
+  it("always shows the green score regardless of whether explicit metrics exist", async () => {
+    vi.mocked(getPracticeByName).mockResolvedValue(buildPractice() as never);
+    vi.mocked(listPracticeGreenScores).mockResolvedValue(DEFAULT_ALL_SCORES);
 
     render(
       await PracticeDetailsPage({
@@ -121,6 +129,39 @@ describe("Practice details requirements", () => {
 
     expect(screen.getByText(/green score/i)).toBeInTheDocument();
     expect(screen.getByText("82")).toBeInTheDocument();
+  });
+
+  it("US2: shows the green score even when explicit metrics are present", async () => {
+    vi.mocked(getPracticeByName).mockResolvedValue(buildPractice() as never);
+    vi.mocked(listPracticeGreenScores).mockResolvedValue(DEFAULT_ALL_SCORES);
+
+    render(
+      await PracticeDetailsPage({
+        params: Promise.resolve({ practiceName: "Constraint-first Prompting" }),
+      }),
+    );
+
+    // Both the green score card and the metric card should appear
+    expect(screen.getByText(/green score/i)).toBeInTheDocument();
+    expect(screen.getByText("82")).toBeInTheDocument();
+    expect(screen.getByText(/energy use/i)).toBeInTheDocument();
+  });
+
+  it("US2: shows the green score when there are no explicit metrics", async () => {
+    const practiceWithoutMetrics = { ...buildPractice(), metrics: [] };
+    vi.mocked(getPracticeByName).mockResolvedValue(practiceWithoutMetrics as never);
+    vi.mocked(listPracticeGreenScores).mockResolvedValue(DEFAULT_ALL_SCORES);
+
+    render(
+      await PracticeDetailsPage({
+        params: Promise.resolve({ practiceName: "Constraint-first Prompting" }),
+      }),
+    );
+
+    expect(screen.getByText(/green score/i)).toBeInTheDocument();
+    expect(screen.getByText("82")).toBeInTheDocument();
+    // No metric cards should be present when there are no metrics
+    expect(screen.queryByText(/energy use/i)).not.toBeInTheDocument();
   });
 
   it("renders energy and accuracy metric subtype details", async () => {
@@ -163,6 +204,7 @@ describe("Practice details requirements", () => {
       ],
     };
     vi.mocked(getPracticeByName).mockResolvedValue(practiceWithSubtypeMetrics as never);
+    vi.mocked(listPracticeGreenScores).mockResolvedValue(DEFAULT_ALL_SCORES);
 
     render(
       await PracticeDetailsPage({
@@ -185,8 +227,36 @@ describe("Practice details requirements", () => {
     expect(screen.getByText(/score:/i)).toBeInTheDocument();
   });
 
+  it("renders the green score comparison chart section", async () => {
+    vi.mocked(getPracticeByName).mockResolvedValue(buildPractice() as never);
+    vi.mocked(listPracticeGreenScores).mockResolvedValue(DEFAULT_ALL_SCORES);
+
+    render(
+      await PracticeDetailsPage({
+        params: Promise.resolve({ practiceName: "Constraint-first Prompting" }),
+      }),
+    );
+
+    expect(screen.getByText(/green score across practices/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/green score comparison chart/i)).toBeInTheDocument();
+  });
+
+  it("calls listPracticeGreenScores to populate the chart", async () => {
+    vi.mocked(getPracticeByName).mockResolvedValue(buildPractice() as never);
+    vi.mocked(listPracticeGreenScores).mockResolvedValue(DEFAULT_ALL_SCORES);
+
+    render(
+      await PracticeDetailsPage({
+        params: Promise.resolve({ practiceName: "Constraint-first Prompting" }),
+      }),
+    );
+
+    expect(vi.mocked(listPracticeGreenScores)).toHaveBeenCalled();
+  });
+
   it("displays practice categories", async () => {
     vi.mocked(getPracticeByName).mockResolvedValue(buildPractice() as never);
+    vi.mocked(listPracticeGreenScores).mockResolvedValue(DEFAULT_ALL_SCORES);
 
     render(
       await PracticeDetailsPage({
@@ -199,6 +269,7 @@ describe("Practice details requirements", () => {
 
   it("displays practice examples with scenario, original, improved prompts and observations", async () => {
     vi.mocked(getPracticeByName).mockResolvedValue(buildPractice() as never);
+    vi.mocked(listPracticeGreenScores).mockResolvedValue(DEFAULT_ALL_SCORES);
 
     render(
       await PracticeDetailsPage({
@@ -216,6 +287,7 @@ describe("Practice details requirements", () => {
 
   it("displays hyperparameters with name, value, and data type", async () => {
     vi.mocked(getPracticeByName).mockResolvedValue(buildPractice() as never);
+    vi.mocked(listPracticeGreenScores).mockResolvedValue(DEFAULT_ALL_SCORES);
 
     render(
       await PracticeDetailsPage({
@@ -229,6 +301,7 @@ describe("Practice details requirements", () => {
   it("handles empty related prompt techniques", async () => {
     const practiceWithoutTechniques = { ...buildPractice(), prompts: [] };
     vi.mocked(getPracticeByName).mockResolvedValue(practiceWithoutTechniques as never);
+    vi.mocked(listPracticeGreenScores).mockResolvedValue(DEFAULT_ALL_SCORES);
 
     render(
       await PracticeDetailsPage({
@@ -242,6 +315,7 @@ describe("Practice details requirements", () => {
   it("handles empty related models", async () => {
     const practiceWithoutModels = { ...buildPractice(), models: [] };
     vi.mocked(getPracticeByName).mockResolvedValue(practiceWithoutModels as never);
+    vi.mocked(listPracticeGreenScores).mockResolvedValue(DEFAULT_ALL_SCORES);
 
     render(
       await PracticeDetailsPage({
@@ -255,6 +329,7 @@ describe("Practice details requirements", () => {
   it("handles empty hyperparameters", async () => {
     const practiceWithoutHyperparameters = { ...buildPractice(), hyperparameters: [] };
     vi.mocked(getPracticeByName).mockResolvedValue(practiceWithoutHyperparameters as never);
+    vi.mocked(listPracticeGreenScores).mockResolvedValue(DEFAULT_ALL_SCORES);
 
     render(
       await PracticeDetailsPage({
@@ -280,6 +355,7 @@ describe("Practice details requirements", () => {
       ],
     };
     vi.mocked(getPracticeByName).mockResolvedValue(practiceWithoutDatasets as never);
+    vi.mocked(listPracticeGreenScores).mockResolvedValue(DEFAULT_ALL_SCORES);
 
     render(
       await PracticeDetailsPage({
@@ -292,6 +368,7 @@ describe("Practice details requirements", () => {
 
   it("decodes URL-encoded practice name", async () => {
     vi.mocked(getPracticeByName).mockResolvedValue(buildPractice() as never);
+    vi.mocked(listPracticeGreenScores).mockResolvedValue(DEFAULT_ALL_SCORES);
 
     render(
       await PracticeDetailsPage({
@@ -304,6 +381,7 @@ describe("Practice details requirements", () => {
 
   it("displays back link to practices catalog", async () => {
     vi.mocked(getPracticeByName).mockResolvedValue(buildPractice() as never);
+    vi.mocked(listPracticeGreenScores).mockResolvedValue(DEFAULT_ALL_SCORES);
 
     render(
       await PracticeDetailsPage({
@@ -318,6 +396,7 @@ describe("Practice details requirements", () => {
 
   it("shows an edit practice link to admin users", async () => {
     vi.mocked(getPracticeByName).mockResolvedValue(buildPractice() as never);
+    vi.mocked(listPracticeGreenScores).mockResolvedValue(DEFAULT_ALL_SCORES);
     vi.mocked(getSession).mockResolvedValue("victor");
     vi.mocked(getUserByUsername).mockResolvedValue({ username: "victor", role: "ADMIN" } as never);
 
@@ -335,6 +414,7 @@ describe("Practice details requirements", () => {
 
   it("does not show an edit practice link to regular users", async () => {
     vi.mocked(getPracticeByName).mockResolvedValue(buildPractice() as never);
+    vi.mocked(listPracticeGreenScores).mockResolvedValue(DEFAULT_ALL_SCORES);
     vi.mocked(getSession).mockResolvedValue("maria");
     vi.mocked(getUserByUsername).mockResolvedValue({ username: "maria", role: "USER" } as never);
 
@@ -349,6 +429,7 @@ describe("Practice details requirements", () => {
 
   it("handles missing practice by delegating to notFound", async () => {
     vi.mocked(getPracticeByName).mockResolvedValue(null);
+    vi.mocked(listPracticeGreenScores).mockResolvedValue(DEFAULT_ALL_SCORES);
 
     await expect(
       PracticeDetailsPage({

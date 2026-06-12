@@ -47,6 +47,7 @@ const practiceDetailsArgs = Prisma.validator<Prisma.PracticeDefaultArgs>()({
 
 export type PracticeListItem = Prisma.PracticeGetPayload<typeof listPracticesArgs>;
 export type PracticeDetails = Prisma.PracticeGetPayload<typeof practiceDetailsArgs>;
+export type PracticeGreenScore = { name: string; greenScore: number };
 export type SidebarData = {
   categories: string[];
   models: string[];
@@ -70,6 +71,13 @@ export async function getPracticeByName(
 
 export async function deletePractice(practiceName: string): Promise<void> {
   await prisma.practice.delete({ where: { name: practiceName } });
+}
+
+export async function listPracticeGreenScores(): Promise<PracticeGreenScore[]> {
+  return prisma.practice.findMany({
+    orderBy: { name: "asc" },
+    select: { name: true, greenScore: true },
+  });
 }
 
 export async function listSidebarData(): Promise<SidebarData> {

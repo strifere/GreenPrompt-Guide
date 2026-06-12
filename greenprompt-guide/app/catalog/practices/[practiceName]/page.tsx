@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { getPracticeByName } from "@/domain/practice-repository";
+import { getPracticeByName, listPracticeGreenScores } from "@/domain/practice-repository";
 import { getUserByUsername } from "@/domain/user-repository";
 import { getSession } from "@/lib/session";
 import { PracticeExamplesScrollableGrid } from "./practice-examples-grid";
+import { PracticeGreenScoreChart } from "./practice-green-score-chart";
 import {
   catalogDatasetHref,
   catalogHyperparameterHref,
@@ -78,9 +79,10 @@ export default async function PracticeDetailsPage({
 }: Readonly<PracticeDetailsProps>) {
   const { practiceName } = await params;
   const practiceNameDecoded = decodeURIComponent(practiceName);
-  const [practice, username] = await Promise.all([
+  const [practice, username, allGreenScores] = await Promise.all([
     getPracticeByName(practiceNameDecoded),
     getSession(),
+    listPracticeGreenScores(),
   ]);
 
   if (!practice) {
@@ -189,16 +191,21 @@ export default async function PracticeDetailsPage({
 
         <section className="practice-section">
           <h2>Metrics:</h2>
-          <div className="practice-metrics-grid">
-            {practice.metrics.length > 0 ? (
-              practice.metrics.map((metric) => renderMetricDetails(metric))
-            ) : (
-              <article className="practice-metric-card">
-                <h3>Green score</h3>
-                <p>{practice.greenScore}</p>
-              </article>
-            )}
-          </div>
+          {practice.metrics.length > 0 && (
+            <div className="practice-metrics-scroll-wrap" aria-label="Detailed metrics">
+              <div className="practice-metrics-grid">
+                {practice.metrics.map((metric) => renderMetricDetails(metric))}
+              </div>
+            </div>
+          )}
+        </section>
+        
+        <section className="practice-section">
+          <h2>Green score across practices:</h2>
+          <PracticeGreenScoreChart
+            currentPracticeName={practice.name}
+            scores={allGreenScores}
+          />
         </section>
 
         <section className="practice-facts-grid" aria-label="Practice metadata">
