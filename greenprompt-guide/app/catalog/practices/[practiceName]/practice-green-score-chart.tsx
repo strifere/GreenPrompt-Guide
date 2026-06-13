@@ -24,16 +24,15 @@ export function PracticeGreenScoreChart({
   return (
     <div className="green-score-chart-wrap" aria-label="Green score comparison chart">
       <div className="green-score-chart-scroll">
-        <div className="green-score-chart-rows" role="list">
+        <ul className="green-score-chart-rows">
           {sorted.map((practice) => {
             const isCurrent = practice.name === currentPracticeName;
             const barPct = (practice.greenScore / maxScore) * 100;
 
             return (
-              <div
+              <li
                 key={practice.name}
                 className={`green-score-chart-row${isCurrent ? " green-score-chart-row--current" : ""}`}
-                role="listitem"
               >
                 {/* Label — capped at 22ch, truncated with ellipsis if longer;
                     title always shows the full name on hover */}
@@ -61,18 +60,18 @@ export function PracticeGreenScoreChart({
                 >
                   {practice.greenScore}
                 </span>
-              </div>
+              </li>
             );
           })}
-        </div>
+        </ul>
       </div>
 
       <p className="green-score-chart-legend">
         <span className="green-score-chart-legend-current" aria-hidden="true" />
-        Current practice
+        Current practice{' '}
         <span className="green-score-chart-legend-sep" aria-hidden="true" />
         <span className="green-score-chart-legend-other" aria-hidden="true" />
-        Other practices
+        Other practices{''}
       </p>
     </div>
   );

@@ -23,7 +23,12 @@ type TooltipContextType = {
   state: TooltipState;
 };
 
-const TooltipContext = createContext<TooltipContextType | null>(null);
+const noOp = () => {};
+const TooltipContext = createContext<TooltipContextType>({
+  show: noOp,
+  hide: noOp,
+  state: { visible: false, content: "", x: 0, y: 0 },
+});
 
 export function TooltipProvider({ children }: Readonly<{ children: ReactNode }>) {
   const [state, setState] = useState<TooltipState>({
@@ -57,7 +62,5 @@ export function TooltipProvider({ children }: Readonly<{ children: ReactNode }>)
 }
 
 export function useTooltipContext() {
-  const ctx = useContext(TooltipContext);
-  if (!ctx) throw new Error("useTooltipContext must be used inside TooltipProvider");
-  return ctx;
+  return useContext(TooltipContext);
 }
