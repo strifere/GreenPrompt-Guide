@@ -3,15 +3,18 @@
 import { useMemo, useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { Search, X } from "lucide-react";
-import type { PracticeListItem, SidebarData } from "@/domain/practice-repository";
+import type { PracticeListItem, SidebarData, SelectableItem } from "@/domain/practice-repository";
 import { catalogPracticeHref } from "./catalog-paths";
+import { Tip } from "../ui/tooltip/tip";
+import { TOOLTIPS } from "../ui/tooltip/tooltip-content";
 
 type FilterKey = keyof SidebarData;
 
 type SidebarGroup = {
   key: FilterKey;
   title: string;
-  items: string[];
+  items: SelectableItem[];
+  tooltip: string;
 };
 
 type CatalogClientProps = Readonly<{
@@ -173,25 +176,29 @@ function FilterPanel({ groups, selectedFilters, onToggleFilter }: FilterPanelPro
     <>
       {groups.map((group) => (
         <details key={group.key} className="sidebar-mobile-group" open>
-          <summary>{group.title}</summary>
+          <Tip content={group.tooltip}>
+            <summary>{group.title}</summary>
+          </Tip>
           <ul>
             {group.items.map((item) => {
-              const inputId = `${group.key}-${item}`;
-              const checked = selectedFilters[group.key].includes(item);
+              const inputId = `${group.key}-${item.value}`;
+              const checked = selectedFilters[group.key].includes(item.value);
 
               return (
-                <li key={item} className="filter-option-item">
-                  <label htmlFor={inputId} className="filter-option-label">
-                    <input
-                      id={inputId}
-                      type="checkbox"
-                      className="filter-option-input"
-                      checked={checked}
-                      onChange={() => onToggleFilter(group.key, item)}
-                    />
-                    <span>{item}</span>
-                  </label>
-                </li>
+                <Tip key={item.value} content={item.tooltip ? item.tooltip : `Filter by ${group.title}: ${item.value}`}>
+                  <li className="filter-option-item">
+                    <label htmlFor={inputId} className="filter-option-label">
+                      <input
+                        id={inputId}
+                        type="checkbox"
+                        className="filter-option-input"
+                        checked={checked}
+                        onChange={() => onToggleFilter(group.key, item.value)}
+                      />
+                      <span>{item.value}</span>
+                    </label>
+                  </li>
+                </Tip>
               );
             })}
           </ul>
@@ -269,14 +276,14 @@ export default function CatalogClient({ practices, sidebarData }: CatalogClientP
   const previousPracticeCountRef = useRef<number>(0);
   const sidebarDisclosureRef = useRef<HTMLDetailsElement>(null);
   const mobileInlineDisclosureRef = useRef<HTMLDetailsElement>(null);
-
+    
   const sidebarGroups: SidebarGroup[] = useMemo(
     () => [
-      { key: "categories", title: "Categories", items: sidebarData.categories },
-      { key: "promptTechniques", title: "Prompt Techniques", items: sidebarData.promptTechniques },
-      { key: "hyperparameters", title: "Hyperparameters", items: sidebarData.hyperparameters },
-      { key: "models", title: "Models", items: sidebarData.models },
-      { key: "datasets", title: "Datasets", items: sidebarData.datasets },
+      { key: "categories", title: "Categories", items: sidebarData.categories, tooltip: TOOLTIPS.FILTER_CATEGORIES },
+      { key: "promptTechniques", title: "Prompt Techniques", items: sidebarData.promptTechniques, tooltip: TOOLTIPS.FILTER_PROMPT_TECHNIQUES },
+      { key: "hyperparameters", title: "Hyperparameters", items: sidebarData.hyperparameters, tooltip: TOOLTIPS.FILTER_HYPERPARAMETERS },
+      { key: "models", title: "Models", items: sidebarData.models, tooltip: TOOLTIPS.FILTER_MODELS },
+      { key: "datasets", title: "Datasets", items: sidebarData.datasets, tooltip: TOOLTIPS.FILTER_DATASETS },
     ],
     [sidebarData],
   );
@@ -467,17 +474,19 @@ export default function CatalogClient({ practices, sidebarData }: CatalogClientP
           <div className="catalog-body">
             <div className="title-row">
               <h1>List of practices</h1>
-                <label className="search-box" aria-label="Search practices">
-                  <span className="search-icon" aria-hidden>
-                    <Search size={18} />
-                  </span>
-                  <input
-                    type="search"
-                    placeholder="Search practices"
-                    value={searchQuery}
-                    onChange={(event) => setSearchQuery(event.target.value)}
-                  />
-                </label>
+                <Tip content={TOOLTIPS.SEARCH_BOX}>
+                  <label className="search-box" aria-label="Search practices">
+                    <span className="search-icon" aria-hidden>
+                      <Search size={18} />
+                    </span>
+                    <input
+                      type="search"
+                      placeholder="Search practices"
+                      value={searchQuery}
+                      onChange={(event) => setSearchQuery(event.target.value)}
+                    />
+                  </label>
+                </Tip>
             </div>
 
             <details className="sidebar-mobile-disclosure sidebar-mobile-inline" ref={mobileInlineDisclosureRef}>

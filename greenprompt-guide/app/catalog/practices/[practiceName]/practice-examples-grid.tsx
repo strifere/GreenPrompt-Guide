@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Info } from "lucide-react";
+import { Tip } from "@/app/ui/tooltip/tip";
+import { TOOLTIPS } from "@/app/ui/tooltip/tooltip-content";
 
 type PracticeExample = {
   id: number;
@@ -27,11 +29,21 @@ export function PracticeExamplesScrollableGrid({ examples }: Readonly<{ examples
 
         <div className="practice-example-grid">
           <article className="practice-example-card">
-            <h3>Original prompt</h3>
+            <div className="info-header">
+              <h3 style={{"padding": "0px 10px"}}>Original prompt</h3>
+              <Tip content={TOOLTIPS.PRACTICE_ORIGINAL_PROMPT}>
+                <Info size={18} className="info-icon" aria-hidden />
+              </Tip>
+            </div>
             <p>{example.originalPrompts ?? "No original prompt registered."}</p>
           </article>
           <article className="practice-example-card">
-            <h3>Improved prompt</h3>
+            <div className="info-header">
+              <h3 style={{"padding": "0px 10px"}}>Improved prompt</h3>
+              <Tip content={TOOLTIPS.PRACTICE_IMPROVED_PROMPT}>
+                <Info size={18} className="info-icon" aria-hidden />
+              </Tip>
+            </div>
             <p>{example.improvedPrompts ?? "No improved prompt registered."}</p>
           </article>
         </div>

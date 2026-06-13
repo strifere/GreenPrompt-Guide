@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Info } from "lucide-react";
 import { getPracticeByName, listPracticeGreenScores } from "@/domain/practice-repository";
 import { getUserByUsername } from "@/domain/user-repository";
 import { getSession } from "@/lib/session";
@@ -13,6 +13,8 @@ import {
   catalogPromptTechniqueHref,
   catalogReferenceHref,
 } from "../../catalog-paths";
+import { Tip } from "@/app/ui/tooltip/tip";
+import { TOOLTIPS } from "@/app/ui/tooltip/tooltip-content";
 
 const energyMetricUnitLabels: Record<string, string> = {
   PERCENTAGE: "%",
@@ -190,7 +192,12 @@ export default async function PracticeDetailsPage({
         </section>
 
         <section className="practice-section">
-          <h2>Metrics:</h2>
+          <div className="info-header">
+            <h2 style={{"paddingRight": "10px"}}>Metrics:</h2>
+            <Tip content={TOOLTIPS.PRACTICE_METRICS}>
+              <Info size={18} />
+            </Tip>
+          </div>
           {practice.metrics.length > 0 && (
             <div className="practice-metrics-scroll-wrap" aria-label="Detailed metrics">
               <div className="practice-metrics-grid">
@@ -201,7 +208,15 @@ export default async function PracticeDetailsPage({
         </section>
         
         <section className="practice-section">
-          <h2>Green score across practices:</h2>
+          <div className="info-header">
+            <Tip content={TOOLTIPS.PRACTICE_GREEN_SCORE}>
+              <div></div>
+            </Tip>
+            <h2 style={{"paddingRight": "10px"}}>Green score across practices:</h2>  
+            <Tip content={TOOLTIPS.PRACTICE_GREEN_SCORE}>
+              <Info size={18} />
+            </Tip>
+          </div>
           <PracticeGreenScoreChart
             currentPracticeName={practice.name}
             scores={allGreenScores}
@@ -210,7 +225,12 @@ export default async function PracticeDetailsPage({
 
         <section className="practice-facts-grid" aria-label="Practice metadata">
           <article>
-            <h2>Prompt techniques</h2>
+            <div className="info-header">
+              <h2 style={{"paddingRight": "10px"}}>Prompt techniques</h2>
+              <Tip content={TOOLTIPS.PRACTICE_PROMPT_TECHNIQUES}>
+                <Info size={18} className="info-icon" aria-hidden />
+              </Tip>
+            </div>
             <ul>
               {practice.prompts.length > 0 ? (
                 practice.prompts.map((entry, index) => (
@@ -227,7 +247,12 @@ export default async function PracticeDetailsPage({
           </article>
 
           <article>
-            <h2>Models</h2>
+            <div className="info-header">
+              <h2 style={{"paddingRight": "10px"}}>Models</h2>
+              <Tip content={TOOLTIPS.PRACTICE_MODELS}>
+                <Info size={18} className="info-icon" aria-hidden />
+              </Tip>
+            </div>
             <ul>
               {practice.models.length > 0 ? (
                 practice.models.map((entry, index) => (
@@ -244,7 +269,12 @@ export default async function PracticeDetailsPage({
           </article>
 
           <article>
-            <h2>Hyperparameters</h2>
+            <div className="info-header">
+              <h2 style={{"paddingRight": "10px"}}>Hyperparameters</h2>
+              <Tip content={TOOLTIPS.PRACTICE_HYPERPARAMETERS}>
+                <Info size={18} className="info-icon" aria-hidden />
+              </Tip>
+            </div>
             <ul>
               {practice.hyperparameters.length > 0 ? (
                 practice.hyperparameters.map((hyperparameter) => (
@@ -261,7 +291,12 @@ export default async function PracticeDetailsPage({
           </article>
 
           <article>
-            <h2>Datasets</h2>
+            <div className="info-header">
+              <h2 style={{"paddingRight": "10px"}}>Datasets</h2>
+              <Tip content={TOOLTIPS.PRACTICE_DATASETS}>
+                <Info size={18} className="info-icon" aria-hidden />
+              </Tip>
+            </div>
             <ul>
               {relatedDatasets.length > 0 ? (
                 relatedDatasets.map((dataset) => (

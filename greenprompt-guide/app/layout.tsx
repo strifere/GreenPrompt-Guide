@@ -8,6 +8,8 @@ import { ThemeToggle } from "./ui/theme-toggle";
 import { TopbarMenu } from "./ui/topbar-menu";
 import { AuthButtons } from "./ui/auth-buttons";
 import { CollaborationButton } from "./ui/collaboration-button";
+import { TooltipProvider } from "./ui/tooltip/tooltip-context";
+import { TooltipOverlay } from "./ui/tooltip/tooltip-overlay";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -112,7 +114,10 @@ export default async function RootLayout({
           <TopbarMenu />
         </header>
         <main className="app-main" >
-          {children}
+          <TooltipProvider>
+            {children}
+            <TooltipOverlay />
+          </TooltipProvider>
         </main>
         <footer className="site-footer">
           <div className="site-footer-content">
