@@ -92,11 +92,11 @@ describe("practice-repository", () => {
   describe("listSidebarData", () => {
     it("should return sidebar data", async () => {
       const mockData = [
-        [{ name: "Category 1" }],
-        [{ name: "Model 1" }],
-        [{ name: "Prompt Technique 1" }],
-        [{ name: "Hyperparameter 1" }],
-        [{ name: "Dataset 1" }],
+        [{ name: "Category 1", tooltip: undefined }],
+        [{ name: "Model 1", tooltip: undefined }],
+        [{ name: "Prompt Technique 1", tooltip: undefined }],
+        [{ name: "Hyperparameter 1", tooltip: undefined }],
+        [{ name: "Dataset 1", tooltip: undefined }],
       ];
       const prismaMock = prisma.$transaction as jest.Mock;
       prismaMock.mockResolvedValue(mockData);
@@ -105,11 +105,11 @@ describe("practice-repository", () => {
 
       expect(prisma.$transaction).toHaveBeenCalled();
       expect(sidebarData).toEqual({
-        categories: ["Category 1"],
-        models: ["Model 1"],
-        promptTechniques: ["Prompt Technique 1"],
-        hyperparameters: ["Hyperparameter 1"],
-        datasets: ["Dataset 1"],
+        categories: [{"tooltip": undefined, "value": "Category 1"}],
+        models: [{"tooltip": undefined, "value": "Model 1"}],
+        promptTechniques: [{"tooltip": undefined, "value": "Prompt Technique 1"}],
+        hyperparameters: [{"tooltip": undefined, "value": "Hyperparameter 1"}],
+        datasets: [{"tooltip": undefined, "value": "Dataset 1"}],
       });
     });
   });

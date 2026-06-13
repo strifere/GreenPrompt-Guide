@@ -54,5 +54,5 @@ export function CarbonBadge({ initialTheme }: Readonly<CarbonBadgeProps>) {
     return null;
   }
 
-  return <WebsiteCarbonBadge lang="en" dark={resolvedTheme === "dark"} co2="0.03" percentage="95" url="http://nattech.fib.upc.edu:40660" />;
+  return <WebsiteCarbonBadge lang="en" dark={resolvedTheme === "dark"} co2="0.03" percentage="95" url="nattech.fib.upc.edu:40660" />;
 }
