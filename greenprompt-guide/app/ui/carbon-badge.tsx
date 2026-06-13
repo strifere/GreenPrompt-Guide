@@ -8,7 +8,6 @@ type ResolvedTheme = "light" | "dark";
 
 type CarbonBadgeProps = {
   initialTheme?: ThemePreference;
-  url: string;
 };
 
 function getResolvedTheme(): ResolvedTheme {
@@ -21,7 +20,7 @@ function getResolvedTheme(): ResolvedTheme {
   return globalThis.window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 
-export function CarbonBadge({ initialTheme, url }: Readonly<CarbonBadgeProps>) {
+export function CarbonBadge({ initialTheme }: Readonly<CarbonBadgeProps>) {
   const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme | null>(() => {
     if (initialTheme === "light" || initialTheme === "dark") {
       return initialTheme;
@@ -55,5 +54,5 @@ export function CarbonBadge({ initialTheme, url }: Readonly<CarbonBadgeProps>) {
     return null;
   }
 
-  return <WebsiteCarbonBadge dark={resolvedTheme === "dark"} url={url} />;
+  return <WebsiteCarbonBadge lang="en" dark={resolvedTheme === "dark"} co2="0.03" percentage="95" url="http://nattech.fib.upc.edu:40660" />;
 }

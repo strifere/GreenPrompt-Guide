@@ -165,7 +165,7 @@ export default async function RootLayout({
                 />
               </a>
             </div>
-            <CarbonBadge initialTheme={initialTheme} url="nattech.fib.upc.edu:40470" />
+            <CarbonBadge initialTheme={initialTheme} />
           </div>
         </footer>
       </body>
