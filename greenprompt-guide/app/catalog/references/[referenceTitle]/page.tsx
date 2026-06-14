@@ -10,6 +10,9 @@ import {
 } from "../../catalog-paths";
 import { getUserByUsername } from "@/domain/user-repository";
 import { getSession } from "@/lib/session";
+import { Tip } from "@/app/ui/tooltip/tip";
+import { Info } from "lucide-react";
+import { TOOLTIPS } from "@/app/ui/tooltip/tooltip-content";
 
 type ReferenceDetailsProps = {
   params: Promise<{ referenceTitle: string }>;
@@ -158,10 +161,10 @@ export default async function ReferenceDetailsPage({
             <p>{reference.authors}</p>
           </div>
           <h2>Abstract:</h2>
-          <p>{reference.abstract}</p>
+          <p>{reference.abstract ? reference.abstract : "No abstract available yet."}</p>
 
           <h2>Task:</h2>
-          <p>{reference.task}</p>
+          <p>{reference.task ? reference.task : "No task available yet."}</p>
 
           <h2>Tool availability:</h2>
           <ul>
@@ -191,22 +194,14 @@ export default async function ReferenceDetailsPage({
           <article>
             <h2>Year</h2>
             <ul>
-              {reference.year ? (
-                <li>{reference.year}</li>
-              ) : (
-                <li>Year not specified.</li>
-              )}
+              <li>{reference.year}</li>
             </ul>
           </article>
 
           <article>
             <h2>Study Type</h2>
             <ul>
-              {reference.studyType ? (
-                <li>{reference.studyType}</li>
-              ) : (
-                <li>Study type not specified.</li>
-              )}
+              <li>{reference.studyType}</li>
             </ul>
           </article>
 
@@ -235,7 +230,12 @@ export default async function ReferenceDetailsPage({
 
         <section className="practice-facts-grid" aria-label="Reference relations">
           <article>
-            <h2>Prompt techniques</h2>
+            <div className="info-header">
+              <h2 style={{"paddingRight": "10px"}}>Prompt techniques</h2>
+              <Tip content={TOOLTIPS.REFERENCE_PROMPT_TECHNIQUES}>
+                <Info size={18} className="info-icon" aria-hidden />
+              </Tip>
+            </div>
             <ul>
               {reference.promptTechniques.length > 0 ? (
                 reference.promptTechniques.map((entry, index) => (
@@ -252,7 +252,12 @@ export default async function ReferenceDetailsPage({
           </article>
 
           <article>
-            <h2>Models</h2>
+            <div className="info-header">
+              <h2 style={{"paddingRight": "10px"}}>Models</h2>
+              <Tip content={TOOLTIPS.REFERENCE_MODELS}>
+                <Info size={18} className="info-icon" aria-hidden />
+              </Tip>
+            </div>
             <ul>
               {reference.models.length > 0 ? (
                 reference.models.map((entry, index) => (
@@ -269,7 +274,12 @@ export default async function ReferenceDetailsPage({
           </article>
 
           <article>
-            <h2>Hyperparameters</h2>
+            <div className="info-header">
+              <h2 style={{"paddingRight": "10px"}}>Hyperparameters</h2>
+              <Tip content={TOOLTIPS.REFERENCE_HYPERPARAMETERS}>
+                <Info size={18} className="info-icon" aria-hidden />
+              </Tip>
+            </div>
             <ul>
               {reference.hyperparameters.length > 0 ? (
                 reference.hyperparameters.map((hyperparameter) => (
@@ -286,7 +296,12 @@ export default async function ReferenceDetailsPage({
           </article>
 
           <article>
-            <h2>Datasets</h2>
+            <div className="info-header">
+              <h2 style={{"paddingRight": "10px"}}>Datasets</h2>
+              <Tip content={TOOLTIPS.REFERENCE_DATASETS}>
+                <Info size={18} className="info-icon" aria-hidden />
+              </Tip>
+            </div>
             <ul>
               {relatedDatasets.length > 0 ? (
                 relatedDatasets.map((dataset) => (
@@ -318,7 +333,12 @@ export default async function ReferenceDetailsPage({
               <li>No practices extracted from this reference yet.</li>
             )}
           </ul>
-          <h2>Citation:</h2>
+          <div className="info-header">
+            <h2 style={{"paddingRight": "10px"}}>Citation</h2>
+            <Tip content={TOOLTIPS.REFERENCE_CITATION}>
+              <Info size={18} className="info-icon" aria-hidden />
+            </Tip>
+          </div>
           <p>{formatReferenceCitation(reference)}</p>
           {reference.link ? (
             <p>

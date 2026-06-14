@@ -23,6 +23,19 @@ function parseRequestId(requestId: string) {
     return Number.isInteger(parsedRequestId) && parsedRequestId > 0 ? parsedRequestId : null;
 }
 
+function handleError(error: unknown) {
+    if (error instanceof Error && error.message === "Collaboration request not found") {
+        return NextResponse.json({ error: "Request not found" }, { status: 404 });
+    } else if (error instanceof Error && error.message === "Invalid request id") {
+        return NextResponse.json({ error: "Invalid request id" }, { status: 400 });
+    } else if (error instanceof Error && error.message === "Unauthorized") {
+        return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    } else{
+        console.error("Collaboration request deletion error:", error);
+        return NextResponse.json({ error: `An error occurred while deleting the request: ${error}` }, { status: 500 });
+    }
+}
+
 async function getAuthenticatedAdmin() {
     const currentUsername = await getSession();
 
@@ -113,16 +126,7 @@ export async function POST(request: Request, context: RequestedPracticeRouteCont
             { status: 200 },
         );
     } catch (error) {
-        if (error instanceof Error && error.message === "Collaboration request not found") {
-            return NextResponse.json({ error: "Request not found" }, { status: 404 });
-        } else if (error instanceof Error && error.message === "Invalid request id") {
-            return NextResponse.json({ error: "Invalid request id" }, { status: 400 });
-        } else if (error instanceof Error && error.message === "Unauthorized") {
-            return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-        } else{
-            console.error("Requested practice creation error:", error);
-            return NextResponse.json({ error: "An error occurred while creating the practice" }, { status: 500 });
-        }
+        return handleError(error);
     }
 }
 
@@ -134,15 +138,6 @@ export async function DELETE(_request: Request, context: RequestedPracticeRouteC
 
         return NextResponse.json({ message: "Request deleted successfully" }, { status: 200 });
     } catch (error) {
-        if (error instanceof Error && error.message === "Collaboration request not found") {
-            return NextResponse.json({ error: "Request not found" }, { status: 404 });
-        } else if (error instanceof Error && error.message === "Invalid request id") {
-            return NextResponse.json({ error: "Invalid request id" }, { status: 400 });
-        } else if (error instanceof Error && error.message === "Unauthorized") {
-            return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-        } else{
-            console.error("Collaboration request deletion error:", error);
-            return NextResponse.json({ error: "An error occurred while deleting the request" }, { status: 500 });
-        }
+        return handleError(error);
     }
 }

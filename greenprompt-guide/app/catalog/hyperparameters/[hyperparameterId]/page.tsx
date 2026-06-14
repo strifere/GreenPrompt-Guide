@@ -4,6 +4,9 @@ import { catalogPracticeHref, catalogReferenceHref } from "../../catalog-paths";
 import { getUserByUsername } from "@/domain/user-repository";
 import { getSession } from "@/lib/session";
 import { getHyperparameterById } from "@/domain/hyperparameter-repository";
+import { Tip } from "@/app/ui/tooltip/tip";
+import { Info } from "lucide-react";
+import { TOOLTIPS } from "@/app/ui/tooltip/tooltip-content";
 
 type HyperparameterDetailsProps = {
   params: Promise<{ hyperparameterId: string }>;
@@ -40,14 +43,24 @@ export default async function HyperparameterDetailsPage({
 
         <section className="practice-facts-grid" aria-label="Dataset metadata">
           <article>
-            <h2>Syntax</h2>
+            <div className="info-header">
+              <h2 style={{"paddingRight": "10px"}}>Syntax</h2>  
+              <Tip content={TOOLTIPS.HYPERPARAMETERS_SYNTAX}>
+                <Info size={18} />
+              </Tip>
+            </div>
             <ul>
                 <li>{hyperparameter.name} {hyperparameter.value}</li>
             </ul>
           </article>
 
           <article>
-            <h2>Data Type</h2>
+            <div className="info-header">
+              <h2 style={{"paddingRight": "10px"}}>Value</h2>  
+              <Tip content={TOOLTIPS.HYPERPARAMETERS_DATA_TYPE}>
+                <Info size={18} />
+              </Tip>
+            </div>
             <ul>
               {hyperparameter.dataType}
             </ul>   

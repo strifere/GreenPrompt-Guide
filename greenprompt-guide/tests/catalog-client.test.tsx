@@ -14,11 +14,11 @@ vi.mock("next/link", () => ({
 }));
 
 const sidebarData: SidebarData = {
-  categories: ["Token Optimization", "Prompt Compression"],
-  models: ["GPT-4o-mini", "Llama-3"],
-  promptTechniques: ["Few-shot", "Chain-of-thought"],
-  hyperparameters: ["temperature", "max_tokens"],
-  datasets: ["MMLU", "TruthfulQA"],
+  categories: [{value: "Token Optimization", tooltip: null}, {value: "Prompt Compression", tooltip: null}],
+  models: [{value: "GPT-4o-mini", tooltip: null}, {value: "Llama-3", tooltip: null}],
+  promptTechniques: [{value: "Few-shot", tooltip: null}, {value: "Chain-of-thought", tooltip: null}],
+  hyperparameters: [{value: "temperature", tooltip: null}, {value: "max_tokens", tooltip: null}],
+  datasets: [{value: "MMLU", tooltip: null}, {value: "TruthfulQA", tooltip: null}],
 };
 
 const practices = [

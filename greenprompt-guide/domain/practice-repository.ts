@@ -47,12 +47,14 @@ const practiceDetailsArgs = Prisma.validator<Prisma.PracticeDefaultArgs>()({
 
 export type PracticeListItem = Prisma.PracticeGetPayload<typeof listPracticesArgs>;
 export type PracticeDetails = Prisma.PracticeGetPayload<typeof practiceDetailsArgs>;
+export type PracticeGreenScore = { name: string; greenScore: number };
+export type SelectableItem = { value: string; tooltip: string | null };
 export type SidebarData = {
-  categories: string[];
-  models: string[];
-  promptTechniques: string[];
-  hyperparameters: string[];
-  datasets: string[];
+  categories: SelectableItem[];
+  models: SelectableItem[];
+  promptTechniques: SelectableItem[];
+  hyperparameters: SelectableItem[];
+  datasets: SelectableItem[];
 };
 
 export async function listPractices(): Promise<PracticeListItem[]> {
@@ -72,28 +74,35 @@ export async function deletePractice(practiceName: string): Promise<void> {
   await prisma.practice.delete({ where: { name: practiceName } });
 }
 
+export async function listPracticeGreenScores(): Promise<PracticeGreenScore[]> {
+  return prisma.practice.findMany({
+    orderBy: { name: "asc" },
+    select: { name: true, greenScore: true },
+  });
+}
+
 export async function listSidebarData(): Promise<SidebarData> {
   const [categories, models, promptTechniques, hyperparameters, datasets] =
     await prisma.$transaction([
-    prisma.category.findMany({ orderBy: { name: "asc" }, select: { name: true } }),
-    prisma.model.findMany({ orderBy: { name: "asc" }, select: { name: true } }),
+    prisma.category.findMany({ orderBy: { name: "asc" }, select: { name: true, description: true} }),
+    prisma.model.findMany({ orderBy: { name: "asc" }, select: { name: true, description: true} }),
     prisma.promptTechnique.findMany({
       orderBy: { name: "asc" },
-      select: { name: true },
+      select: { name: true, description: true },
     }),
     prisma.hyperparameter.findMany({
       distinct: ["name"],
       orderBy: { name: "asc" },
-      select: { name: true },
+      select: { name: true, value: true },
     }),
-    prisma.dataset.findMany({ orderBy: { name: "asc" }, select: { name: true } }),
+    prisma.dataset.findMany({ orderBy: { name: "asc" }, select: { name: true, description: true } }),
     ]);
 
   return {
-    categories: categories.map((category) => category.name),
-    models: models.map((model) => model.name),
-    promptTechniques: promptTechniques.map((technique) => technique.name),
-    hyperparameters: hyperparameters.map((hyperparameter) => hyperparameter.name),
-    datasets: datasets.map((dataset) => dataset.name),
+    categories: categories.map((category) => ({ value: category.name, tooltip: category.description })),
+    models: models.map((model) => ({ value: model.name, tooltip: model.description })),
+    promptTechniques: promptTechniques.map((technique) => ({ value: technique.name, tooltip: technique.description })),
+    hyperparameters: hyperparameters.map((hyperparameter) => ({ value: hyperparameter.name, tooltip: hyperparameter.value })),
+    datasets: datasets.map((dataset) => ({ value: dataset.name, tooltip: dataset.description })),
   };
 }

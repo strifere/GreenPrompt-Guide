@@ -158,8 +158,6 @@ describe("Reference details requirements", () => {
     const { default: ReferenceDetailsPage } = await loadReferenceDetailsPage();
     const refWithoutOptional = {
       ...buildReference(),
-      year: null,
-      studyType: null,
       domain: null,
       venue: null,
       toolAvailability: null,
@@ -172,8 +170,6 @@ describe("Reference details requirements", () => {
       }),
     );
 
-    expect(screen.getByText(/year not specified/i)).toBeInTheDocument();
-    expect(screen.getByText(/study type not specified/i)).toBeInTheDocument();
     expect(screen.getByText(/domain not specified/i)).toBeInTheDocument();
     expect(screen.getByText(/venue not specified/i)).toBeInTheDocument();
     expect(screen.getByText(/no tool was developed in this study/i)).toBeInTheDocument();
