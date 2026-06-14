@@ -190,9 +190,11 @@ body {
 }
 
 .carbonbadge {
-  display: inline-flex;
+  display: flex;
+  flex-direction: column;
   align-items: center;
   flex: 0 0 auto;
+  gap: 4px;
 }
 
 .footer-logo,
@@ -1356,6 +1358,7 @@ a {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   gap: 24px;
+  margin-bottom: 32px;
 }
 
 .instructions-card {
@@ -2112,6 +2115,8 @@ a {
   flex: 1;
   min-height: 0;
   scroll-behavior: smooth;
+  align-items: start;   /* ← fixes the card stretching */
+  padding-top: 4px;     /* ← gives translateY(-2px) room so top border isn't clipped */
 }
 
 .practice-card {
@@ -3499,6 +3504,20 @@ a {
   outline-offset: 2px;
 }
 
+.practice-example-viewer {
+  display: grid;
+  gap: 16px;
+}
+
+.practice-example-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
 .user-inline-form,
 .user-password-form {
   display: grid;
@@ -3766,4 +3785,251 @@ a {
 .resend-btn:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+
+
+/* ─── Practice detail: green score card ──────────────────────────────────── */
+
+.practice-green-score-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 22px;
+  margin-bottom: 16px;
+  border: 2px solid color-mix(in srgb, var(--line-strong) 55%, transparent);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--surface-alt) 60%, var(--surface));
+  box-shadow: var(--shadow-soft);
+}
+
+.practice-green-score-label {
+  font-family: var(--font-display), "Trebuchet MS", sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.practice-green-score-value {
+  font-family: var(--font-display), "Trebuchet MS", sans-serif;
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--line-strong);
+}
+
+/* ─── Practice detail: scrollable metrics wrapper ────────────────────────── */
+
+.practice-metrics-scroll-wrap {
+  overflow-x: auto;
+  overflow-y: visible;
+  padding-bottom: 8px;
+  /* Subtle scrollbar styling where supported */
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--line) 55%, transparent) transparent;
+}
+
+.practice-metrics-scroll-wrap::-webkit-scrollbar {
+  height: 6px;
+}
+
+.practice-metrics-scroll-wrap::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.practice-metrics-scroll-wrap::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--line) 55%, transparent);
+  border-radius: 999px;
+}
+
+/* Override the grid to use a fixed min column width so cards don't shrink */
+.practice-metrics-scroll-wrap .practice-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  /* Ensure the grid is at least wide enough to show all cards without wrapping */
+  min-width: max-content;
+  gap: 8px;
+  overflow-x: unset;
+  padding-bottom: 0;
+}
+
+/* ─── Practice detail: green score comparison chart ─────────────────────── */
+
+.green-score-chart-wrap {
+  display: grid;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.green-score-chart-scroll {
+  border: 1px solid color-mix(in srgb, var(--line) 28%, transparent);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
+  box-shadow: var(--shadow-soft);
+  padding: 16px 20px;
+}
+
+.green-score-chart-rows {
+  display: grid;
+  grid-template-columns: minmax(0, 22ch) 1fr max-content;
+  row-gap: 8px;
+  column-gap: 12px;
+}
+
+.green-score-chart-row {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  align-items: center;
+}
+
+.green-score-chart-label {
+  font-size: 0.85rem;
+  font-weight: 400;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-decoration: none;
+  text-align: right;
+  transition: color 150ms ease;
+}
+
+.green-score-chart-label:hover,
+.green-score-chart-label:focus-visible {
+  color: var(--link);
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  outline: none;
+}
+
+.green-score-chart-label--current {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--line-strong);
+}
+
+.green-score-chart-label--current:hover,
+.green-score-chart-label--current:focus-visible {
+  color: var(--link);
+}
+
+.green-score-chart-track {
+  height: 12px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface-alt) 80%, transparent);
+  overflow: hidden;
+}
+
+.green-score-chart-row--current .green-score-chart-track {
+  height: 14px;
+}
+
+/* Bar fill */
+.green-score-chart-bar {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--line);
+  opacity: 0.55;
+}
+
+.green-score-chart-bar--current {
+  background: var(--line-strong);
+  opacity: 1;
+}
+
+/* Score number */
+.green-score-chart-score {
+  font-size: 0.82rem;
+  font-weight: 400;
+  color: var(--text-muted);
+  min-width: 2ch;
+  text-align: right;
+}
+
+.green-score-chart-score--current {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--line-strong);
+}
+
+.green-score-chart-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.green-score-chart-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.green-score-chart-scroll::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--line) 45%, transparent);
+  border-radius: 999px;
+}
+
+.green-score-chart-legend {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.green-score-chart-legend-current,
+.green-score-chart-legend-other {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.green-score-chart-legend-current {
+  background: var(--line-strong);
+}
+
+.green-score-chart-legend-other {
+  background: var(--line);
+  opacity: 0.55;
+}
+
+.green-score-chart-legend-sep {
+  width: 1px;
+  height: 14px;
+  background: color-mix(in srgb, var(--line) 45%, transparent);
+  display: inline-block;
+  margin: 0 4px;
+  flex-shrink: 0;
+}
+
+/* ─── Tooltip overlay ─────────────────────────────────────────────────────── */
+
+.tooltip-overlay {
+  position: fixed;
+  z-index: 9000;
+  pointer-events: none;              /* never blocks clicks */
+  max-width: min(320px, 90vw);
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--text-main) 92%, transparent);
+  color: var(--bg);
+  font-size: 0.82rem;
+  font-family: var(--font-body), "Segoe UI", sans-serif;
+  font-weight: 500;
+  line-height: 1.45;
+  letter-spacing: 0.01em;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 18%);
+  animation: tooltip-in 120ms ease-out;
+  white-space: normal;
+  word-break: break-word;
+}
+
+@keyframes tooltip-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.info-header {
+  display: flex;
 }

@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
-import { getPracticeByName } from "@/domain/practice-repository";
+import { ArrowLeft, Info } from "lucide-react";
+import { getPracticeByName, listPracticeGreenScores } from "@/domain/practice-repository";
 import { getUserByUsername } from "@/domain/user-repository";
 import { getSession } from "@/lib/session";
+import { PracticeExamplesScrollableGrid } from "./practice-examples-grid";
+import { PracticeGreenScoreChart } from "./practice-green-score-chart";
 import {
   catalogDatasetHref,
   catalogHyperparameterHref,
@@ -11,6 +13,9 @@ import {
   catalogPromptTechniqueHref,
   catalogReferenceHref,
 } from "../../catalog-paths";
+import { Tip } from "@/app/ui/tooltip/tip";
+import { TOOLTIPS } from "@/app/ui/tooltip/tooltip-content";
+import { TipInfo } from "@/app/ui/tooltip/tip-info";
 
 const energyMetricUnitLabels: Record<string, string> = {
   PERCENTAGE: "%",
@@ -64,14 +69,23 @@ type PracticeDetailsProps = {
   params: Promise<{ practiceName: string }>;
 };
 
+type PracticeExample = {
+  id: number;
+  scenario: string;
+  originalPrompts: string;
+  improvedPrompts: string;
+  observations: string;
+};
+
 export default async function PracticeDetailsPage({
   params,
 }: Readonly<PracticeDetailsProps>) {
   const { practiceName } = await params;
   const practiceNameDecoded = decodeURIComponent(practiceName);
-  const [practice, username] = await Promise.all([
+  const [practice, username, allGreenScores] = await Promise.all([
     getPracticeByName(practiceNameDecoded),
     getSession(),
+    listPracticeGreenScores(),
   ]);
 
   if (!practice) {
@@ -89,8 +103,7 @@ export default async function PracticeDetailsPage({
     ).values(),
   );
 
-  const primaryExample = practice.practiceExamples[0];
-  const secondaryExample = practice.practiceExamples[1] ?? primaryExample;
+  const practiceExamples: PracticeExample[] = practice.practiceExamples;
 
   const renderMetricDetails = (metric: (typeof practice.metrics)[number]) => {
     const energyMetrics = metric.energyMetrics ?? [];
@@ -166,51 +179,52 @@ export default async function PracticeDetailsPage({
           <h2> Categories: </h2>
           <div className="tags" aria-label="Practice categories">
             {practice.categories.map((category) => (
-              <span key={`${practice.name}-${category.category.name}`}>
-                {category.category.name}
-              </span>
+              <Tip key={`${practice.name}-${category.category.name}`} content={category.category.description ?? "No description available"}>
+                <span>
+                  {category.category.name}
+                </span>
+              </Tip>
             ))}
           </div>
-          <h2>Example:</h2>
-          <p>
-            <strong>Scenario:</strong>{" "}
-            {primaryExample?.scenario ?? "No scenario available for this practice yet."}
-          </p>
-
-          <div className="practice-example-grid">
-            <article className="practice-example-card">
-              <h3>Original prompt</h3>
-              <p>{primaryExample?.originalPrompts ?? "No original prompt registered."}</p>
-            </article>
-            <article className="practice-example-card">
-              <h3>Improved prompt</h3>
-              <p>{secondaryExample?.improvedPrompts ?? "No improved prompt registered."}</p>
-            </article>
-          </div>
-
-          <p>
-            <strong>Observations:</strong>{" "}
-            {primaryExample?.observations ?? "No observations registered yet."}
-          </p>
+          <h2>Examples:</h2>
+          {practiceExamples.length === 0 ? (
+            <p>No examples registered for this practice yet.</p>
+          ) : (
+            <PracticeExamplesScrollableGrid examples={practiceExamples} />
+          )}
         </section>
 
         <section className="practice-section">
-          <h2>Metrics:</h2>
-          <div className="practice-metrics-grid">
-            {practice.metrics.length > 0 ? (
-              practice.metrics.map((metric) => renderMetricDetails(metric))
-            ) : (
-              <article className="practice-metric-card">
-                <h3>Green score</h3>
-                <p>{practice.greenScore}</p>
-              </article>
-            )}
+          <div className="info-header">
+            <h2 style={{"paddingRight": "10px"}}>Metrics:</h2>
+            <TipInfo content={TOOLTIPS.PRACTICE_METRICS}/>
           </div>
+          {practice.metrics.length > 0 && (
+            <div className="practice-metrics-scroll-wrap" aria-label="Detailed metrics">
+              <div className="practice-metrics-grid">
+                {practice.metrics.map((metric) => renderMetricDetails(metric))}
+              </div>
+            </div>
+          )}
+        </section>
+        
+        <section className="practice-section">
+          <div className="info-header">
+            <h2 style={{"paddingRight": "10px"}}>Green score across practices:</h2>  
+            <TipInfo content={TOOLTIPS.PRACTICE_GREEN_SCORE}/>
+          </div>
+          <PracticeGreenScoreChart
+            currentPracticeName={practice.name}
+            scores={allGreenScores}
+          />
         </section>
 
         <section className="practice-facts-grid" aria-label="Practice metadata">
           <article>
-            <h2>Prompt techniques</h2>
+            <div className="info-header">
+              <h2 style={{"paddingRight": "10px"}}>Prompt techniques</h2>
+              <TipInfo content={TOOLTIPS.PRACTICE_PROMPT_TECHNIQUES}/>
+            </div>
             <ul>
               {practice.prompts.length > 0 ? (
                 practice.prompts.map((entry, index) => (
@@ -227,7 +241,10 @@ export default async function PracticeDetailsPage({
           </article>
 
           <article>
-            <h2>Models</h2>
+            <div className="info-header">
+              <h2 style={{"paddingRight": "10px"}}>Models</h2>
+              <TipInfo content={TOOLTIPS.PRACTICE_MODELS}/>
+            </div>
             <ul>
               {practice.models.length > 0 ? (
                 practice.models.map((entry, index) => (
@@ -244,7 +261,10 @@ export default async function PracticeDetailsPage({
           </article>
 
           <article>
-            <h2>Hyperparameters</h2>
+            <div className="info-header">
+              <h2 style={{"paddingRight": "10px"}}>Hyperparameters</h2>
+              <TipInfo content={TOOLTIPS.PRACTICE_HYPERPARAMETERS}/>
+            </div>
             <ul>
               {practice.hyperparameters.length > 0 ? (
                 practice.hyperparameters.map((hyperparameter) => (
@@ -261,7 +281,10 @@ export default async function PracticeDetailsPage({
           </article>
 
           <article>
-            <h2>Datasets</h2>
+            <div className="info-header">
+              <h2 style={{"paddingRight": "10px"}}>Datasets</h2>
+              <TipInfo content={TOOLTIPS.PRACTICE_DATASETS}/>
+            </div>
             <ul>
               {relatedDatasets.length > 0 ? (
                 relatedDatasets.map((dataset) => (

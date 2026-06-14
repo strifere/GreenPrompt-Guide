@@ -4,6 +4,10 @@ import { getDatasetByName } from "@/domain/dataset-repository";
 import { catalogPracticeHref, catalogReferenceHref } from "../../catalog-paths";
 import { getUserByUsername } from "@/domain/user-repository";
 import { getSession } from "@/lib/session";
+import { Info } from "lucide-react";
+import { Tip } from "@/app/ui/tooltip/tip";
+import { TOOLTIPS } from "@/app/ui/tooltip/tooltip-content";
+import { TipInfo } from "@/app/ui/tooltip/tip-info";
 
 type DatasetDetailsProps = {
   params: Promise<{ datasetName: string }>;
@@ -57,7 +61,11 @@ export default async function DatasetDetailsPage({
 
         <section className="practice-facts-grid" aria-label="Dataset metadata">
           <article>
-            <h2>Size</h2>
+            <div className="info-header">
+              <h2 style={{"paddingRight": "10px"}}>Size</h2>  
+              <TipInfo content={TOOLTIPS.DATASET_SIZE}/>
+            </div>
+            
             <ul>
               {dataset.size ? (
                 <li>{dataset.size}</li>
@@ -68,7 +76,10 @@ export default async function DatasetDetailsPage({
           </article>
 
           <article>
-            <h2>Data Format Types</h2>
+            <div className="info-header">
+              <h2 style={{"paddingRight": "10px"}}>Data Format Types</h2>
+              <TipInfo content={TOOLTIPS.DATASET_DATA_FORMAT_TYPES}/>
+            </div>
             <ul>
               {dataset.dataFormatType && dataset.dataFormatType.length > 0 ? (
                 dataset.dataFormatType.map((format) => (

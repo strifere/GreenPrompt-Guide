@@ -8,6 +8,8 @@ import { ThemeToggle } from "./ui/theme-toggle";
 import { TopbarMenu } from "./ui/topbar-menu";
 import { AuthButtons } from "./ui/auth-buttons";
 import { CollaborationButton } from "./ui/collaboration-button";
+import { TooltipProvider } from "./ui/tooltip/tooltip-context";
+import { TooltipOverlay } from "./ui/tooltip/tooltip-overlay";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -97,6 +99,9 @@ export default async function RootLayout({
             <Link href="/catalog" className="animated-link">
               Catalog
             </Link>
+            <Link href="/glossary" className="animated-link">
+              Glossary
+            </Link>
             <CollaborationButton />
             <Link href="/#about-greenprompt-guide" className="animated-link">
               About
@@ -109,7 +114,10 @@ export default async function RootLayout({
           <TopbarMenu />
         </header>
         <main className="app-main" >
-          {children}
+          <TooltipProvider>
+            {children}
+            <TooltipOverlay />
+          </TooltipProvider>
         </main>
         <footer className="site-footer">
           <div className="site-footer-content">
@@ -157,7 +165,7 @@ export default async function RootLayout({
                 />
               </a>
             </div>
-            <CarbonBadge initialTheme={initialTheme} url="nattech.fib.upc.edu:40470" />
+            <CarbonBadge initialTheme={initialTheme} />
           </div>
         </footer>
       </body>

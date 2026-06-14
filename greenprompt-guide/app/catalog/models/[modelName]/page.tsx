@@ -4,6 +4,10 @@ import { getModelByName } from "@/domain/model-repository";
 import { catalogPracticeHref, catalogReferenceHref } from "../../catalog-paths";
 import { getSession } from "@/lib/session";
 import { getUserByUsername } from "@/domain/user-repository";
+import { Tip } from "@/app/ui/tooltip/tip";
+import { Info } from "lucide-react";
+import { TOOLTIPS } from "@/app/ui/tooltip/tooltip-content";
+import { TipInfo } from "@/app/ui/tooltip/tip-info";
 
 type ModelDetailsProps = {
   params: Promise<{ modelName: string }>;
@@ -48,7 +52,10 @@ export default async function ModelDetailsPage({
 
         <section className="practice-facts-grid" aria-label="Model metadata">
           <article>
-            <h2>Parameters</h2>
+            <div className="info-header">
+              <h2 style={{"paddingRight": "10px"}}>Parameters</h2>
+              <TipInfo content={TOOLTIPS.MODEL_PARAMETERS}/>
+            </div>
             <ul>
               {model.parameters ? (
                 <li>{model.parameters}</li>
@@ -59,7 +66,10 @@ export default async function ModelDetailsPage({
           </article>
 
           <article>
-            <h2>Size</h2>
+            <div className="info-header">
+              <h2 style={{"paddingRight": "10px"}}>Size</h2>
+              <TipInfo content={TOOLTIPS.MODEL_SIZE}/>
+            </div>
             <ul>
               {model.size ? (
                 <li>{model.size}</li>
@@ -70,7 +80,10 @@ export default async function ModelDetailsPage({
           </article>
 
           <article>
-            <h2>Data Format Types</h2>
+            <div className="info-header">
+              <h2 style={{"paddingRight": "10px"}}>Data Format Types</h2>
+              <TipInfo content={TOOLTIPS.MODEL_DATA_FORMAT_TYPES}/>
+            </div>
             <ul>
               {model.dataFormatType && model.dataFormatType.length > 0 ? (
                 model.dataFormatType.map((format) => (

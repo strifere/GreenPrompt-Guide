@@ -89,10 +89,10 @@ export function LlmAnalysisPanel({ requestId, existingJob }: Readonly<LlmAnalysi
             setStep("Phase 2/4: Extracting reference data from the PDF...");
             break;
           case "THIRD_PROMPT":
-            setStep("Phase 3/4: Extracting models, datasets and hyperparameters...");
+            setStep("Phase 3/4: Extracting metrics...");
             break;
           case "FOURTH_PROMPT":
-            setStep("Phase 4/4: Extracting metrics...");
+            setStep("Phase 4/4: Extracting models, datasets and hyperparameters...");
             break;
           case "FINISHED":
             setStep("Analysis complete.");

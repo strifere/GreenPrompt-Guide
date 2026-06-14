@@ -19,7 +19,7 @@ services:
       - "11434:11434"
 
   app:
-    image: temp-image:test
+    image: greenprompt-guide:test
     depends_on:
       db:
         condition: service_healthy
@@ -36,7 +36,7 @@ services:
       COOKIE_SECURE: ${COOKIE_SECURE:-true}
       COLLABORATION_PDF_STORAGE_DIR: ${COLLABORATION_PDF_STORAGE_DIR:-/data/uploads/collaboration-requests}
       OLLAMA_URL: ${OLLAMA_URL:-http://ollama:11434}
-      OLLAMA_MODEL: ${OLLAMA_MODEL:-gemma4:latest}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-gemma4:e4b}
     ports:
       - "38080:3000"
     volumes:

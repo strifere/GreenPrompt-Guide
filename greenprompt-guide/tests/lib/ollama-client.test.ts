@@ -31,15 +31,15 @@ describe("ollama-client", () => {
   };
 
   const mockDataBlock3 = {
-    models: [{ name: "Model 1", parameters: "7B" }],
-    datasets: [{ name: "Dataset 1" }],
-    hyperparameters: [{ name: "Temp", value: "0.5", dataType: "float" }],
-  };
-
-  const mockDataBlock4 = {
     genericMetrics: [{ title: "GM1", value: "10" }],
     energyMetrics: [{ title: "EM1", value: "20" }],
     accuracyMetrics: [{ title: "AM1", value: "30" }],
+  };
+
+  const mockDataBlock4 = {
+    models: [{ name: "Model 1", parameters: "7B" }],
+    datasets: [{ name: "Dataset 1" }],
+    hyperparameters: [{ name: "Temp", value: "0.5", dataType: "float" }],
   };
 
   const PREFIX_PROMPT = "You are an expert AI research assistant that extracts structured data from research papers regarding Green Prompt Engineering. Your sole purpose is to analyze the provided text/images and extract data matching the exact JSON schema provided. Respond ONLY with a single, valid JSON object. Do not include markdown formatting (like ```json), preambles, or explanations."

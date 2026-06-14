@@ -28,6 +28,6 @@ export async function POST(request: NextRequest) {
 		return NextResponse.json({ practice }, { status: 201 });
 	} catch (error) {
 		console.error("Practice creation error:", error);
-		return NextResponse.json({ error: "An error occurred while creating the practice" }, { status: 500 });
+		return NextResponse.json({ error: `An error occurred while creating the practice: ${error}` }, { status: 500 });
 	}
 }

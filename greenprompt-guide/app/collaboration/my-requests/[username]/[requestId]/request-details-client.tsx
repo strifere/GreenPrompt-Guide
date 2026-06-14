@@ -519,7 +519,7 @@ export default function RequestDetailsClient({ request: initialRequest, currentU
 						</div>
 					)}
 				</div>
-				{canPostMessage ? null : (
+				{canPostMessage ? (
 					<form className="collaboration-message-box" onSubmit={handleMessageSubmit}>
 					<div className="form-group">
 						<label htmlFor="request-message">Write a new message</label>
@@ -540,7 +540,7 @@ export default function RequestDetailsClient({ request: initialRequest, currentU
 						</button>
 					</div>
 				</form>
-				)}
+				) : null}
 			</section>
 
 			{isAdmin ? (
