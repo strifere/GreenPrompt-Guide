@@ -4,8 +4,6 @@ import { getModelByName } from "@/domain/model-repository";
 import { catalogPracticeHref, catalogReferenceHref } from "../../catalog-paths";
 import { getSession } from "@/lib/session";
 import { getUserByUsername } from "@/domain/user-repository";
-import { Tip } from "@/app/ui/tooltip/tip";
-import { Info } from "lucide-react";
 import { TOOLTIPS } from "@/app/ui/tooltip/tooltip-content";
 import { TipInfo } from "@/app/ui/tooltip/tip-info";
 
