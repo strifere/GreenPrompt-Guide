@@ -548,11 +548,12 @@ export default function RequestDetailsClient({ request: initialRequest, currentU
 					<h2>Admin actions</h2>
 					<div className="collaboration-admin-actions">
 						<div className="collaboration-admin-actions-primary">
-							{canShowReopen ? (
+							{canShowReopen && (
 								<button type="button" className="solid-btn" disabled={adminLoading} onClick={() => void submitAdminStatusUpdate("PENDING")}>
 									Reopen request
 								</button>
-							) : (
+							)}
+							{!canShowReopen && request.status !== "APPROVED" && (
 								<>
 									<button type="button" className="green-btn" disabled={adminLoading} onClick={() => router.push(`/admin/practices/new/${request.id}`)}>
 										Approve request

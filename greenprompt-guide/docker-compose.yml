@@ -21,6 +21,8 @@ services:
     image: ollama/ollama:latest
     container_name: greenprompt-guide-ollama
     restart: unless-stopped
+    environment:
+      OLLAMA_KEEP_ALIVE: "-1"
     ports:
       - "11434:11434"
     volumes:

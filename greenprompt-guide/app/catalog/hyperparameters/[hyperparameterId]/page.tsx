@@ -4,8 +4,6 @@ import { catalogPracticeHref, catalogReferenceHref } from "../../catalog-paths";
 import { getUserByUsername } from "@/domain/user-repository";
 import { getSession } from "@/lib/session";
 import { getHyperparameterById } from "@/domain/hyperparameter-repository";
-import { Tip } from "@/app/ui/tooltip/tip";
-import { Info } from "lucide-react";
 import { TOOLTIPS } from "@/app/ui/tooltip/tooltip-content";
 import { TipInfo } from "@/app/ui/tooltip/tip-info";
 

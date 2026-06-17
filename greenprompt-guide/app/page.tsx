@@ -128,7 +128,7 @@ export default function HomePage() {
                     height={120}
                   />
                   <h4>Vincenzo De Martino</h4>
-                  <p className="team-role">Thesis supervisor</p>
+                  <p className="team-role">Thesis co-supervisor</p>
                   <p className="team-bio">
                     Universitat Politécnica de Catalunya.
                   </p>
@@ -142,7 +142,7 @@ export default function HomePage() {
                     height={120}
                   />
                   <h4>Silverio Martínez-Fernández</h4>
-                  <p className="team-role">Thesis co-supervisor</p>
+                  <p className="team-role">Thesis supervisor</p>
                   <p className="team-bio">
                     Universitat Politécnica de Catalunya.
                   </p>
