@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, Info } from "lucide-react";
-import { Tip } from "@/app/ui/tooltip/tip";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { TOOLTIPS } from "@/app/ui/tooltip/tooltip-content";
 import { TipInfo } from "@/app/ui/tooltip/tip-info";
 
