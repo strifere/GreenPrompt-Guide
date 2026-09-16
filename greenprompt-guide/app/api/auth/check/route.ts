@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { clearSession, getSession } from "@/lib/session";
 import { getUserByUsername } from "@/domain/user-repository";
 
-export async function GET() {
+export async function GET(_p0?: NextRequest) {
   try {
     const username = await getSession();
 

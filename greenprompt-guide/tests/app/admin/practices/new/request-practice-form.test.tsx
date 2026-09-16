@@ -22,7 +22,6 @@ vi.mock("@/app/admin/practices/practice-form", () => ({
 
 describe("RequestPracticeForm", () => {
   it("renders PracticeForm component", () => {
-    const categories = [];
 
     render(
       <RequestPracticeForm
@@ -32,7 +31,8 @@ describe("RequestPracticeForm", () => {
         requestDescription="Test description"
         requestReferenceLink="https://example.com"
         requestExamples="Examples"
-        categories={categories}
+        categories={[]}
+        references={[]}
       />
     );
 
@@ -50,6 +50,7 @@ describe("RequestPracticeForm", () => {
         requestReferenceLink="https://example.com"
         requestExamples="Examples"
         categories={[]}
+        references={[]}
       />
     );
 
@@ -69,9 +70,7 @@ describe("RequestPracticeForm", () => {
         requestReferenceLink="https://example.com"
         requestExamples="Examples"
         categories={[]}
-        promptTechniques={[]}
-        models={[]}
-        hyperparameters={[]}
+        references={[]}
       />
     );
 
@@ -90,6 +89,7 @@ describe("RequestPracticeForm", () => {
         requestReferenceLink="https://example.com"
         requestExamples="Examples"
         categories={[]}
+        references={[]}
       />
     );
 
@@ -108,6 +108,7 @@ describe("RequestPracticeForm", () => {
         requestReferenceLink="https://example.com"
         requestExamples="Examples"
         categories={[]}
+        references={[]}
       />
     );
 
@@ -126,6 +127,7 @@ describe("RequestPracticeForm", () => {
         requestReferenceLink="https://example.com"
         requestExamples="Examples"
         categories={[]}
+        references={[]}
       />
     );
 
@@ -148,6 +150,7 @@ describe("RequestPracticeForm", () => {
         requestReferenceLink="https://example.com"
         requestExamples="Examples"
         categories={categories}
+        references={[]}
       />
     );
 
@@ -166,6 +169,7 @@ describe("RequestPracticeForm", () => {
         requestReferenceLink="https://example.com"
         requestExamples="Examples"
         categories={[]}
+        references={[]}
       />
     );
 
@@ -184,6 +188,7 @@ describe("RequestPracticeForm", () => {
         requestReferenceLink="https://example.com"
         requestExamples={null}
         categories={[]}
+        references={[]}
       />
     );
 

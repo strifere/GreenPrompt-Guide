@@ -11,17 +11,21 @@ describe("EmailService", () => {
     originalTransporter = (emailService as any).transporter;
     vi.restoreAllMocks();
     // default environment
-    process.env.NODE_ENV = "development";
+    // process.env.NODE_ENV = "development";
+    vi.stubEnv('NODE_ENV', 'development');
   });
 
   afterEach(() => {
-    process.env.NODE_ENV = ORIGINAL_NODE_ENV;
-    process.env.EMAIL_FROM = ORIGINAL_EMAIL_FROM;
+    // process.env.NODE_ENV = ORIGINAL_NODE_ENV;
+    // process.env.EMAIL_FROM = ORIGINAL_EMAIL_FROM;
+    vi.stubEnv('NODE_ENV', ORIGINAL_NODE_ENV);
+    vi.stubEnv('EMAIL_FROM', ORIGINAL_EMAIL_FROM);
     (emailService as any).transporter = originalTransporter;
   });
 
   it("logs HTML and returns true in development mode when sending signup verification code", async () => {
-    process.env.NODE_ENV = "development";
+    // process.env.NODE_ENV = "development";
+    vi.stubEnv('NODE_ENV', 'development');
     const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 
     const result = await emailService.sendSignupVerificationCode("a@b.com", "CODE123");
@@ -32,8 +36,10 @@ describe("EmailService", () => {
   });
 
   it("uses default from address when EMAIL_FROM is not set", async () => {
-    process.env.NODE_ENV = "production";
-    delete process.env.EMAIL_FROM;
+    // process.env.NODE_ENV = "production";
+    // delete process.env.EMAIL_FROM;
+    vi.stubEnv('NODE_ENV', 'production');
+    vi.stubEnv('EMAIL_FROM', undefined);
 
     let capturedFrom: string | undefined;
     (emailService as any).transporter = {
@@ -49,7 +55,8 @@ describe("EmailService", () => {
   });
 
   it("returns false and logs error when transporter.sendMail throws", async () => {
-    process.env.NODE_ENV = "production";
+    // process.env.NODE_ENV = "production";
+    vi.stubEnv('NODE_ENV', 'production');
     const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
     (emailService as any).transporter = {
@@ -93,7 +100,8 @@ describe("EmailService", () => {
   });
 
   it("sends email successfully in production mode", async () => {
-    process.env.NODE_ENV = "production";
+    // process.env.NODE_ENV = "production";
+    vi.stubEnv('NODE_ENV', 'production');
     let capturedOptions: any;
     (emailService as any).transporter = {
       sendMail: async (opts: any) => {
@@ -108,7 +116,8 @@ describe("EmailService", () => {
   });
 
   it("logs text only in development mode when no html is provided", async () => {
-    process.env.NODE_ENV = "development";
+    // process.env.NODE_ENV = "development";
+    vi.stubEnv('NODE_ENV', 'development');
     const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 
     await emailService.send({ to: "dev@example.com", subject: "Dev Text Test", text: "Dev Text Body" });
@@ -176,9 +185,11 @@ describe("EmailService", () => {
   });
 
   it("uses custom from address when EMAIL_FROM is set", async () => {
-    process.env.NODE_ENV = "production";
-    process.env.EMAIL_FROM = "Custom From <custom@example.com>";
-    
+    // process.env.NODE_ENV = "production";
+    // process.env.EMAIL_FROM = "Custom From <custom@example.com>";
+    vi.stubEnv('NODE_ENV', 'production');
+    vi.stubEnv('EMAIL_FROM', 'Custom From <custom@example.com>');
+
     let capturedFrom: string | undefined;
     (emailService as any).transporter = {
       sendMail: async (opts: any) => {

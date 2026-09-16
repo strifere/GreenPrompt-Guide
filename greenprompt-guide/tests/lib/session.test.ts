@@ -20,12 +20,15 @@ describe("lib/session", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    process.env.NODE_ENV = originalNodeEnv;
-    process.env.COOKIE_SECURE = originalCookieSecure;
+    vi.stubEnv('NODE_ENV', originalNodeEnv);
+    vi.stubEnv('COOKIE_SECURE', originalCookieSecure);
+    // process.env.NODE_ENV = originalNodeEnv;
+    // process.env.COOKIE_SECURE = originalCookieSecure;
   });
 
   it("sets an insecure cookie when COOKIE_SECURE=false", async () => {
-    process.env.COOKIE_SECURE = "false";
+    // process.env.COOKIE_SECURE = "false";
+    vi.stubEnv('COOKIE_SECURE', 'false');
 
     await createSessionCookie("victor");
 
@@ -37,8 +40,10 @@ describe("lib/session", () => {
   });
 
   it("defaults to secure cookies in production", async () => {
-    process.env.NODE_ENV = "production";
-    delete process.env.COOKIE_SECURE;
+    // process.env.NODE_ENV = "production";
+    vi.stubEnv('NODE_ENV', 'production');
+    // delete process.env.COOKIE_SECURE;
+    vi.stubEnv('COOKIE_SECURE', undefined);
 
     await createSessionCookie("victor");
 

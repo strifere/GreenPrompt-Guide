@@ -1,5 +1,5 @@
 
-import { vi, describe, it, expect, beforeEach } from "vitest";
+import { vi, describe, it, expect, beforeEach, Mock } from "vitest";
 import { POST, DELETE } from "@/app/api/admin/requests/[requestId]/route";
 import { getSession } from "@/lib/session";
 import { getUserByUsername } from "@/domain/user-repository";
@@ -23,17 +23,17 @@ describe("Admin Request API", () => {
     });
 
     const mockAdminSession = () => {
-        (getSession as vi.Mock).mockResolvedValue("adminuser");
-        (getUserByUsername as vi.Mock).mockResolvedValue({ username: "adminuser", role: "ADMIN" });
+        (getSession as Mock).mockResolvedValue("adminuser");
+        (getUserByUsername as Mock).mockResolvedValue({ username: "adminuser", role: "ADMIN" });
     };
 
     const mockUserSession = () => {
-        (getSession as vi.Mock).mockResolvedValue("testuser");
-        (getUserByUsername as vi.Mock).mockResolvedValue({ username: "testuser", role: "USER" });
+        (getSession as Mock).mockResolvedValue("testuser");
+        (getUserByUsername as Mock).mockResolvedValue({ username: "testuser", role: "USER" });
     };
 
     const mockNoSession = () => {
-        (getSession as vi.Mock).mockResolvedValue(null);
+        (getSession as Mock).mockResolvedValue(null);
     };
 
     describe("DELETE /api/admin/requests/[requestId]", () => {
@@ -65,7 +65,7 @@ describe("Admin Request API", () => {
 
         it("should return 404 if request not found", async () => {
             mockAdminSession();
-            (getCollaborationRequestDetailsById as vi.Mock).mockResolvedValue(null);
+            (getCollaborationRequestDetailsById as Mock).mockResolvedValue(null);
             const request = new Request("http://localhost/api/admin/requests/999", { method: "DELETE" });
             const context = { params: { requestId: "999" } };
             const response = await DELETE(request, context as any);
@@ -74,8 +74,8 @@ describe("Admin Request API", () => {
 
         it("should delete the request and return 200", async () => {
             mockAdminSession();
-            (getCollaborationRequestDetailsById as vi.Mock).mockResolvedValue({ id: 1 });
-            (deleteCollaborationRequestById as vi.Mock).mockResolvedValue({} as any);
+            (getCollaborationRequestDetailsById as Mock).mockResolvedValue({ id: 1 });
+            (deleteCollaborationRequestById as Mock).mockResolvedValue({} as any);
             const request = new Request("http://localhost/api/admin/requests/1", { method: "DELETE" });
             const context = { params: { requestId: "1" } };
             const response = await DELETE(request, context as any);
@@ -87,8 +87,8 @@ describe("Admin Request API", () => {
 
         it("should return 500 on unexpected error", async () => {
             mockAdminSession();
-            (getCollaborationRequestDetailsById as vi.Mock).mockResolvedValue({ id: 1 });
-            (deleteCollaborationRequestById as vi.Mock).mockRejectedValue(new Error("DB error"));
+            (getCollaborationRequestDetailsById as Mock).mockResolvedValue({ id: 1 });
+            (deleteCollaborationRequestById as Mock).mockRejectedValue(new Error("DB error"));
             const request = new Request("http://localhost/api/admin/requests/1", { method: "DELETE" });
             const context = { params: { requestId: "1" } };
             const response = await DELETE(request, context as any);
@@ -127,7 +127,7 @@ describe("Admin Request API", () => {
 
         it("should return 404 if request not found", async () => {
             mockAdminSession();
-            (getCollaborationRequestDetailsById as vi.Mock).mockResolvedValue(null);
+            (getCollaborationRequestDetailsById as Mock).mockResolvedValue(null);
             const request = new Request("http://localhost/api/admin/requests/999", {
                 method: "POST",
                 body: JSON.stringify(validPayload)
@@ -139,7 +139,7 @@ describe("Admin Request API", () => {
 
         it("should return 200 if practice already created", async () => {
             mockAdminSession();
-            (getCollaborationRequestDetailsById as vi.Mock).mockResolvedValue({ id: 1, createdPractice: {} });
+            (getCollaborationRequestDetailsById as Mock).mockResolvedValue({ id: 1, createdPractice: {} });
             const request = new Request("http://localhost/api/admin/requests/1", {
                 method: "POST",
                 body: JSON.stringify(validPayload)
@@ -153,7 +153,7 @@ describe("Admin Request API", () => {
 
         it("should return 409 if request is not PENDING", async () => {
             mockAdminSession();
-            (getCollaborationRequestDetailsById as vi.Mock).mockResolvedValue({ id: 1, status: 'APPROVED' });
+            (getCollaborationRequestDetailsById as Mock).mockResolvedValue({ id: 1, status: 'APPROVED' });
             const request = new Request("http://localhost/api/admin/requests/1", {
                 method: "POST",
                 body: JSON.stringify(validPayload)
@@ -165,8 +165,8 @@ describe("Admin Request API", () => {
 
         it("should return 400 for invalid payload", async () => {
             mockAdminSession();
-            (getCollaborationRequestDetailsById as vi.Mock).mockResolvedValue({ id: 1, status: 'PENDING' });
-            (normalizeAdminPracticePayload as vi.Mock).mockReturnValue({ error: "Invalid payload" });
+            (getCollaborationRequestDetailsById as Mock).mockResolvedValue({ id: 1, status: 'PENDING' });
+            (normalizeAdminPracticePayload as Mock).mockReturnValue({ error: "Invalid payload" });
             const request = new Request("http://localhost/api/admin/requests/1", {
                 method: "POST",
                 body: JSON.stringify({})
@@ -178,12 +178,12 @@ describe("Admin Request API", () => {
 
         it("should create practice and return 200 on success", async () => {
             mockAdminSession();
-            (getCollaborationRequestDetailsById as vi.Mock)
+            (getCollaborationRequestDetailsById as Mock)
                 .mockResolvedValueOnce({ id: 1, status: 'PENDING' })
                 .mockResolvedValueOnce({ id: 1, status: 'APPROVED' }); // For the refetch
-            (normalizeAdminPracticePayload as vi.Mock).mockReturnValue({ value: validPayload });
-            (createAdminPractice as vi.Mock).mockResolvedValue({ id: 100, ...validPayload });
-            (prisma.$transaction as vi.Mock).mockImplementation(async (fn) => {
+            (normalizeAdminPracticePayload as Mock).mockReturnValue({ value: validPayload });
+            (createAdminPractice as Mock).mockResolvedValue({ id: 100, ...validPayload });
+            (prisma.$transaction as Mock).mockImplementation(async (fn) => {
                 const tx = { collaborationRequest: { update: vi.fn() } };
                 const practice = await fn(tx);
                 expect(tx.collaborationRequest.update).toHaveBeenCalled();
@@ -205,9 +205,9 @@ describe("Admin Request API", () => {
 
         it("should return 500 on transaction error", async () => {
             mockAdminSession();
-            (getCollaborationRequestDetailsById as vi.Mock).mockResolvedValue({ id: 1, status: 'PENDING' });
-            (normalizeAdminPracticePayload as vi.Mock).mockReturnValue({ value: validPayload });
-            (prisma.$transaction as vi.Mock).mockRejectedValue(new Error("DB transaction error"));
+            (getCollaborationRequestDetailsById as Mock).mockResolvedValue({ id: 1, status: 'PENDING' });
+            (normalizeAdminPracticePayload as Mock).mockReturnValue({ value: validPayload });
+            (prisma.$transaction as Mock).mockRejectedValue(new Error("DB transaction error"));
             
             const request = new Request("http://localhost/api/admin/requests/1", {
                 method: "POST",

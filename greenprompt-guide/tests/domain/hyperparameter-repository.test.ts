@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getHyperparameterById } from "@/domain/hyperparameter-repository";
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, Mock } from "vitest";
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
@@ -21,7 +21,7 @@ describe("getHyperparameterById", () => {
       source: "Test Source",
     };
 
-    const prismaMock = prisma.hyperparameter.findUnique as jest.Mock;
+    const prismaMock = prisma.hyperparameter.findUnique as Mock;
     prismaMock.mockResolvedValue(mockHyperparameter);
 
     const hyperparameter = await getHyperparameterById(1);
@@ -33,7 +33,7 @@ describe("getHyperparameterById", () => {
   });
 
   it("should return null when an invalid ID is provided", async () => {
-    const prismaMock = prisma.hyperparameter.findUnique as jest.Mock;
+    const prismaMock = prisma.hyperparameter.findUnique as Mock;
     prismaMock.mockResolvedValue(null);
 
     const hyperparameter = await getHyperparameterById(99);

@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
 import { NextRequest } from "next/server";
 import { deleteObjectAPI, updateObjectAPI, insertObjectAPI } from "@/lib/admin-actions-server";
 import { requireAdmin } from "@/lib/admin-auth";
@@ -50,7 +50,7 @@ describe("lib/admin-actions-server", () => {
 
     describe("deleteObjectAPI", () => {
         it("should return 401 if not admin", async () => {
-            (requireAdmin as vi.Mock).mockResolvedValue({
+            (requireAdmin as Mock).mockResolvedValue({
                 ok: false,
                 response: { status: 401, json: () => Promise.resolve({ error: "Unauthorized" }) },
             });
@@ -59,8 +59,8 @@ describe("lib/admin-actions-server", () => {
         });
 
         it("should return 404 if object not found", async () => {
-            (requireAdmin as vi.Mock).mockResolvedValue({ ok: true });
-            (prisma.model.findUnique as vi.Mock).mockResolvedValue(null);
+            (requireAdmin as Mock).mockResolvedValue({ ok: true });
+            (prisma.model.findUnique as Mock).mockResolvedValue(null);
             const response = await deleteObjectAPI("model", "test-model");
             expect(response.status).toBe(404);
             const body = await response.json();
@@ -68,33 +68,33 @@ describe("lib/admin-actions-server", () => {
         });
 
         it("should delete a model successfully", async () => {
-            (requireAdmin as vi.Mock).mockResolvedValue({ ok: true });
-            (prisma.model.findUnique as vi.Mock).mockResolvedValue({ name: "test-model" });
+            (requireAdmin as Mock).mockResolvedValue({ ok: true });
+            (prisma.model.findUnique as Mock).mockResolvedValue({ name: "test-model" });
             const response = await deleteObjectAPI("model", "test-model");
             expect(prisma.model.delete).toHaveBeenCalledWith({ where: { name: "test-model" } });
             expect(response.status).toBe(200);
         });
 
         it("should delete a dataset successfully", async () => {
-            (requireAdmin as vi.Mock).mockResolvedValue({ ok: true });
-            (prisma.dataset.findUnique as vi.Mock).mockResolvedValue({ name: "test-dataset" });
+            (requireAdmin as Mock).mockResolvedValue({ ok: true });
+            (prisma.dataset.findUnique as Mock).mockResolvedValue({ name: "test-dataset" });
             const response = await deleteObjectAPI("dataset", "test-dataset");
             expect(prisma.dataset.delete).toHaveBeenCalledWith({ where: { name: "test-dataset" } });
             expect(response.status).toBe(200);
         });
 
         it("should return 500 on unexpected error", async () => {
-            (requireAdmin as vi.Mock).mockResolvedValue({ ok: true });
-            (prisma.model.findUnique as vi.Mock).mockResolvedValue({ name: "test-model" });
-            (prisma.model.delete as vi.Mock).mockRejectedValue(new Error("DB error"));
+            (requireAdmin as Mock).mockResolvedValue({ ok: true });
+            (prisma.model.findUnique as Mock).mockResolvedValue({ name: "test-model" });
+            (prisma.model.delete as Mock).mockRejectedValue(new Error("DB error"));
             const response = await deleteObjectAPI("model", "test-model");
             expect(response.status).toBe(500);
         });
 
         it("should delete a reference successfully", async () => {
-            (requireAdmin as vi.Mock).mockResolvedValue({ ok: true });
-            (prisma.reference.findUnique as vi.Mock).mockResolvedValue({ title: "test-ref" });
-            (prisma.reference.delete as vi.Mock).mockResolvedValue({} as any);
+            (requireAdmin as Mock).mockResolvedValue({ ok: true });
+            (prisma.reference.findUnique as Mock).mockResolvedValue({ title: "test-ref" });
+            (prisma.reference.delete as Mock).mockResolvedValue({} as any);
             const response = await deleteObjectAPI("reference", "test-ref");
             expect(prisma.reference.delete).toHaveBeenCalledWith({ where: { title: "test-ref" } });
             expect(response.status).toBe(200);
@@ -103,13 +103,13 @@ describe("lib/admin-actions-server", () => {
 
     describe("insertObjectAPI", () => {
         it("should insert a new model", async () => {
-            (requireAdmin as vi.Mock).mockResolvedValue({ ok: true });
+            (requireAdmin as Mock).mockResolvedValue({ ok: true });
             const req = new NextRequest("http://localhost", {
                 method: "POST",
                 body: JSON.stringify({ name: "new-model", description: "d" }),
             });
-            (prisma.model.findUnique as vi.Mock).mockResolvedValue(null);
-            (prisma.reference.findMany as vi.Mock).mockResolvedValue([]);
+            (prisma.model.findUnique as Mock).mockResolvedValue(null);
+            (prisma.reference.findMany as Mock).mockResolvedValue([]);
 
             const response = await insertObjectAPI("model", req);
             expect(response.status).toBe(201);
@@ -117,19 +117,19 @@ describe("lib/admin-actions-server", () => {
         });
 
         it("should return 409 if model exists", async () => {
-            (requireAdmin as vi.Mock).mockResolvedValue({ ok: true });
+            (requireAdmin as Mock).mockResolvedValue({ ok: true });
             const req = new NextRequest("http://localhost", {
                 method: "POST",
                 body: JSON.stringify({ name: "existing-model" }),
             });
-            (prisma.model.findUnique as vi.Mock).mockResolvedValue({ name: "existing-model" });
+            (prisma.model.findUnique as Mock).mockResolvedValue({ name: "existing-model" });
             
             const response = await insertObjectAPI("model", req);
             expect(response.status).toBe(409);
         });
 
         it("should return 400 if name is missing", async () => {
-            (requireAdmin as vi.Mock).mockResolvedValue({ ok: true });
+            (requireAdmin as Mock).mockResolvedValue({ ok: true });
             const req = new NextRequest("http://localhost", {
                 method: "POST",
                 body: JSON.stringify({ description: "d" }),
@@ -141,13 +141,13 @@ describe("lib/admin-actions-server", () => {
         });
 
         it("should return 400 for invalid reference titles", async () => {
-            (requireAdmin as vi.Mock).mockResolvedValue({ ok: true });
+            (requireAdmin as Mock).mockResolvedValue({ ok: true });
             const req = new NextRequest("http://localhost", {
                 method: "POST",
                 body: JSON.stringify({ name: "new-model", referenceTitles: ["non-existent-ref"] }),
             });
-            (prisma.model.findUnique as vi.Mock).mockResolvedValue(null);
-            (prisma.reference.findMany as vi.Mock).mockResolvedValue([]);
+            (prisma.model.findUnique as Mock).mockResolvedValue(null);
+            (prisma.reference.findMany as Mock).mockResolvedValue([]);
             const response = await insertObjectAPI("model", req);
             expect(response.status).toBe(400);
             const body = await response.json();
@@ -155,13 +155,13 @@ describe("lib/admin-actions-server", () => {
         });
 
         it("should insert a new dataset", async () => {
-            (requireAdmin as vi.Mock).mockResolvedValue({ ok: true });
+            (requireAdmin as Mock).mockResolvedValue({ ok: true });
             const req = new NextRequest("http://localhost", {
                 method: "POST",
                 body: JSON.stringify({ name: "new-dataset" }),
             });
-            (prisma.dataset.findUnique as vi.Mock).mockResolvedValue(null);
-            (prisma.reference.findMany as vi.Mock).mockResolvedValue([]);
+            (prisma.dataset.findUnique as Mock).mockResolvedValue(null);
+            (prisma.reference.findMany as Mock).mockResolvedValue([]);
             
             const response = await insertObjectAPI("dataset", req);
             expect(response.status).toBe(201);
@@ -171,13 +171,13 @@ describe("lib/admin-actions-server", () => {
     
     describe("updateObjectAPI", () => {
         it("should update a model", async () => {
-            (requireAdmin as vi.Mock).mockResolvedValue({ ok: true });
+            (requireAdmin as Mock).mockResolvedValue({ ok: true });
              const req = new NextRequest("http://localhost", {
                 method: "PATCH",
                 body: JSON.stringify({ description: "new description" }),
             });
-            (prisma.model.findUnique as vi.Mock).mockResolvedValue({ name: "test-model" });
-            (prisma.reference.findMany as vi.Mock).mockResolvedValue([]);
+            (prisma.model.findUnique as Mock).mockResolvedValue({ name: "test-model" });
+            (prisma.reference.findMany as Mock).mockResolvedValue([]);
 
             const response = await updateObjectAPI("model", req, "test-model");
             expect(response.status).toBe(200);
@@ -185,24 +185,24 @@ describe("lib/admin-actions-server", () => {
         });
 
         it("should return 404 if object to update is not found", async () => {
-            (requireAdmin as vi.Mock).mockResolvedValue({ ok: true });
+            (requireAdmin as Mock).mockResolvedValue({ ok: true });
             const req = new NextRequest("http://localhost", {
                 method: "PATCH",
                 body: JSON.stringify({ description: "new description" }),
             });
-            (prisma.model.findUnique as vi.Mock).mockResolvedValue(null);
+            (prisma.model.findUnique as Mock).mockResolvedValue(null);
             const response = await updateObjectAPI("model", req, "non-existent-model");
             expect(response.status).toBe(404);
         });
 
         it("should handle reference update", async () => {
-            (requireAdmin as vi.Mock).mockResolvedValue({ ok: true });
+            (requireAdmin as Mock).mockResolvedValue({ ok: true });
             const req = new NextRequest("http://localhost", {
                 method: "PATCH",
                 body: JSON.stringify({ authors: "new authors" }),
             });
-            (prisma.reference.findUnique as vi.Mock).mockResolvedValue({ title: "test-ref" });
-            (prisma.reference.update as vi.Mock).mockResolvedValue({ title: "test-ref", authors: "new authors" });
+            (prisma.reference.findUnique as Mock).mockResolvedValue({ title: "test-ref" });
+            (prisma.reference.update as Mock).mockResolvedValue({ title: "test-ref", authors: "new authors" });
 
             const response = await updateObjectAPI("reference", req, "test-ref");
             expect(response.status).toBe(200);
@@ -212,13 +212,13 @@ describe("lib/admin-actions-server", () => {
         });
 
         it("should return 400 if reference validation fails", async () => {
-            (requireAdmin as vi.Mock).mockResolvedValue({ ok: true });
+            (requireAdmin as Mock).mockResolvedValue({ ok: true });
             const req = new NextRequest("http://localhost", {
                 method: "PATCH",
                 body: JSON.stringify({ referenceTitles: ["missing-ref"] }),
             });
-            (prisma.model.findUnique as vi.Mock).mockResolvedValue({ name: "test-model" });
-            (prisma.reference.findMany as vi.Mock).mockResolvedValue([]);
+            (prisma.model.findUnique as Mock).mockResolvedValue({ name: "test-model" });
+            (prisma.reference.findMany as Mock).mockResolvedValue([]);
 
             const response = await updateObjectAPI("model", req, "test-model");
             expect(response.status).toBe(400);
@@ -227,13 +227,13 @@ describe("lib/admin-actions-server", () => {
         });
 
         it("should update a dataset successfully", async () => {
-            (requireAdmin as vi.Mock).mockResolvedValue({ ok: true });
+            (requireAdmin as Mock).mockResolvedValue({ ok: true });
             const req = new NextRequest("http://localhost", {
                 method: "PATCH",
                 body: JSON.stringify({ description: "new description" }),
             });
-            (prisma.dataset.findUnique as vi.Mock).mockResolvedValue({ name: "test-dataset" });
-            (prisma.reference.findMany as vi.Mock).mockResolvedValue([]);
+            (prisma.dataset.findUnique as Mock).mockResolvedValue({ name: "test-dataset" });
+            (prisma.reference.findMany as Mock).mockResolvedValue([]);
 
             const response = await updateObjectAPI("dataset", req, "test-dataset");
             expect(response.status).toBe(200);

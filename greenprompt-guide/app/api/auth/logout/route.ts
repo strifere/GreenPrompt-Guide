@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { clearSession } from "@/lib/session";
 
-export async function POST() {
+export async function POST(_p0?: NextRequest) {
   try {
     // Clear the session cookie
     await clearSession();

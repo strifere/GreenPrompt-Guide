@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
 import RequestDetailsPage from "@/app/collaboration/my-requests/[username]/[requestId]/page";
 import { getSession } from "@/lib/session";
 import { getUserByUsername } from "@/domain/user-repository";
@@ -24,53 +24,53 @@ describe("RequestDetailsPage", () => {
 
     const username = "testuser";
     const requestId = "1";
-    const props = { params: { username, requestId } };
+    const props = { params: Promise.resolve({ username, requestId }) };
 
     it("should redirect to /login if user is not authenticated", async () => {
-        (getSession as vi.Mock).mockResolvedValue(null);
+        (getSession as Mock).mockResolvedValue(null);
         
         await expect(RequestDetailsPage(props)).rejects.toThrow("Redirected");
         expect(redirect).toHaveBeenCalledWith("/login");
     });
 
     it("should redirect to /login if current user is not found", async () => {
-        (getSession as vi.Mock).mockResolvedValue(username);
-        (getUserByUsername as vi.Mock).mockResolvedValue(null);
+        (getSession as Mock).mockResolvedValue(username);
+        (getUserByUsername as Mock).mockResolvedValue(null);
 
         await expect(RequestDetailsPage(props)).rejects.toThrow("Redirected");
         expect(redirect).toHaveBeenCalledWith("/login");
     });
 
     it("should redirect if a non-admin user tries to access another user's request page", async () => {
-        (getSession as vi.Mock).mockResolvedValue("anotherUser");
-        (getUserByUsername as vi.Mock).mockResolvedValue({ username: "anotherUser", role: "USER" });
+        (getSession as Mock).mockResolvedValue("anotherUser");
+        (getUserByUsername as Mock).mockResolvedValue({ username: "anotherUser", role: "USER" });
         
         await expect(RequestDetailsPage(props)).rejects.toThrow("Redirected");
         expect(redirect).toHaveBeenCalledWith("/collaboration/my-requests/anotherUser");
     });
 
     it("should call notFound for invalid requestId", async () => {
-        (getSession as vi.Mock).mockResolvedValue(username);
-        (getUserByUsername as vi.Mock).mockResolvedValue({ username, role: "USER" });
-        const invalidProps = { params: { username, requestId: "abc" } };
+        (getSession as Mock).mockResolvedValue(username);
+        (getUserByUsername as Mock).mockResolvedValue({ username, role: "USER" });
+        const invalidProps = { params: Promise.resolve({ username, requestId: "abc" }) };
 
         await expect(RequestDetailsPage(invalidProps)).rejects.toThrow("NotFound");
         expect(notFound).toHaveBeenCalled();
     });
 
     it("should call notFound if request is not found", async () => {
-        (getSession as vi.Mock).mockResolvedValue(username);
-        (getUserByUsername as vi.Mock).mockResolvedValue({ username, role: "USER" });
-        (getCollaborationRequestDetailsById as vi.Mock).mockResolvedValue(null);
+        (getSession as Mock).mockResolvedValue(username);
+        (getUserByUsername as Mock).mockResolvedValue({ username, role: "USER" });
+        (getCollaborationRequestDetailsById as Mock).mockResolvedValue(null);
 
         await expect(RequestDetailsPage(props)).rejects.toThrow("NotFound");
         expect(notFound).toHaveBeenCalled();
     });
 
     it("should call notFound if user tries to access a request that is not theirs", async () => {
-        (getSession as vi.Mock).mockResolvedValue(username);
-        (getUserByUsername as vi.Mock).mockResolvedValue({ username, role: "USER" });
-        (getCollaborationRequestDetailsById as vi.Mock).mockResolvedValue({ id: 1, requesterUsername: "anotherUser" });
+        (getSession as Mock).mockResolvedValue(username);
+        (getUserByUsername as Mock).mockResolvedValue({ username, role: "USER" });
+        (getCollaborationRequestDetailsById as Mock).mockResolvedValue({ id: 1, requesterUsername: "anotherUser" });
 
         await expect(RequestDetailsPage(props)).rejects.toThrow("NotFound");
         expect(notFound).toHaveBeenCalled();
@@ -85,9 +85,9 @@ describe("RequestDetailsPage", () => {
             messages: [],
             reviewerNotes: "some notes"
         };
-        (getSession as vi.Mock).mockResolvedValue(username);
-        (getUserByUsername as vi.Mock).mockResolvedValue({ username, role: "USER" });
-        (getCollaborationRequestDetailsById as vi.Mock).mockResolvedValue(requestDetails);
+        (getSession as Mock).mockResolvedValue(username);
+        (getUserByUsername as Mock).mockResolvedValue({ username, role: "USER" });
+        (getCollaborationRequestDetailsById as Mock).mockResolvedValue(requestDetails);
 
         const Page = await RequestDetailsPage(props);
         render(Page);
@@ -104,9 +104,9 @@ describe("RequestDetailsPage", () => {
             status: "PENDING",
             messages: []
         };
-        (getSession as vi.Mock).mockResolvedValue(adminUser);
-        (getUserByUsername as vi.Mock).mockResolvedValue({ username: adminUser, role: "ADMIN" });
-        (getCollaborationRequestDetailsById as vi.Mock).mockResolvedValue(requestDetails);
+        (getSession as Mock).mockResolvedValue(adminUser);
+        (getUserByUsername as Mock).mockResolvedValue({ username: adminUser, role: "ADMIN" });
+        (getCollaborationRequestDetailsById as Mock).mockResolvedValue(requestDetails);
 
         const Page = await RequestDetailsPage(props);
         render(Page);

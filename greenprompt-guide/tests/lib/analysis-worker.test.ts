@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { analyzeRequestWithOllama } from "@/lib/ollama-client";
 import { extractTextFromPdf } from "@/lib/pdf-extract";
 import { setAnalysisStep } from "@/domain/collaboration-request-repository";
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach, Mock } from "vitest";
 import { act } from "react";
 
 // Mock dependencies with safe default resolved values to prevent .then() crashes
@@ -23,13 +23,13 @@ vi.mock("@/lib/collaboration-request-storage");
 vi.mock("@/lib/pdf-extract");
 vi.mock("@/domain/collaboration-request-repository");
 
-const mockJobFindFirst = prisma.analysisJob.findFirst as jest.Mock;
-const mockJobUpdateMany = prisma.analysisJob.updateMany as jest.Mock;
-const mockJobUpdate = prisma.analysisJob.update as jest.Mock;
-const mockRequestFindUnique = prisma.collaborationRequest.findUnique as jest.Mock;
-const mockAnalyze = analyzeRequestWithOllama as jest.Mock;
-const mockExtract = extractTextFromPdf as jest.Mock;
-const mockSetStep = setAnalysisStep as jest.Mock;
+const mockJobFindFirst = prisma.analysisJob.findFirst as Mock;
+const mockJobUpdateMany = prisma.analysisJob.updateMany as Mock;
+const mockJobUpdate = prisma.analysisJob.update as Mock;
+const mockRequestFindUnique = prisma.collaborationRequest.findUnique as Mock;
+const mockAnalyze = analyzeRequestWithOllama as Mock;
+const mockExtract = extractTextFromPdf as Mock;
+const mockSetStep = setAnalysisStep as Mock;
 
 async function getWorker() {
     return (await import("@/lib/analysis-worker")).startAnalysisWorker;

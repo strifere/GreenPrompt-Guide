@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { ModelForm } from "@/app/admin/models/model-form";
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 
 vi.mock("next/navigation", () => ({
   useRouter: vi.fn(() => ({
@@ -16,7 +16,6 @@ vi.mock("@/lib/admin-actions-client", () => ({
 }));
 
 vi.mock("@/app/admin/base-entity-form", async () => {
-  const { useState } = await vi.importActual("react");
   return {
     BaseEntityForm: ({
       title,

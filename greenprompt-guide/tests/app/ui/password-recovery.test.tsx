@@ -17,7 +17,7 @@ describe("PasswordRecoveryModal", () => {
         }
       }
 
-      return 1 as unknown as number;
+      return 1 as any;
     });
     clearIntervalMock = vi.spyOn(globalThis, "clearInterval").mockImplementation(() => undefined);
   });

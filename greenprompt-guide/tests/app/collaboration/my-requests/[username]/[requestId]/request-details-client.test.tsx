@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
 import RequestDetailsClient from "@/app/collaboration/my-requests/[username]/[requestId]/request-details-client";
 
 const routerPushMock = vi.fn();
@@ -73,7 +73,7 @@ describe("RequestDetailsClient", () => {
 
         fireEvent.change(input, { target: { value: "New Title" } });
 
-        (globalThis.fetch as vi.Mock).mockResolvedValueOnce({
+        (globalThis.fetch as Mock).mockResolvedValueOnce({
             ok: true,
             json: () => Promise.resolve({ request: { ...mockRequest, practiceTitle: "New Title" } }),
         });
@@ -95,7 +95,7 @@ describe("RequestDetailsClient", () => {
     });
     
     it("should handle error on field save", async () => {
-        (globalThis.fetch as vi.Mock).mockResolvedValueOnce({
+        (globalThis.fetch as Mock).mockResolvedValueOnce({
             ok: false,
             json: () => Promise.resolve({ error: "Failed to save" }),
         });
@@ -143,7 +143,7 @@ describe("RequestDetailsClient", () => {
 
         fireEvent.change(reasonTextarea, { target: { value: "Not good enough" } });
 
-        (globalThis.fetch as vi.Mock).mockResolvedValueOnce({
+        (globalThis.fetch as Mock).mockResolvedValueOnce({
             ok: true,
             json: () => Promise.resolve({ request: { ...mockRequest, status: "DENIED", rejectionReason: "Not good enough" } }),
         });
@@ -176,7 +176,7 @@ describe("RequestDetailsClient", () => {
         const messageTextarea = screen.getByLabelText("Message to requester");
         fireEvent.change(messageTextarea, { target: { value: "Need more details" } });
 
-        (globalThis.fetch as vi.Mock).mockResolvedValueOnce({
+        (globalThis.fetch as Mock).mockResolvedValueOnce({
             ok: true,
             json: () => Promise.resolve({ request: { ...mockRequest, status: "REQUESTED_MORE_INFO" } }),
         });
@@ -192,7 +192,7 @@ describe("RequestDetailsClient", () => {
         const deniedRequest = { ...mockRequest, status: "DENIED" };
         render(<RequestDetailsClient request={deniedRequest} currentUsername="admin" currentUserRole="ADMIN" />);
         
-        (globalThis.fetch as vi.Mock).mockResolvedValueOnce({
+        (globalThis.fetch as Mock).mockResolvedValueOnce({
             ok: true,
             json: () => Promise.resolve({ request: { ...mockRequest, status: "PENDING" } }),
         });

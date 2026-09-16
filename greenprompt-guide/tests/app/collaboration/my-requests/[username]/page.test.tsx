@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
 import MyRequestsPage from "@/app/collaboration/my-requests/[username]/page";
 import { getSession } from "@/lib/session";
 import { listCollaborationRequestsByRequesterUsername } from "@/domain/collaboration-request-repository";
@@ -17,16 +17,16 @@ describe("MyRequestsPage", () => {
     });
 
     it("should redirect to /login if user is not authenticated", async () => {
-        (getSession as vi.Mock).mockResolvedValue(null);
-        const props = { params: { username: "testuser" } };
+        (getSession as Mock).mockResolvedValue(null);
+        const props = { params: Promise.resolve({ username: "testuser" }) };
         
         await expect(MyRequestsPage(props)).rejects.toThrow("Redirected");
         expect(redirect).toHaveBeenCalledWith("/login");
     });
 
     it("should redirect to the logged-in user's page if trying to access another user's page", async () => {
-        (getSession as vi.Mock).mockResolvedValue("currentUser");
-        const props = { params: { username: "anotherUser" } };
+        (getSession as Mock).mockResolvedValue("currentUser");
+        const props = { params: Promise.resolve({ username: "anotherUser" }) };
         
         await expect(MyRequestsPage(props)).rejects.toThrow("Redirected");
         expect(redirect).toHaveBeenCalledWith("/collaboration/my-requests/currentUser");
@@ -38,9 +38,9 @@ describe("MyRequestsPage", () => {
             { id: 1, practiceTitle: "Request 1", practiceSummary: "Summary 1", status: "PENDING", createdAt: new Date(), updatedAt: new Date() },
             { id: 2, practiceTitle: "Request 2", practiceSummary: "Summary 2", status: "APPROVED", createdAt: new Date(), updatedAt: new Date() },
         ];
-        (getSession as vi.Mock).mockResolvedValue(username);
-        (listCollaborationRequestsByRequesterUsername as vi.Mock).mockResolvedValue(requests);
-        const props = { params: { username } };
+        (getSession as Mock).mockResolvedValue(username);
+        (listCollaborationRequestsByRequesterUsername as Mock).mockResolvedValue(requests);
+        const props = { params: Promise.resolve({ username }) };
 
         const Page = await MyRequestsPage(props);
         render(Page);
@@ -56,9 +56,9 @@ describe("MyRequestsPage", () => {
 
     it("should display an empty state message if there are no requests", async () => {
         const username = "testuser";
-        (getSession as vi.Mock).mockResolvedValue(username);
-        (listCollaborationRequestsByRequesterUsername as vi.Mock).mockResolvedValue([]);
-        const props = { params: { username } };
+        (getSession as Mock).mockResolvedValue(username);
+        (listCollaborationRequestsByRequesterUsername as Mock).mockResolvedValue([]);
+        const props = { params: Promise.resolve({ username }) };
 
         const Page = await MyRequestsPage(props);
         render(Page);

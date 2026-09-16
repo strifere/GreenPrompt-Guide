@@ -1,5 +1,5 @@
 
-import { vi, describe, it, expect, beforeEach } from "vitest";
+import { vi, describe, it, expect, beforeEach, Mock } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { AdminUserActions } from "@/app/admin/users/admin-user-actions";
 import { useRouter } from "next/navigation";
@@ -17,7 +17,7 @@ describe("AdminUserActions", () => {
     
     beforeEach(() => {
         vi.resetAllMocks();
-        (useRouter as vi.Mock).mockReturnValue(mockRouter);
+        (useRouter as Mock).mockReturnValue(mockRouter);
     });
 
     const defaultProps = {
@@ -74,7 +74,7 @@ describe("AdminUserActions", () => {
     });
 
     it("submits ban request and refreshes router on success", async () => {
-        (fetch as vi.Mock).mockResolvedValue({ ok: true });
+        (fetch as Mock).mockResolvedValue({ ok: true });
         render(<AdminUserActions {...defaultProps} />);
 
         fireEvent.click(screen.getByRole("button", { name: "Ban" }));
@@ -98,7 +98,7 @@ describe("AdminUserActions", () => {
     });
 
     it("submits delete request and refreshes router on success", async () => {
-        (fetch as vi.Mock).mockResolvedValue({ ok: true });
+        (fetch as Mock).mockResolvedValue({ ok: true });
         render(<AdminUserActions {...defaultProps} />);
 
         fireEvent.click(screen.getByRole("button", { name: "Delete" }));
@@ -116,7 +116,7 @@ describe("AdminUserActions", () => {
     });
 
     it("shows an error message on failed submission", async () => {
-        (fetch as vi.Mock).mockResolvedValue({
+        (fetch as Mock).mockResolvedValue({
              ok: false,
              json: async () => ({ error: "Server error" })
         });

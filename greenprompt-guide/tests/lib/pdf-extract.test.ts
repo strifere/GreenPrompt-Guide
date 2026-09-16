@@ -1,14 +1,14 @@
 import { extractTextFromPdf } from "@/lib/pdf-extract";
 import { pdfToImg } from "pdftoimg-js";
 import { GlobalWorkerOptions } from "pdfjs-dist/legacy/build/pdf.mjs";
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, Mock } from "vitest";
 
 // Mock the external library
 vi.mock("pdftoimg-js", () => ({
   pdfToImg: vi.fn(),
 }));
 
-const mockPdfToImg = pdfToImg as jest.Mock;
+const mockPdfToImg = pdfToImg as Mock;
 
 describe("pdf-extract", () => {
   it("should call pdfToImg with the correct parameters", async () => {

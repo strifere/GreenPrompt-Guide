@@ -13,8 +13,9 @@ import {
   findExistingJob,
   setAnalysisStep,
 } from "@/domain/collaboration-request-repository";
-import { describe, it, expect, vi } from "vitest";
-import { AnalysisStep } from "@prisma/client";
+import { describe, it, expect, vi, Mock } from "vitest";
+import { AnalysisStep, CollaborationRequestMessageType, CollaborationRequestStatus } from "@prisma/client";
+import { CreateCollaborationRequestMessageInput } from "@/domain/collaboration-request-repository";
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
@@ -54,7 +55,7 @@ describe("collaboration-request-repository", () => {
   };
 
   it("should create a collaboration request", async () => {
-    const createMock = prisma.collaborationRequest.create as jest.Mock;
+    const createMock = prisma.collaborationRequest.create as Mock;
     createMock.mockResolvedValue(mockRequest);
     const { id: _id, ...restOfMockRequest } = mockRequest;
     await createCollaborationRequest(restOfMockRequest);
@@ -74,7 +75,7 @@ describe("collaboration-request-repository", () => {
   });
 
   it("should get a collaboration request by ID", async () => {
-    const findUniqueMock = prisma.collaborationRequest.findUnique as jest.Mock;
+    const findUniqueMock = prisma.collaborationRequest.findUnique as Mock;
     findUniqueMock.mockResolvedValue(mockRequest);
     await getCollaborationRequestById(1);
     expect(prisma.collaborationRequest.findUnique).toHaveBeenCalledWith(
@@ -83,7 +84,7 @@ describe("collaboration-request-repository", () => {
   });
 
   it("should get collaboration request details by ID", async () => {
-    const findUniqueMock = prisma.collaborationRequest.findUnique as jest.Mock;
+    const findUniqueMock = prisma.collaborationRequest.findUnique as Mock;
     findUniqueMock.mockResolvedValue(mockRequest);
     await getCollaborationRequestDetailsById(1);
     expect(prisma.collaborationRequest.findUnique).toHaveBeenCalledWith(
@@ -93,7 +94,7 @@ describe("collaboration-request-repository", () => {
 
   describe("updateCollaborationRequestById", () => {
     it("should update a collaboration request with a single field", async () => {
-        const updateMock = prisma.collaborationRequest.update as jest.Mock;
+        const updateMock = prisma.collaborationRequest.update as Mock;
         updateMock.mockResolvedValue({ ...mockRequest, practiceTitle: "New Title" });
         await updateCollaborationRequestById({ id: 1, practiceTitle: "New Title" });
         expect(prisma.collaborationRequest.update).toHaveBeenCalledWith(
@@ -105,7 +106,7 @@ describe("collaboration-request-repository", () => {
     });
 
     it("should update a collaboration request with multiple fields", async () => {
-        const updateMock = prisma.collaborationRequest.update as jest.Mock;
+        const updateMock = prisma.collaborationRequest.update as Mock;
         updateMock.mockResolvedValue({ ...mockRequest, practiceTitle: "New Title", practiceSummary: "New Summary" });
         await updateCollaborationRequestById({ id: 1, practiceTitle: "New Title", practiceSummary: "New Summary" });
         expect(prisma.collaborationRequest.update).toHaveBeenCalledWith(
@@ -117,7 +118,7 @@ describe("collaboration-request-repository", () => {
     });
 
     it("should not include undefined fields in the update", async () => {
-        const updateMock = prisma.collaborationRequest.update as jest.Mock;
+        const updateMock = prisma.collaborationRequest.update as Mock;
         updateMock.mockResolvedValue(mockRequest);
         await updateCollaborationRequestById({ id: 1, practiceTitle: undefined });
         expect(prisma.collaborationRequest.update).toHaveBeenCalledWith(
@@ -129,7 +130,7 @@ describe("collaboration-request-repository", () => {
     });
 
     it("should handle null fields", async () => {
-        const updateMock = prisma.collaborationRequest.update as jest.Mock;
+        const updateMock = prisma.collaborationRequest.update as Mock;
         updateMock.mockResolvedValue({ ...mockRequest, practiceExamples: null });
         await updateCollaborationRequestById({ id: 1, practiceExamples: null });
         expect(prisma.collaborationRequest.update).toHaveBeenCalledWith(
@@ -143,7 +144,7 @@ describe("collaboration-request-repository", () => {
 
   describe("updateCollaborationRequestStatusById", () => {
     it("should update status with a single field", async () => {
-        const updateMock = prisma.collaborationRequest.update as jest.Mock;
+        const updateMock = prisma.collaborationRequest.update as Mock;
         updateMock.mockResolvedValue({ ...mockRequest, status: "APPROVED" });
         await updateCollaborationRequestStatusById({ id: 1, status: "APPROVED" });
         expect(prisma.collaborationRequest.update).toHaveBeenCalledWith(
@@ -155,19 +156,19 @@ describe("collaboration-request-repository", () => {
     });
 
     it("should update status with multiple fields", async () => {
-        const updateMock = prisma.collaborationRequest.update as jest.Mock;
+        const updateMock = prisma.collaborationRequest.update as Mock;
         updateMock.mockResolvedValue({ ...mockRequest, status: "REJECTED", rejectionReason: "Bad" });
-        await updateCollaborationRequestStatusById({ id: 1, status: "REJECTED", rejectionReason: "Bad" });
+        await updateCollaborationRequestStatusById({ id: 1, status: CollaborationRequestStatus.DENIED, rejectionReason: "Bad" });
         expect(prisma.collaborationRequest.update).toHaveBeenCalledWith(
         expect.objectContaining({
             where: { id: 1 },
-            data: { status: "REJECTED", rejectionReason: "Bad" },
+            data: { status: "DENIED", rejectionReason: "Bad" },
         })
         );
     });
 
     it("should not include undefined status fields in the update", async () => {
-        const updateMock = prisma.collaborationRequest.update as jest.Mock;
+        const updateMock = prisma.collaborationRequest.update as Mock;
         updateMock.mockResolvedValue(mockRequest);
         await updateCollaborationRequestStatusById({ id: 1, status: undefined });
         expect(prisma.collaborationRequest.update).toHaveBeenCalledWith(
@@ -179,7 +180,7 @@ describe("collaboration-request-repository", () => {
     });
 
     it("should handle null status fields", async () => {
-        const updateMock = prisma.collaborationRequest.update as jest.Mock;
+        const updateMock = prisma.collaborationRequest.update as Mock;
         updateMock.mockResolvedValue({ ...mockRequest, reviewerUsername: null });
         await updateCollaborationRequestStatusById({ id: 1, reviewerUsername: null });
         expect(prisma.collaborationRequest.update).toHaveBeenCalledWith(
@@ -192,14 +193,14 @@ describe("collaboration-request-repository", () => {
   });
 
   it("should create a collaboration request message", async () => {
-    const message = {
+    const message : CreateCollaborationRequestMessageInput= {
       requestId: 1,
       authorUsername: "user",
       authorRole: "USER",
-      type: "MESSAGE",
+      type: CollaborationRequestMessageType.NOTE,
       message: "Hello",
     };
-    const createMock = prisma.collaborationRequestMessage.create as jest.Mock;
+    const createMock = prisma.collaborationRequestMessage.create as Mock;
     createMock.mockResolvedValue(message);
     await createCollaborationRequestMessage(message);
     expect(prisma.collaborationRequestMessage.create).toHaveBeenCalledWith(
@@ -208,7 +209,7 @@ describe("collaboration-request-repository", () => {
   });
 
   it("should mark a message as read", async () => {
-    const updateMock = prisma.collaborationRequestMessage.update as jest.Mock;
+    const updateMock = prisma.collaborationRequestMessage.update as Mock;
     updateMock.mockResolvedValue({ id: 1, readAt: new Date() });
     await markCollaborationRequestMessageAsRead(1);
     expect(prisma.collaborationRequestMessage.update).toHaveBeenCalledWith(
@@ -220,14 +221,14 @@ describe("collaboration-request-repository", () => {
   });
 
   it("should delete a collaboration request by ID", async () => {
-    const deleteMock = prisma.collaborationRequest.delete as jest.Mock;
+    const deleteMock = prisma.collaborationRequest.delete as Mock;
     deleteMock.mockResolvedValue(undefined);
     await deleteCollaborationRequestById(1);
     expect(prisma.collaborationRequest.delete).toHaveBeenCalledWith({ where: { id: 1 } });
   });
 
   it("should list requests by requester username", async () => {
-    const findManyMock = prisma.collaborationRequest.findMany as jest.Mock;
+    const findManyMock = prisma.collaborationRequest.findMany as Mock;
     findManyMock.mockResolvedValue([mockRequest]);
     await listCollaborationRequestsByRequesterUsername("testuser");
     expect(prisma.collaborationRequest.findMany).toHaveBeenCalledWith(
@@ -236,7 +237,7 @@ describe("collaboration-request-repository", () => {
   });
 
   it("should list all collaboration requests", async () => {
-    const findManyMock = prisma.collaborationRequest.findMany as jest.Mock;
+    const findManyMock = prisma.collaborationRequest.findMany as Mock;
     findManyMock.mockResolvedValue([mockRequest]);
     await listAllCollaborationRequests();
     expect(prisma.collaborationRequest.findMany).toHaveBeenCalled();
@@ -244,7 +245,7 @@ describe("collaboration-request-repository", () => {
 
   describe("findExistingJob", () => {
     it("should find an existing analysis job", async () => {
-      const findUniqueMock = prisma.analysisJob.findUnique as jest.Mock;
+      const findUniqueMock = prisma.analysisJob.findUnique as Mock;
       findUniqueMock.mockResolvedValue({ status: "PENDING" });
       await findExistingJob(1);
       expect(prisma.analysisJob.findUnique).toHaveBeenCalledWith({
@@ -263,7 +264,7 @@ describe("collaboration-request-repository", () => {
       [5, AnalysisStep.FINISHED],
       ["end", AnalysisStep.FINISHED],
     ])("should set analysis step for step %s", async (step, expected) => {
-      const updateMock = prisma.analysisJob.update as jest.Mock;
+      const updateMock = prisma.analysisJob.update as Mock;
       await setAnalysisStep(1, step);
       expect(updateMock).toHaveBeenCalledWith({
         where: { requestId: 1 },

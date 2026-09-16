@@ -3,11 +3,13 @@ import {
     normalizeAdminPracticeUpdatePayload,
     createAdminPractice,
     updateAdminPractice,
+    AdminPracticePayload,
+    AdminPracticeUpdatePayload,
   } from "@/lib/admin-practice-creation";
   import { describe, it, expect, vi } from "vitest";
   
   describe("admin-practice-creation", () => {
-    const validPracticePayload = {
+    const validPracticePayload : AdminPracticePayload = {
       practice: {
         name: "Test Practice",
         description: "A description",
@@ -79,7 +81,7 @@ import {
       });
     });
   
-    const validUpdatePayload = {
+    const validUpdatePayload : AdminPracticeUpdatePayload = {
       practice: {
         name: "Test Practice",
         description: "A description",

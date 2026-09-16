@@ -5,7 +5,7 @@ import {
   deletePractice,
   listSidebarData,
 } from "@/domain/practice-repository";
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, Mock } from "vitest";
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
@@ -39,7 +39,7 @@ describe("practice-repository", () => {
       const mockPractices = [
         { id: 1, name: "Practice 1", description: "Description 1" },
       ];
-      const prismaMock = prisma.practice.findMany as jest.Mock;
+      const prismaMock = prisma.practice.findMany as Mock;
       prismaMock.mockResolvedValue(mockPractices);
       const practices = await listPractices();
       expect(prisma.practice.findMany).toHaveBeenCalled();
@@ -54,7 +54,7 @@ describe("practice-repository", () => {
         name: "Test Practice",
         description: "Test Description",
       };
-      const prismaMock = prisma.practice.findUnique as jest.Mock;
+      const prismaMock = prisma.practice.findUnique as Mock;
       prismaMock.mockResolvedValue(mockPractice);
       const practice = await getPracticeByName("Test Practice");
       expect(prisma.practice.findUnique).toHaveBeenCalledWith(
@@ -66,7 +66,7 @@ describe("practice-repository", () => {
     });
 
     it("should return null when an invalid name is provided", async () => {
-      const prismaMock = prisma.practice.findUnique as jest.Mock;
+      const prismaMock = prisma.practice.findUnique as Mock;
       prismaMock.mockResolvedValue(null);
       const practice = await getPracticeByName("Invalid Practice");
       expect(prisma.practice.findUnique).toHaveBeenCalledWith(
@@ -80,7 +80,7 @@ describe("practice-repository", () => {
 
   describe("deletePractice", () => {
     it("should call prisma.practice.delete with the correct name", async () => {
-      const prismaMock = prisma.practice.delete as jest.Mock;
+      const prismaMock = prisma.practice.delete as Mock;
       prismaMock.mockResolvedValue(undefined);
       await deletePractice("Test Practice");
       expect(prisma.practice.delete).toHaveBeenCalledWith({
@@ -98,7 +98,7 @@ describe("practice-repository", () => {
         [{ name: "Hyperparameter 1", tooltip: undefined }],
         [{ name: "Dataset 1", tooltip: undefined }],
       ];
-      const prismaMock = prisma.$transaction as jest.Mock;
+      const prismaMock = prisma.$transaction as Mock;
       prismaMock.mockResolvedValue(mockData);
 
       const sidebarData = await listSidebarData();

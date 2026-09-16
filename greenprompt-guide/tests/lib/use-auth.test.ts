@@ -1,6 +1,6 @@
 
 import { renderHook, waitFor, act } from "@testing-library/react";
-import { vi } from "vitest";
+import { beforeEach, describe, expect, it, Mock, vi } from "vitest";
 import { useAuth } from "@/lib/use-auth";
 import { usePathname } from "next/navigation";
 
@@ -15,11 +15,11 @@ global.fetch = vi.fn();
 describe("useAuth", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    (usePathname as vi.Mock).mockReturnValue("/some-path");
+    (usePathname as Mock).mockReturnValue("/some-path");
   });
 
   it("should return loading true initially", () => {
-    (fetch as vi.Mock).mockResolvedValueOnce({
+    (fetch as Mock).mockResolvedValueOnce({
       ok: true,
       json: async () => ({ user: { username: "test", role: "user" } }),
     });
@@ -29,7 +29,7 @@ describe("useAuth", () => {
 
   it("should return user when authenticated", async () => {
     const mockUser = { username: "test", role: "user" };
-    (fetch as vi.Mock).mockResolvedValueOnce({
+    (fetch as Mock).mockResolvedValueOnce({
       ok: true,
       json: async () => ({ user: mockUser }),
     });
@@ -43,7 +43,7 @@ describe("useAuth", () => {
   });
 
   it("should return null when not authenticated", async () => {
-    (fetch as vi.Mock).mockResolvedValueOnce({
+    (fetch as Mock).mockResolvedValueOnce({
       ok: false,
     });
 
@@ -56,7 +56,7 @@ describe("useAuth", () => {
   });
 
   it("should handle fetch throwing an error", async () => {
-    (fetch as vi.Mock).mockRejectedValueOnce(new Error("Network error"));
+    (fetch as Mock).mockRejectedValueOnce(new Error("Network error"));
 
     const { result } = renderHook(() => useAuth());
 
@@ -70,7 +70,7 @@ describe("useAuth", () => {
     const mockUser1 = { username: "test1", role: "user" };
     const mockUser2 = { username: "test2", role: "admin" };
 
-    (fetch as vi.Mock).mockResolvedValueOnce({
+    (fetch as Mock).mockResolvedValueOnce({
       ok: true,
       json: async () => ({ user: mockUser1 }),
     });
@@ -81,7 +81,7 @@ describe("useAuth", () => {
       expect(result.current.user).toEqual(mockUser1);
     });
 
-    (fetch as vi.Mock).mockResolvedValueOnce({
+    (fetch as Mock).mockResolvedValueOnce({
       ok: true,
       json: async () => ({ user: mockUser2 }),
     });
@@ -99,7 +99,7 @@ describe("useAuth", () => {
   it("should normalize user correctly when user is a string", async () => {
     const mockResponse = { user: "testuser", role: "editor" };
     const expectedUser = { username: "testuser", role: "editor" };
-    (fetch as vi.Mock).mockResolvedValueOnce({
+    (fetch as Mock).mockResolvedValueOnce({
         ok: true,
         json: async () => mockResponse,
       });
@@ -114,7 +114,7 @@ describe("useAuth", () => {
 
   it("should return null if role is not a string when normalizing", async () => {
     const mockResponse = { user: "testuser", role: null };
-    (fetch as vi.Mock).mockResolvedValueOnce({
+    (fetch as Mock).mockResolvedValueOnce({
         ok: true,
         json: async () => mockResponse,
       });
@@ -129,7 +129,7 @@ describe("useAuth", () => {
 
   it("should return null if user object is invalid", async () => {
     const mockResponse = { user: { name: "test" }, role: "user" }; // Invalid user object
-    (fetch as vi.Mock).mockResolvedValueOnce({
+    (fetch as Mock).mockResolvedValueOnce({
         ok: true,
         json: async () => mockResponse,
       });

@@ -1,18 +1,19 @@
 import { analyzeRequestWithOllama } from "@/lib/ollama-client";
 import { setAnalysisStep } from "@/domain/collaboration-request-repository";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
 
 // Mock dependencies
 vi.mock("@/domain/collaboration-request-repository");
 const mockOllamaGenerate = vi.fn();
 vi.mock("ollama", () => {
-    return {
-        Ollama: vi.fn().mockImplementation(class {
-            generate = mockOllamaGenerate;
-        }),
+    class MockOllamaClient {
+        generate = mockOllamaGenerate;
     }
+    return {
+        Ollama: MockOllamaClient // Export the mocked class
+    };
 });
-const mockSetAnalysisStep = setAnalysisStep as jest.Mock;
+const mockSetAnalysisStep = setAnalysisStep as Mock;
 
 describe("ollama-client", () => {
   beforeEach(() => {
@@ -104,7 +105,7 @@ Output exactly this JSON structure:
     expect(result.reference.title).toBe("Ref 1");
     expect(result.models[0].name).toBe("Model 1");
     expect(result.metrics.genericMetrics[0].title).toBe("GM1");
-    expect(result.examples.length).toBe(1);
+    expect(result.examples).toHaveLength(1);
     expect(result.examples[0].scenario).toBe("S1");
   });
 

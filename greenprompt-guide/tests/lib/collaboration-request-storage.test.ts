@@ -1,5 +1,6 @@
 
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import path from "node:path";
 import {
     getCollaborationPdfStorageDir,
     getCollaborationPdfStoragePath,
@@ -41,18 +42,15 @@ describe("collaboration-request-storage", () => {
         it("should correctly join the storage directory and the relative path", () => {
             delete process.env.COLLABORATION_PDF_STORAGE_DIR;
             const storagePath = getCollaborationPdfStoragePath("file.pdf");
-            // path.join will use the separator for the OS, so we check for both
-            expect(storagePath).toMatch(
-                /(\/data\/uploads\/collaboration-requests\/file\.pdf|\data\uploads\collaboration-requests\file\.pdf)/
+            expect(storagePath).toBe(
+                path.join("/data/uploads/collaboration-requests", "file.pdf")
             );
         });
 
         it("should use the custom storage directory for joining", () => {
             process.env.COLLABORATION_PDF_STORAGE_DIR = "/custom/dir";
             const storagePath = getCollaborationPdfStoragePath("another/file.pdf");
-            expect(storagePath).toMatch(
-                /(\/custom\/dir\/another\/file\.pdf|\custom\dir\another\file\.pdf)/
-            );
+            expect(storagePath).toBe(path.join("/custom/dir", "another/file.pdf"));
         });
     });
 
